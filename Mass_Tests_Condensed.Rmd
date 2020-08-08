@@ -4453,6 +4453,7 @@ alpha_pref=optimize(fun_optim_prx_comb,
                       opt_or_dur = 'optimize',
                       interval   = c(-100,200))
 
+
 alpha_smallt=optimize(fun_optim_prx_comb,
                       masses     = masses,
                       mvttimes   = mvttimes_smallt,
@@ -4470,6 +4471,31 @@ alpha_pref=optimize(fun_optim_prx_logit_comb,
                       rxtimes    = c(rxtimes_pref,rxtimes_smallt),
                       opt_or_dur = 'optimize',
                       interval   = c(-100,200))
+
+# Gross
+a=coef(MPGross_model)[1]
+b=coef(MPGross_model)[2]*100
+c=coef(MPGross_model)[3]
+d=coef(MPGross_model)[4]
+util_dur_pref_alpha_comb_gross = as.numeric(fun_optim_prx_logit_comb(alpha_pref$minimum,
+                                       masses = masses,
+                                       mvttimes = mvttimes,
+                                       glm1       = met_p_glm,
+                                       glm2       = smallt_p_glm,
+                                       opt_or_dur = 'duration',
+                                       rxtimes = rxtimes))
+# Net
+a=coef(MPNet_model)[1]
+b=coef(MPNet_model)[2]
+c=coef(MPNet_model)[3]
+d=coef(MPNet_model)[4]
+util_dur_pref_alpha_comb_net = as.numeric(fun_optim_prx_logit_comb(alpha_pref$minimum,
+                                       masses = masses,
+                                       mvttimes = mvttimes,
+                                       glm1       = met_p_glm,
+                                       glm2       = smallt_p_glm,
+                                       opt_or_dur = 'duration',
+                                       rxtimes = rxtimes))
 
 alpha_smallt=optimize(fun_optim_prx_logit_comb,
                       masses     = masses,
@@ -4730,8 +4756,8 @@ model_durs = data.frame('eff_mass' = cbind(rep(masses,13)),
                                      util_dur_net,
                                      util_dur_gross_rx,
                                      util_dur_net_rx,
-                                     util_dur_comb_alpha_gross,
-                                     util_dur_comb_alpha_net,
+                                     util_dur_pref_alpha_comb_gross,
+                                     util_dur_pref_alpha_comb_net,
                                      m1_dur,
                                      m2_dur,
                                      torque_dur,
@@ -4749,7 +4775,6 @@ model_durs = data.frame('eff_mass' = cbind(rep(masses,13)),
                                       rep(2,4),
                                       rep(3,4),
                                       rep(13,4)))
-
 
 errbar = cbind(aggregate(movedur~eff_mass,prefdata,mean),aggregate(movedur~eff_mass,prefdata,sd)[2]/sqrt(8))
 colnames(errbar) = c('eff_mass','movedur','sd')
@@ -5028,8 +5053,8 @@ for (c in 1:4){
   util_peakvel_net[c] = min_jerk_vel(util_dur_net[c])
   util_peakvel_gross_rx[c] = min_jerk_vel(util_dur_gross_rx[c])
   util_peakvel_net_rx[c] = min_jerk_vel(util_dur_net_rx[c])
-  util_peakvel_comb_alpha_gross[c] = min_jerk_vel(util_dur_comb_alpha_gross[c])
-  util_peakvel_comb_alpha_net[c] = min_jerk_vel(util_dur_comb_alpha_net[c])
+  util_peakvel_comb_alpha_gross[c] = min_jerk_vel(util_dur_pref_alpha_comb_gross[c])
+  util_peakvel_comb_alpha_net[c] = min_jerk_vel(util_dur_pref_alpha_comb_net[c])
   m1_peakvel[c] = min_jerk_vel(m1_dur[c])
   m2_peakvel[c] = min_jerk_vel(m2_dur[c])
   torque_peakvel[c] = min_jerk_vel(torque_dur[c])
