@@ -3865,16 +3865,16 @@ The probability of reward that minimizes the error of predicted movement duratio
 # Utility Modeling
 
 ## Individual Utility
-This plot below shows individual subjects and their utility fits.
+This plot below shows individual subjects and their utility fits. This uses gross metabolics as the effort term.
 
 ```{r, echo = FALSE}
 
 a0 = mean(mpdata$metpowerrest)
 a0_se = sd(mpdata$metpowerrest)/sqrt(8)
-a=coef(MPNet_model)[1]
-b=coef(MPNet_model)[2]
-c=coef(MPNet_model)[3]
-d=coef(MPNet_model)[4]
+a=coef(MPGross_model)[1]
+b=coef(MPGross_model)[2]*100
+c=coef(MPGross_model)[3]
+d=coef(MPGross_model)[4]
 
 fun_optim_prx <- function(alpha,masses,mvttimes,p_alpha,rxtimes){
   err=0
@@ -3917,6 +3917,7 @@ fun_dur_prx <- function(alpha,masses,mvttimes,p_alpha,rxtimes){
   return(dur)
 }
 
+alphas = c()
 modeled <- data.frame(subj=integer(),condition=factor(),eff_mass=double(),movedur=double(),model=factor())
 for (subjn in 1:max(prefdata$subj)){
   masses   = eff_masses_pref[,subjn]
@@ -3935,6 +3936,8 @@ for (subjn in 1:max(prefdata$subj)){
                                 mvttimes = mvttimes,
                                 p_alpha  = p_alpha_pref,
                                 rxtimes  = rxtimes))
+  
+  alphas = c(alphas,test$minimum)
   
   modeled = rbind(modeled,cbind(rep(subjn,4),
                                 c(1,2,3,4),
@@ -3973,6 +3976,8 @@ utility_ind <- ggplot()+
 # }
 
 ```
+
+The average fitted $\alpha$ value was `r round(mean(alphas),4)`.
 
 ```{r utilityind1, echo = FALSE, warning = FALSE, fig.width=9, fig.height=6, fig.cap = 'Utility fits by subject.'}
   utility_ind
