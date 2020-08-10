@@ -3291,16 +3291,16 @@ $$ \dot{e} = \frac{bm^c}{T_m^d} $$
 
 The parameters fit for the effort models are shown in table @\ref(tab:effort_prarms).
 
-The SSE for torque squared was `r sum(modelsum_torque2$residuals^2)`, AIC = `r AIC(torque2_model)`, BIC = `r BIC(torque2_model)`.
-The SSE for torque squared using minimum jerk was `r sum(modelsum_torque_mj$residuals^2)`, AIC = `r AIC(torque2_mj_model)`, BIC = `r BIC(torque2_mj_model)`.
-
 ## Torque Squared
 
 ```{r torqueplot1, echo = FALSE, warning = FALSE, message = FALSE, fig.cap = 'Sum of torque squared fits from the data'}
 torque_plot
 ```
 
-## Table for all effort model parameters
+The SSE for torque squared was `r sum(modelsum_torque2$residuals^2)`, AIC = `r AIC(torque2_model)`, BIC = `r BIC(torque2_model)`.
+The SSE for torque squared using minimum jerk was `r sum(modelsum_torque_mj$residuals^2)`, AIC = `r AIC(torque2_mj_model)`, BIC = `r BIC(torque2_mj_model)`.
+
+## Effort model parameters
 
 This table shows a summary of all the parameters that were fitted in the effort models. SSE, AIC, and BIC can be found in their respective sections.
 ```{r effort_prarms, echo = FALSE, warning = FALSE, message = FALSE}
@@ -3428,6 +3428,45 @@ kable(success_tab, caption = 'Success probabilities for experiment 2a and 2b. Al
 
 ```
 
+### Statistics on probability of success 2a
+
+```{r, echo = FALSE}
+ggplot()+geom_point(data=aggregate(success ~ eff_mass + subj, prefdata,mean),
+                    aes(x = eff_mass,
+                        y = success))+
+  geom_line(data=aggregate(success ~ eff_mass + subj, prefdata,mean),
+                  aes(x = eff_mass,
+                      y = success,
+                      color = factor(subj)))+
+  theme_classic()+
+  labs(x = 'Effective Mass',
+       y = 'Experimental Success',
+       color = 'Subject',
+       title = 'Experiment 2a')
+  
+cftest(lmer(success ~ eff_mass + (1|subj),data = aggregate(success ~ eff_mass + subj, prefdata,mean)))
+
+```
+
+### Statistics on probability of success 2b
+
+```{r, echo = FALSE}
+ggplot()+geom_point(data=aggregate(success ~ eff_mass + subj, smalltdata,mean),
+                    aes(x = eff_mass,
+                        y = success))+
+  geom_line(data=aggregate(success ~ eff_mass + subj, smalltdata,mean),
+                  aes(x = eff_mass,
+                      y = success,
+                      color = factor(subj)))+
+  theme_classic()+
+  labs(x = 'Effective Mass',
+       y = 'Experimental Success',
+       color = 'Subject',
+       title = 'Experiment 2b')
+
+cftest(lmer(success ~ eff_mass + (1|subj),data = aggregate(success ~ eff_mass + subj, smalltdata,mean)))
+
+```
 ## Probability of success using experiment 1
 ```{r, echo = FALSE}
 
