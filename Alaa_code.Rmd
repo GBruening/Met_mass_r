@@ -3990,17 +3990,16 @@ fun_optim_prx_logit <- function(alpha,masses,mvttimes,p_alpha,rxtimes,opt_or_dur
     m = masses[k]
     p = inv.logit(predict(p_alpha,data.frame(movedur=t,eff_mass=m)))
     rt = rxtimes[k]
-    count = 1
-    times = seq(0.1,2,0.001)
+    times = seq(0.5,2,0.001)
     ut = rep(0,length(times))
     probs = inv.logit(predict(p_alpha,data.frame(movedur=times,eff_mass=m)))
-    t_count = 0
+    count = 1
     for (t in times){
-    t_count = t_count+1
-      ut[count] = (alpha*probs[t_count]-a0*rt-(a*t+b*(m^c)/(t^(d-1))))/(rt+t)
+      ut[count] = (alpha*probs[count]-a0*rt-(a*t+b*(m^c)/(t^(d-1))))/(rt+t)
       count = count+1
     }
     dur[k] = times[which.max(ut)]
+    # print(probs[which.max(ut)])
   }
   err = (mvttimes-dur)^2
   if (opt_or_dur == 'optimize'){
@@ -4263,13 +4262,48 @@ fun_p_alpha <- function(miss_dist, min_dist){
   return(p_alpha)
 }
 
+fun_optim_prx_logit <- function(alpha,masses,mvttimes,p_alpha,rxtimes,opt_or_dur){
+  err=0
+  dur = rep(0,length(mvttimes))
+  for (k in 1:length(mvttimes)){
+    t = mvttimes[k]
+    m = masses[k]
+    p = inv.logit(predict(p_alpha,data.frame(movedur=t,eff_mass=m)))
+    rt = rxtimes[k]
+    times = seq(0.5,2,0.001)
+    ut = rep(0,length(times))
+    probs = inv.logit(predict(p_alpha,data.frame(movedur=times,eff_mass=m)))
+    count = 1
+    for (t in times){
+      ut[count] = (alpha*probs[count]-a0*rt-(a*t+b*(m^c)/(t^(d-1))))/(rt+t)
+      count = count+1
+    }
+    dur[k] = times[which.max(ut)]
+    # print(probs[which.max(ut)])
+  }
+  err = (mvttimes-dur)^2
+  if (opt_or_dur == 'optimize'){
+    return(sum(err))
+  } else if (opt_or_dur == 'duration'){
+    return(dur)
+  }
+}
+
 alpha_smallt=optimize(fun_optim_prx_logit,
                       masses     = masses,
                       mvttimes   = mvttimes_smallt,
                       p_alpha    = met_smallt_p_glm,
                       rxtimes    = rxtimes_smallt,
                       opt_or_dur = 'optimize',
-                      interval   = c(-100,1000000))
+                      interval   = c(-100,1e20))
+
+optimize(fun_optim_prx,
+         masses     = masses,
+         mvttimes   = mvttimes_smallt,
+         p_alpha    = p_alpha_smallt,
+         rxtimes    = rxtimes_smallt,
+         opt_or_dur = 'optimize',
+         interval   = c(-100,1000000))
 
 util_dur_smallt = as.numeric(fun_optim_prx_logit(alpha_smallt$minimum, #changing between alpha_pref and alpha_smallt
                                      masses   = masses,
@@ -4277,6 +4311,47 @@ util_dur_smallt = as.numeric(fun_optim_prx_logit(alpha_smallt$minimum, #changing
                                      p_alpha  = met_smallt_p_glm,
                                      rxtimes  = rxtimes_smallt,
                                      opt_or_dur = 'duration'))
+## Some test code
+masses   = masses
+mvttimes = mvttimes_smallt
+p_alpha  = met_smallt_p_glm
+rxtimes  = rxtimes_smallt
+dur = rep(0,length(mvttimes))
+dur2 = rep(0,length(mvttimes))
+k=1
+
+t = mvttimes[k]
+m = masses[k]
+p = inv.logit(predict(p_alpha,data.frame(movedur=t,eff_mass=m)))
+rt = rxtimes[k]
+count = 1
+times = seq(0.1,2,0.001)
+ut = rep(0,length(times))
+probs = inv.logit(predict(p_alpha,data.frame(movedur=times,eff_mass=m)))
+
+alpha    = 100
+for (t in times){
+  ut[count] = (alpha*probs[count]-a0*rt-(a*t+b*(m^c)/(t^(d-1))))/(rt+t)
+  count = count+1
+}
+dur[k] = times[which.max(ut)]
+plot(ut[500:length(ut)])
+
+
+alpha2    = 10000000
+ut2 = rep(0,length(times))
+count = 1
+for (t in times){
+  ut2[count] = (alpha2*probs[count]-a0*rt-(a*t+b*(m^c)/(t^(d-1))))/(rt+t)
+  count = count+1
+}
+dur2[k] = times[which.max(ut)]
+
+test_data = data.frame(cbind(c(rep(alpha,length(times)),rep(alpha2,length(times))),c(times,times),c(ut/max(ut),ut2/max(ut2))))
+colnames(test_data) = c('alpha','movedur','utility')
+ggplot()+geom_line(data=filter(test_data,utility>0),aes(x=movedur,y=utility,color=factor(alpha)))
+
+inv.logit(predict(p_alpha,data.frame(movedur=util_dur_smallt,eff_mass=masses)))
 
 # Pilot stuff
 masses = c(2.47,3.8,4.7,6.1)
