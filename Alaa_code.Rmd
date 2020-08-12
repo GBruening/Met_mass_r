@@ -3999,7 +3999,7 @@ fun_optim_prx_logit <- function(alpha,masses,mvttimes,p_alpha,rxtimes,opt_or_dur
       count = count+1
     }
     dur[k] = times[which.max(ut)]
-    # print(probs[which.max(ut)])
+    # print(max(ut))
   }
   err = (mvttimes-dur)^2
   if (opt_or_dur == 'optimize'){
@@ -4311,47 +4311,129 @@ util_dur_smallt = as.numeric(fun_optim_prx_logit(alpha_smallt$minimum, #changing
                                      p_alpha  = met_smallt_p_glm,
                                      rxtimes  = rxtimes_smallt,
                                      opt_or_dur = 'duration'))
-## Some test code
-masses   = masses
-mvttimes = mvttimes_smallt
-p_alpha  = met_smallt_p_glm
-rxtimes  = rxtimes_smallt
-dur = rep(0,length(mvttimes))
-dur2 = rep(0,length(mvttimes))
-k=1
-
-t = mvttimes[k]
-m = masses[k]
-p = inv.logit(predict(p_alpha,data.frame(movedur=t,eff_mass=m)))
-rt = rxtimes[k]
-count = 1
-times = seq(0.1,2,0.001)
-ut = rep(0,length(times))
-probs = inv.logit(predict(p_alpha,data.frame(movedur=times,eff_mass=m)))
-
-alpha    = 100
-for (t in times){
-  ut[count] = (alpha*probs[count]-a0*rt-(a*t+b*(m^c)/(t^(d-1))))/(rt+t)
-  count = count+1
-}
-dur[k] = times[which.max(ut)]
-plot(ut[500:length(ut)])
-
-
-alpha2    = 10000000
-ut2 = rep(0,length(times))
-count = 1
-for (t in times){
-  ut2[count] = (alpha2*probs[count]-a0*rt-(a*t+b*(m^c)/(t^(d-1))))/(rt+t)
-  count = count+1
-}
-dur2[k] = times[which.max(ut)]
-
-test_data = data.frame(cbind(c(rep(alpha,length(times)),rep(alpha2,length(times))),c(times,times),c(ut/max(ut),ut2/max(ut2))))
-colnames(test_data) = c('alpha','movedur','utility')
-ggplot()+geom_line(data=filter(test_data,utility>0),aes(x=movedur,y=utility,color=factor(alpha)))
-
-inv.logit(predict(p_alpha,data.frame(movedur=util_dur_smallt,eff_mass=masses)))
+# ## Some test code
+# # Using logit function
+# alpha_utility_gross_rx = optimize(fun_optim_prx_logit,
+#                                   masses     = masses,
+#                                   mvttimes   = mvttimes,
+#                                   p_alpha    = met_p_glm,
+#                                   rxtimes    = rxtimes,
+#                                   opt_or_dur = 'optimize',
+#                                   interval   = c(-100,300))
+# 
+# util_dur_gross_rx = as.numeric(fun_optim_prx_logit(
+#                                        alpha      = alpha_utility_gross_rx$minimum,
+#                                        masses     = masses,
+#                                        mvttimes   = mvttimes,
+#                                        p_alpha    = met_p_glm,
+#                                        opt_or_dur = 'duration',
+#                                        rxtimes    = rxtimes))
+# 
+# masses   = masses
+# 
+# masses = c(2.47,3.8,4.7,6.1)
+# mvttimes = aggregate(movedur~condition,prefdata,mean)$movedur
+# rxtimes = aggregate(reaction_tanv~condition,prefdata,mean)$reaction_tanv
+# p_alpha_pref = inv.logit(predict(met_p_glm,data.frame(movedur=mvttimes,eff_mass=masses)))
+# 
+# mvttimes_smallt = aggregate(movedur~condition,smalltdata,mean)$movedur
+# rxtimes_smallt = aggregate(reaction_tanv~eff_mass,smalltdata,mean)$reaction_tanv
+# p_alpha_smallt = inv.logit(predict(met_smallt_p_glm,data.frame(movedur=mvttimes_smallt,eff_mass=masses)))
+# 
+# mvttimes = mvttimes_smallt
+# p_alpha  = met_smallt_p_glm
+# rxtimes  = rxtimes_smallt
+# 
+# mvttimes   = mvttimes
+# p_alpha    = met_p_glm
+# rxtimes    = rxtimes
+# 
+# dur = rep(0,length(mvttimes))
+# dur2 = rep(0,length(mvttimes))
+# dur100 = rep(0,length(mvttimes))
+# k=1
+# 
+# m = masses[k]
+# rt = rxtimes[k]
+# count = 1
+# times = seq(0.4,2,0.001)
+# probs = inv.logit(predict(p_alpha,data.frame(movedur=times,eff_mass=m)))
+# 
+# alpha100  = 100
+# ut100 = rep(0,length(times))
+# count = 1
+# for (t in times){
+#   ut100[count] = (alpha100*probs[count]-a0*rt-(a*t+b*(m^c)/(t^(d-1))))/(rt+t)
+#   count = count+1
+# }
+# dur100 = times[which.max(ut100)]
+# p100 =  inv.logit(predict(p_alpha,data.frame(movedur=dur100,eff_mass=m)))
+# 
+# alpha2    = 1000
+# ut1000 = rep(0,length(times))
+# count = 1
+# for (t in times){
+#   ut1000[count] = (alpha*probs[count]-a0*rt-(a*t+b*(m^c)/(t^(d-1))))/(rt+t)
+#   count = count+1
+# }
+# dur1000 = times[which.max(ut1000)]
+# p1000 =  inv.logit(predict(p_alpha,data.frame(movedur=dur1000,eff_mass=m)))
+# 
+# alpha2    = 5000
+# ut5000 = rep(0,length(times))
+# count = 1
+# for (t in times){
+#   ut5000[count] = (alpha2*probs[count]-a0*rt-(a*t+b*(m^c)/(t^(d-1))))/(rt+t)
+#   count = count+1
+# }
+# dur5000 = times[which.max(ut5000)]
+# p5000 =  inv.logit(predict(p_alpha,data.frame(movedur=dur5000,eff_mass=m)))
+# 
+# test_data = data.frame(cbind(c(rep(alpha100,length(times)),
+#                                rep(alpha,length(times)),
+#                                rep(alpha2,length(times))),
+#                              c(times,times,times),
+#                              c((ut100+100)/max(ut100+100),
+#                                (ut1000+100)/(max(ut1000+100)),
+#                                (ut5000+100)/(max(ut5000+100)))))
+# 
+# colnames(test_data) = c('alpha','movedur','utility')
+# ggplot()+
+#   geom_line(data=filter(test_data),
+#             aes(x=movedur,
+#                 y=utility,
+#                 color=factor(alpha)),
+#             size = 2)+
+#   geom_segment(aes(x = times[which.max(ut100)],
+#                    y = 0,
+#                    xend = times[which.max(ut100)],
+#                    yend = 1))+
+#   annotate(geom = 'text',
+#            x = times[which.max(ut100)],
+#            y = 1.05,
+#            label = round(p100,4))+
+#   geom_segment(aes(x = times[which.max(ut1000)],
+#                    y = 0,
+#                    xend = times[which.max(ut1000)],
+#                    yend = 1))+
+#   annotate(geom = 'text',
+#            x = times[which.max(ut1000)],
+#            y = 1.1,
+#            label = round(p1000,4))+
+#   geom_segment(aes(x = times[which.max(ut5000)],
+#                    y = 0,
+#                    xend = times[which.max(ut5000)],
+#                    yend = 1))+
+#   annotate(geom = 'text',
+#            x = times[which.max(ut5000)],
+#            y = 1.15,
+#            label = round(p5000,4))+
+#   scale_y_continuous(expand = c(0, 0), limits = c(0, 1.20))+
+#   scale_x_continuous(expand = c(0, 0), limits = c(.4, 1.20))+
+#   labs(x='Movement Duration (s)',y='Utility',color='alpha',title='Experiment 2a')
+#   
+# 
+# inv.logit(predict(p_alpha,data.frame(movedur=util_dur_smallt,eff_mass=masses)))
 
 # Pilot stuff
 masses = c(2.47,3.8,4.7,6.1)
