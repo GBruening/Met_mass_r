@@ -4262,33 +4262,6 @@ fun_p_alpha <- function(miss_dist, min_dist){
   return(p_alpha)
 }
 
-fun_optim_prx_logit <- function(alpha,masses,mvttimes,p_alpha,rxtimes,opt_or_dur){
-  err=0
-  dur = rep(0,length(mvttimes))
-  for (k in 1:length(mvttimes)){
-    t = mvttimes[k]
-    m = masses[k]
-    p = inv.logit(predict(p_alpha,data.frame(movedur=t,eff_mass=m)))
-    rt = rxtimes[k]
-    times = seq(0.5,2,0.001)
-    ut = rep(0,length(times))
-    probs = inv.logit(predict(p_alpha,data.frame(movedur=times,eff_mass=m)))
-    count = 1
-    for (t in times){
-      ut[count] = (alpha*probs[count]-a0*rt-(a*t+b*(m^c)/(t^(d-1))))/(rt+t)
-      count = count+1
-    }
-    dur[k] = times[which.max(ut)]
-    # print(probs[which.max(ut)])
-  }
-  err = (mvttimes-dur)^2
-  if (opt_or_dur == 'optimize'){
-    return(sum(err))
-  } else if (opt_or_dur == 'duration'){
-    return(dur)
-  }
-}
-
 alpha_smallt=optimize(fun_optim_prx_logit,
                       masses     = masses,
                       mvttimes   = mvttimes_smallt,
