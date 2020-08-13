@@ -3797,11 +3797,15 @@ mvttimes_smallt = aggregate(movedur~condition,smalltdata,mean)$movedur
 prob_dur_opt <- function(p_thresh,mvttimes,exp_glm){
   prob_dur = c()
   for (mass in c(2.47,3.8,4.7,6.1)){
+    probs = inv.logit(predict(exp_glm,data.frame(movedur=seq(.3,1.5,.001),eff_mass=mass)))
+    dur_count = 1
     for (dur in seq(.3,1.5,.001)){
-      if (inv.logit(predict(exp_glm,data.frame(movedur=dur,eff_mass=mass)))>p_thresh){
+      if (probs[dur_count]>p_thresh){
         # print(paste('Movdur = ',dur,'. Mass = ',mass,sep=''))
         prob_dur = rbind(prob_dur,dur)
         break
+      } else{
+        dur_count = dur_count+1
       }
     }
   }
@@ -3812,11 +3816,15 @@ prob_dur_opt <- function(p_thresh,mvttimes,exp_glm){
 prob_dur_func <- function(p_thresh,exp_glm){
   prob_dur = c()
   for (mass in c(2.47,3.8,4.7,6.1)){
+    probs = inv.logit(predict(exp_glm,data.frame(movedur=seq(.3,1.5,.001),eff_mass=mass)))
+    dur_count = 1
     for (dur in seq(.3,1.5,.001)){
-      if (inv.logit(predict(exp_glm,data.frame(movedur=dur,eff_mass=mass)))>p_thresh){
+      if (probs[dur_count]>p_thresh){
         # print(paste('Movdur = ',dur,'. Mass = ',mass,sep=''))
         prob_dur = rbind(prob_dur,dur)
         break
+      } else{
+        dur_count = dur_count+1
       }
     }
   }
@@ -3825,21 +3833,21 @@ prob_dur_func <- function(p_thresh,exp_glm){
 
 prob_dur_p_thresh = optimize(prob_dur_opt,
                 mvttimes = mvttimes_pref,
-                exp_glm = pref_p_glm,
+                exp_glm = met_p_glm,
                 interval = c(.1,.999999))
 prob_dur_pref <- prob_dur_func(prob_dur_p_thresh$minimum,
-                               exp_glm = pref_p_glm)
+                               exp_glm = met_p_glm)
 
-pref_tab = cbind(c('2.47','3.8','4.7','6.1'),prob_dur_pref,round(mvttimes,3))
+pref_tab = cbind(c('2.47','3.8','4.7','6.1'),prob_dur_pref,round(mvttimes_pref,3))
 colnames(pref_tab) = c('Effective Mass (kg)','Predicted Duration','Preferred Duration')
 rownames(pref_tab) = c('','','','')
 
 prob_dur_p_thresh_smallt = optimize(prob_dur_opt,
                 mvttimes = mvttimes_smallt,
-                exp_glm = smallt_p_glm,
+                exp_glm = met_smallt_p_glm,
                 interval = c(.1,.999999))
 prob_dur_smallt <- prob_dur_func(prob_dur_p_thresh_smallt$minimum,
-                                 exp_glm = smallt_p_glm)
+                                 exp_glm = met_smallt_p_glm)
 
 smallt_tab = cbind(c('2.47','3.8','4.7','6.1'),prob_dur_smallt,round(mvttimes_smallt,3))
 colnames(smallt_tab) = c('Effective Mass (kg)','Predicted Duration','Preferred Duration')
