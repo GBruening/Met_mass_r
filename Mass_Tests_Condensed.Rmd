@@ -3919,11 +3919,11 @@ fun_dur_prx <- function(alpha,masses,mvttimes,p_alpha,rxtimes){
 
 alphas = c()
 modeled <- data.frame(subj=integer(),condition=factor(),eff_mass=double(),movedur=double(),model=factor())
-p_alpha_pref = inv.logit(predict(met_p_glm,data.frame(movedur=mvttimes,eff_mass=masses)))
 for (subjn in 1:max(prefdata$subj)){
   masses   = eff_masses_pref[,subjn]
   mvttimes = aggregate(movedur~condition,filter(prefdata,subj==subjn),mean)$movedur
   rxtimes = aggregate(reaction_tanv~condition,filter(prefdata,subj==subjn),mean)$reaction_tanv
+  p_alpha_pref = inv.logit(predict(met_p_glm,data.frame(movedur=mvttimes,eff_mass=masses)))
   
   test = optimize(fun_optim_prx,
                   masses   = masses,
@@ -4026,9 +4026,11 @@ met_gross_dur = c(optimize(fun.1,interval=c(0,2))$minimum,
 masses = c(2.47,3.8,4.7,6.1)
 mvttimes = aggregate(movedur~condition,prefdata,mean)$movedur
 rxtimes = aggregate(reaction_tanv~condition,prefdata,mean)$reaction_tanv
+p_alpha_pref = inv.logit(predict(met_p_glm,data.frame(movedur=mvttimes_pref,eff_mass=masses)))
 
 mvttimes_smallt = aggregate(movedur~condition,smalltdata,mean)$movedur
 rxtimes_smallt = aggregate(reaction_tanv~eff_mass,smalltdata,mean)$reaction_tanv
+p_alpha_smallt = inv.logit(predict(met_smallt_p_glm,data.frame(movedur=mvttimes_smallt,eff_mass=masses)))
 
 a0 = mean(mpdata$metpowerrest)
 a0_se = sd(mpdata$metpowerrest)/sqrt(8)
@@ -4384,13 +4386,13 @@ alpha_smallt = optimize(fun_optim_prx_logit,
                       opt_or_dur = 'optimize',
                       interval   = c(-100,1000))
 
-optimize(fun_optim_prx,
-         masses     = masses,
-         mvttimes   = mvttimes_smallt,
-         p_alpha    = p_alpha_smallt,
-         rxtimes    = rxtimes_smallt,
-         opt_or_dur = 'optimize',
-         interval   = c(-100,1000000))
+# optimize(fun_optim_prx,
+#          masses     = masses,
+#          mvttimes   = mvttimes_smallt,
+#          p_alpha    = p_alpha_smallt,
+#          rxtimes    = rxtimes_smallt,
+#          opt_or_dur = 'optimize',
+#          interval   = c(-100,1000))
 
 util_dur_smallt = as.numeric(fun_optim_prx_logit(alpha_smallt$minimum, #changing between alpha_pref and alpha_smallt
                                      masses   = masses,
