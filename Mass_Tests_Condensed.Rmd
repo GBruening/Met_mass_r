@@ -4083,19 +4083,19 @@ util_dur_net = as.numeric(fun_dur_prx(alpha_utility_gross$minimum,
 fun_optim_prx <- function(alpha,masses,mvttimes,p_alpha,rxtimes,opt_or_dur){
   err=0
   dur = rep(0,length(mvttimes))
+  times = seq(0.3,2,0.001)
+  ut = matrix(,nrow = length(mvttimes),ncol = length(times))
   for (k in 1:length(mvttimes)){
     t = mvttimes[k]
     m = masses[k]
     p = p_alpha[k]
     rt = rxtimes[k]
     count = 1
-    times = seq(0.1,2,0.001)
-    ut = rep(0,length(times))
     for (t in times){
-      ut[count] = (alpha*p-a0*rt-(a*t+b*(m^c)/(t^(d-1))))/(rt+t)
+      ut[k, count] = (alpha*p-a0*rt-(a*t+b*(m^c)/(t^(d-1))))/(rt+t)
       count = count+1
     }
-    dur[k] = times[which.max(ut)]
+    dur[k] = times[which.max(ut[k,])]
   }
   err = (mvttimes-dur)^2
   if (opt_or_dur == 'optimize'){
@@ -4385,6 +4385,12 @@ fun_p_alpha <- function(miss_dist, min_dist){
   return(p_alpha)
 }
 
+a0 = mean(mpdata$metpowerrest)
+a0_se = sd(mpdata$metpowerrest)/sqrt(8)
+a=coef(MPGross_model)[1]
+b=coef(MPGross_model)[2]*100
+c=coef(MPGross_model)[3]
+d=coef(MPGross_model)[4]
 
 alpha_smallt = optimize(fun_optim_prx_logit,
                       masses     = masses,
@@ -4393,14 +4399,6 @@ alpha_smallt = optimize(fun_optim_prx_logit,
                       rxtimes    = rxtimes_smallt,
                       opt_or_dur = 'optimize',
                       interval   = c(-100,1000))
-
-# optimize(fun_optim_prx,
-#          masses     = masses,
-#          mvttimes   = mvttimes_smallt,
-#          p_alpha    = p_alpha_smallt,
-#          rxtimes    = rxtimes_smallt,
-#          opt_or_dur = 'optimize',
-#          interval   = c(-100,1000))
 
 util_dur_smallt = as.numeric(fun_optim_prx_logit(alpha_smallt$minimum, #changing between alpha_pref and alpha_smallt
                                      masses   = masses,
@@ -4591,6 +4589,8 @@ util_dur_smallt = as.numeric(fun_optim_prx_logit(alpha_smallt$minimum, #changing
 
 
 # Pilot stuff
+
+
 masses = c(2.47,3.8,4.7,6.1)
 mvttimes_pilot = aggregate(movedur~condition,pilotdata,mean)$movedur
 mvttimes_pilot_se = aggregate(movedur~condition,pilotdata,sd)$movedur/sqrt(8)
@@ -4604,7 +4604,7 @@ alpha_pilot=optimize(fun_optim_prx,
                      p_alpha  = p_alpha_pilot,
                      rxtimes  = rxtimes_pilot,
                      opt_or_dur = 'optimize',
-                     interval = c(-100,1e4))
+                     interval = c(-100,1000))
 
 # util_dur_pref = as.numeric(fun_optim_prx_logit(alpha_pref$minimum,
 #                                    masses   = masses,
@@ -6165,14 +6165,14 @@ kable(Model_SSE_norm, caption = 'Exp 2c - Sum squared errors for NORMALIZED move
 The small target probabilities used in the utility model are `r round(p_alpha_smallt,4)`. For the 2c, there is no probability so this is just set to 1. 
 ```{r, echo = FALSE, warning = FALSE}
 
-
 control_times = rbind(cbind(rep('smallt',4),rep('data',4),c(2.5,3.8,4.7,6.1),mvttimes_smallt,rep(3,4),mvttimes_smallt_se),
                       cbind(rep('pref',4),rep('data',4),c(2.5,3.8,4.7,6.1),mvttimes_pref,rep(1,4),mvttimes_pref_se),
                       cbind(rep('pilot',4),rep('data',4),c(2.5,3.8,4.7,6.1),mvttimes_pilot,rep(2,4),mvttimes_pilot_se),
                       
-                      cbind(rep('smallt',4),rep('model',4),c(2.5,3.8,4.7,6.1),util_dur_smallt,rep(3,4),rep(0,4)),
-                      cbind(rep('pref',4),rep('model',4),c(2.5,3.8,4.7,6.1),util_dur_gross,rep(1,4),rep(0,4)),
+                      cbind(rep('smallt',4),rep('model',4),c(2.5,3.8,4.7,6.1),util_dur_pref_alpha_comb_gross[5:8],rep(3,4),rep(0,4)),
+                      cbind(rep('pref',4),rep('model',4),c(2.5,3.8,4.7,6.1),util_dur_pref_alpha_comb_gross[1:4],rep(1,4),rep(0,4)),
                       cbind(rep('pilot',4),rep('model',4),c(2.5,3.8,4.7,6.1),util_dur_pilot,rep(2,4),rep(0,4)))
+                      # cbind(rep('pilot',4),rep('model',4),c(2.5,3.8,4.7,6.1),util_dur_pilot_alpha_comb_gross,rep(2,4),rep(0,4)))
 colnames(control_times) = c('exp','datatype','eff_mass','movedur','expnum','movedur_se')
 
 control_times = as.data.frame(control_times)
@@ -6202,7 +6202,10 @@ utilfits_by_exp <- ggplot()+
                         labels=c('Data (Solid)','Model (Dashed)'))+
   labs(x='Effective mass (kg)',
        y='Movement Duration (s)',
-       title = 'Utility Fits By Experiment')+
+       title = paste('Util fits by Experiment\n2a,2b \U1D6FC = ',
+                     round(alpha_pref_comb_gross$minimum,3),
+                     ', 2c \U1D6FC = ',
+                     round(alpha_pilot$minimum,3),sep=''))+
   scale_color_manual(labels = c('Circle\n(Normal)','None\n(Large)','Arc\n(Small)'),
                      values = gg_color_hue(3))+
   scale_x_continuous(breaks = c(unique(control_times$eff_mass)))+
