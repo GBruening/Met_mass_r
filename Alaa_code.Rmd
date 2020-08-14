@@ -4705,7 +4705,7 @@ We next fitted a utility model by altering $\alpha$ to try and predict the movem
 The utility function that is fit for these next plots is below.
 $T_r$ and $T_m$ are the reaction time and movement duration.
 $P(R|m,t)$ is determined from the section above, probability alpha modeling. $a$, $b$, $c$, $d$ are determined from the metabolic data.
-Resting rate is shown by $a_0$, and $ a_0 $ = `r round(mean(mpdata_rest),3)`.
+Resting rate is shown by $a_0$, and $a_0$ = `r round(mean(mpdata_rest),3)`.
 The parameters a, b, c, and d are shown in \@ref(tab:effort_mod_tab).
 
 $$J = \frac{\alpha P(R|m,T) -\left( a_0 T_r + a T_m + \frac{bm^c}{T_m^d} \right)}{T_r+T_m}$$
@@ -4807,8 +4807,8 @@ The probability of success for utility in experiement 2a using the optimized alp
 
 ```{r opt_probs_tab_2a, echo = FALSE, warning = FALSE, message = FALSE}
   
-opt_probs = cbind(inv.logit(predict(met_p_glm,data.frame(movedur=util_dur_net_rx,eff_mass=masses))),
-                  inv.logit(predict(met_p_glm,data.frame(movedur=util_dur_gross_rx,eff_mass=masses))))
+opt_probs = cbind(inv.logit(predict(pref_p_glm,data.frame(movedur=util_dur_net_rx,eff_mass=masses))),
+                  inv.logit(predict(pref_p_glm,data.frame(movedur=util_dur_gross_rx,eff_mass=masses))))
 
 rownames(opt_probs) = masses
 colnames(opt_probs) = c('Utility Net','Utility Gross')
@@ -4846,13 +4846,14 @@ kable(tab, caption = '$\alpha$ fits for the different experiements')
 <!-- These next plots show how different models for effort can predict preferred movement duration. Utility is fit from the group, not the individual utility fits like the plot before. -->
 
 <!-- ## Movement Duration Plotting -->
+The probabilites and movement durations for the combined alpha are showin at the end, in section Utility fits accross experiements.
 
 The probability of success for utility in experiement 2b using the optimized alpha value are shown below. 2a can be found above in @\ref{tab:opt_probs_tab_2a}
 
 ```{r opt_probs_tab_comb, echo = FALSE, warning = FALSE, message = FALSE}
   
-opt_probs = cbind(inv.logit(predict(met_smallt_p_glm,data.frame(movedur=util_dur_net_rx,eff_mass=masses))),
-                  inv.logit(predict(met_smallt_p_glm,data.frame(movedur=util_dur_gross_rx,eff_mass=masses))))
+opt_probs = cbind(inv.logit(predict(smallt_p_glm,data.frame(movedur=util_dur_net_rx,eff_mass=masses))),
+                  inv.logit(predict(smallt_p_glm,data.frame(movedur=util_dur_gross_rx,eff_mass=masses))))
 
 rownames(opt_probs) = masses
 colnames(opt_probs) = c('Utility Net','Utility Gross')
@@ -4896,7 +4897,7 @@ kable(twoc_alpha_durs, caption = 'Durations and predicted durations by fitting o
 ```
 
 
-## Utility from 2a predicting 2b
+### Utility from 2a predicting 2b
 This table shows the predicted movement durations of 2b using the alpha values from 2a.
 ```{r ,echo = FALSE, warning = FALSE}
 masses = c(2.47,3.8,4.7,6.1)
@@ -4937,6 +4938,162 @@ colnames(tab) = c('2b Move Dur','Predicted 2b using 2a alpha')
 kable(tab, caption = paste('Predicted movement durations for experiment 2b using the alpha from 2a and the probabilities from 2b. SSE = ',round(sum(tab[,1]-tab[,2])^2,4),sep=''))
 ```
 
+
+### Combined Utility fits
+
+These next tables show the movement durations, predicted movement durations, the fitted alpha values, and the probabilities of success.
+The $\alpha$ value for 2a and 2b are fit at once, so it is the same. 2c has its own $\alpha$ value.
+```{r, echo = FALSE, warning = FALSE}
+
+comb_ut_probtab = cbind(round(inv.logit(predict(smallt_p_glm,data.frame(movedur=util_dur_pref_alpha_comb_gross[1:4],eff_mass=masses))),4),
+                        round(inv.logit(predict(smallt_p_glm,data.frame(movedur=util_dur_pref_alpha_comb_gross[5:8],eff_mass=masses))),4),
+                        c(1,1,1,1))
+colnames(comb_ut_probtab) = c('2a','2b','2c')
+rownames(comb_ut_probtab) = unique(prefdata$eff_mass)
+
+comb_ut_durtab = cbind(mvttimes_pref,
+                       util_dur_pref_alpha_comb_gross[1:4],
+                       mvttimes_smallt,
+                       util_dur_pref_alpha_comb_gross[5:8],
+                       mvttimes_pilot,
+                       util_dur_pilot)
+colnames(comb_ut_durtab) = c('2a Exp','2a pred','2b Exp','2b pred','2c Exp','2c pred')
+rownames(comb_ut_durtab) = unique(prefdata$eff_mass)
+
+alph_tab = cbind(round(alpha_pref_comb_gross$minimum,3), round(alpha_pref_comb_gross$minimum,3), round(alpha_pilot$minimum,3))
+colnames(alph_tab) = c('2a','2b','2c')
+rownames(alph_tab) = '\alpha'
+
+```
+
+```{r comb_ut_durtab1, echo = FALSE, warning = FALSE, tab.cap = 'Experimental and predicted movement durations for the experiments.'}
+kable(comb_ut_durtab, caption = 'Experimental and predicted movement durations for the experiments.')
+```
+
+```{r comb_ut_probtab1, echo = FALSE, warning = FALSE, tab.cap = 'Probabilites of success for the experiments.'}
+kable(comb_ut_probtab, caption = 'Probabilites of success for the experiments.')
+```
+
+```{r alph_tab1, echo = FALSE, warning = FALSE, tab.cap = 'Alpha values fitted to experiment 2a/2b, and a seperate alpha for 2c.'}
+kable(alph_tab, caption = 'Alpha values fitted to experiment 2a/2b, and a seperate alpha for 2c.')
+```
+
+```{r, echo = FALSE, warning = FALSE}
+
+control_times = rbind(cbind(rep('smallt',4),rep('data',4),c(2.5,3.8,4.7,6.1),mvttimes_smallt,rep(3,4),mvttimes_smallt_se),
+                      cbind(rep('pref',4),rep('data',4),c(2.5,3.8,4.7,6.1),mvttimes_pref,rep(1,4),mvttimes_pref_se),
+                      cbind(rep('pilot',4),rep('data',4),c(2.5,3.8,4.7,6.1),mvttimes_pilot,rep(2,4),mvttimes_pilot_se),
+                      
+                      cbind(rep('smallt',4),rep('model',4),c(2.5,3.8,4.7,6.1),util_dur_pref_alpha_comb_gross[5:8],rep(3,4),rep(0,4)),
+                      cbind(rep('pref',4),rep('model',4),c(2.5,3.8,4.7,6.1),util_dur_pref_alpha_comb_gross[1:4],rep(1,4),rep(0,4)),
+                      cbind(rep('pilot',4),rep('model',4),c(2.5,3.8,4.7,6.1),util_dur_pilot,rep(2,4),rep(0,4)))
+                      # cbind(rep('pilot',4),rep('model',4),c(2.5,3.8,4.7,6.1),util_dur_pilot_alpha_comb_gross,rep(2,4),rep(0,4)))
+colnames(control_times) = c('exp','datatype','eff_mass','movedur','expnum','movedur_se')
+
+control_times = as.data.frame(control_times)
+control_times$movedur = as.numeric(as.character(control_times$movedur))
+control_times$movedur_se = as.numeric(as.character(control_times$movedur_se))
+control_times$eff_mass = as.numeric(as.character(control_times$eff_mass))
+
+utilfits_by_exp <- ggplot()+
+  geom_errorbar(data=control_times,
+                aes(x=eff_mass,
+                    ymin=movedur-movedur_se,
+                    ymax=movedur+movedur_se,
+                    color=expnum,
+                    alpha=datatype),
+                size=3,
+                width=.2)+
+  geom_line(data=control_times,
+              aes(x=eff_mass,
+                  y=movedur,
+                  linetype=datatype,
+                  color=expnum,
+                  alpha = datatype),
+              size=3)+
+  scale_linetype_manual(values=c('solid','dashed'),
+                        labels=c('Data (Solid)','Model (Dashed)'))+
+  scale_alpha_discrete(range=c(.5,1),
+                        labels=c('Data (Solid)','Model (Dashed)'))+
+  labs(x='Effective mass (kg)',
+       y='Movement Duration (s)',
+       title = paste('Util fits by Experiment\n2a,2b \U1D6FC = ',
+                     round(alpha_pref_comb_gross$minimum,3),
+                     ', 2c \U1D6FC = ',
+                     round(alpha_pilot$minimum,3),sep=''))+
+  scale_color_manual(labels = c('Circle\n(Normal)','None\n(Large)','Arc\n(Small)'),
+                     values = gg_color_hue(3))+
+  scale_x_continuous(breaks = c(unique(control_times$eff_mass)))+
+  theme_classic()+
+  theme(text              = element_text(size=20,color='black'),
+        axis.text         = element_text(color='black'),
+        axis.ticks        = element_line(color='black'),
+        legend.text       = element_text(size=15),
+        legend.text.align = 0,
+        legend.position   = 'right',
+        plot.title        = element_text(hjust = 0.5),
+        axis.line         = element_line(color='black'))+
+  guides(color=guide_legend(override.aes = list(size = 7),
+                            title="Target type\n(size)",
+                            keyheight=.5,
+                            default.unit='inch'),
+         linetype = guide_legend(title="Data Type",
+                           keyheight=.4,
+                           default.unit='inch'),
+         alpha = FALSE)
+
+setwd(pref_plots_dir)
+if (save_plots){ggsave(filename='utilfits_by_exp.pdf',plot=utilfits_by_exp,height=4,width=6,useDingbats=FALSE)}
+
+theme_set(theme_cowplot(font_size=12))
+exp_legend <- get_legend(utilfits_by_exp)
+
+plots_to_fix = c('Movedur_by_experiment',
+                 'Movedurnorm_by_experiment',
+                 'utilfits_by_exp')
+
+for (plot in plots_to_fix){
+  string = paste(plot,'<-',plot,'+
+                 theme_classic()+
+                 theme(text              = element_text(color=\'black\'),
+                 axis.text         = element_text(color=\'black\'),
+                 axis.ticks        = element_line(color=\'black\'),
+                 plot.title        = element_text(hjust = 0.5),
+                 axis.line         = element_line(color=\'black\'),
+                 legend.position   = \'none\')',sep = '')
+  eval(parse(text = string))
+}
+
+grouped_utility_movedur <- plot_grid(plot_grid(Movedur_by_experiment+
+                                                 labs(title = 'Movement Duration\nBy Experiment')+
+                                                 theme(legend.position='none',
+                                                       plot.title = element_text(hjust = 0.5),
+                                                       text=element_text(size=16)),
+                                               Movedurnorm_by_experiment+
+                                                 labs(title = 'Normalized Movement Duration\nBy Experiment')+
+                                                 theme(legend.position='none',
+                                                       plot.title = element_text(hjust = 0.5),
+                                                       text=element_text(size=16)),
+                                               labels=c('A','B'),
+                                               label_size = 24),
+                                     plot_grid(utilfits_by_exp+
+                                                 theme(text=element_text(size=16),
+                                                       legend.position = 'none'),
+                                               exp_legend,
+                                               labels = c('C',''),
+                                               label_size = 24,
+                                               rel_widths = c(.8,.2)),
+                                     nrow = 2)
+
+
+setwd(pref_plots_dir)
+if (save_plots){ggsave('grouped_utility_movedur.pdf',plot=grouped_utility_movedur,width=9/.8,height=9, useDingbats = FALSE)}
+
+```
+
+```{r groupedutilitymovedur1, echo = FALSE, warning = FALSE, fig.width=12, fig.height=9, fig.cap = 'Utility fits across experiments.'}
+  grouped_utility_movedur
+```
 
 ## Modeling plots code
 
@@ -6044,125 +6201,4 @@ colnames(Model_SSE_norm) = c('Model',
 ```{r ModelSSEnorm1_2c, echo = FALSE, warning = FALSE, tab.cap = 'Exp 2c - Sum squared errors for NORMALIZED movement duration and peak velocity.'}
 kable(Model_SSE_norm, caption = 'Exp 2c - Sum squared errors for NORMALIZED movement duration and peak velocity.')
 ```
-
-# Utility fits across experiments
-
-The small target probabilities used in the utility model are `r round(p_alpha_smallt,4)`. For the 2c, there is no probability so this is just set to 1. 
-```{r, echo = FALSE, warning = FALSE}
-
-control_times = rbind(cbind(rep('smallt',4),rep('data',4),c(2.5,3.8,4.7,6.1),mvttimes_smallt,rep(3,4),mvttimes_smallt_se),
-                      cbind(rep('pref',4),rep('data',4),c(2.5,3.8,4.7,6.1),mvttimes_pref,rep(1,4),mvttimes_pref_se),
-                      cbind(rep('pilot',4),rep('data',4),c(2.5,3.8,4.7,6.1),mvttimes_pilot,rep(2,4),mvttimes_pilot_se),
-                      
-                      cbind(rep('smallt',4),rep('model',4),c(2.5,3.8,4.7,6.1),util_dur_pref_alpha_comb_gross[5:8],rep(3,4),rep(0,4)),
-                      cbind(rep('pref',4),rep('model',4),c(2.5,3.8,4.7,6.1),util_dur_pref_alpha_comb_gross[1:4],rep(1,4),rep(0,4)),
-                      cbind(rep('pilot',4),rep('model',4),c(2.5,3.8,4.7,6.1),util_dur_pilot,rep(2,4),rep(0,4)))
-                      # cbind(rep('pilot',4),rep('model',4),c(2.5,3.8,4.7,6.1),util_dur_pilot_alpha_comb_gross,rep(2,4),rep(0,4)))
-colnames(control_times) = c('exp','datatype','eff_mass','movedur','expnum','movedur_se')
-
-control_times = as.data.frame(control_times)
-control_times$movedur = as.numeric(as.character(control_times$movedur))
-control_times$movedur_se = as.numeric(as.character(control_times$movedur_se))
-control_times$eff_mass = as.numeric(as.character(control_times$eff_mass))
-
-utilfits_by_exp <- ggplot()+
-  geom_errorbar(data=control_times,
-                aes(x=eff_mass,
-                    ymin=movedur-movedur_se,
-                    ymax=movedur+movedur_se,
-                    color=expnum,
-                    alpha=datatype),
-                size=3,
-                width=.2)+
-  geom_line(data=control_times,
-              aes(x=eff_mass,
-                  y=movedur,
-                  linetype=datatype,
-                  color=expnum,
-                  alpha = datatype),
-              size=3)+
-  scale_linetype_manual(values=c('solid','dashed'),
-                        labels=c('Data (Solid)','Model (Dashed)'))+
-  scale_alpha_discrete(range=c(.5,1),
-                        labels=c('Data (Solid)','Model (Dashed)'))+
-  labs(x='Effective mass (kg)',
-       y='Movement Duration (s)',
-       title = paste('Util fits by Experiment\n2a,2b \U1D6FC = ',
-                     round(alpha_pref_comb_gross$minimum,3),
-                     ', 2c \U1D6FC = ',
-                     round(alpha_pilot$minimum,3),sep=''))+
-  scale_color_manual(labels = c('Circle\n(Normal)','None\n(Large)','Arc\n(Small)'),
-                     values = gg_color_hue(3))+
-  scale_x_continuous(breaks = c(unique(control_times$eff_mass)))+
-  theme_classic()+
-  theme(text              = element_text(size=20,color='black'),
-        axis.text         = element_text(color='black'),
-        axis.ticks        = element_line(color='black'),
-        legend.text       = element_text(size=15),
-        legend.text.align = 0,
-        legend.position   = 'right',
-        plot.title        = element_text(hjust = 0.5),
-        axis.line         = element_line(color='black'))+
-  guides(color=guide_legend(override.aes = list(size = 7),
-                            title="Target type\n(size)",
-                            keyheight=.5,
-                            default.unit='inch'),
-         linetype = guide_legend(title="Data Type",
-                           keyheight=.4,
-                           default.unit='inch'),
-         alpha = FALSE)
-
-setwd(pref_plots_dir)
-if (save_plots){ggsave(filename='utilfits_by_exp.pdf',plot=utilfits_by_exp,height=4,width=6,useDingbats=FALSE)}
-
-theme_set(theme_cowplot(font_size=12))
-exp_legend <- get_legend(utilfits_by_exp)
-
-plots_to_fix = c('Movedur_by_experiment',
-                 'Movedurnorm_by_experiment',
-                 'utilfits_by_exp')
-
-for (plot in plots_to_fix){
-  string = paste(plot,'<-',plot,'+
-                 theme_classic()+
-                 theme(text              = element_text(color=\'black\'),
-                 axis.text         = element_text(color=\'black\'),
-                 axis.ticks        = element_line(color=\'black\'),
-                 plot.title        = element_text(hjust = 0.5),
-                 axis.line         = element_line(color=\'black\'),
-                 legend.position   = \'none\')',sep = '')
-  eval(parse(text = string))
-}
-
-grouped_utility_movedur <- plot_grid(plot_grid(Movedur_by_experiment+
-                                                 labs(title = 'Movement Duration\nBy Experiment')+
-                                                 theme(legend.position='none',
-                                                       plot.title = element_text(hjust = 0.5),
-                                                       text=element_text(size=16)),
-                                               Movedurnorm_by_experiment+
-                                                 labs(title = 'Normalized Movement Duration\nBy Experiment')+
-                                                 theme(legend.position='none',
-                                                       plot.title = element_text(hjust = 0.5),
-                                                       text=element_text(size=16)),
-                                               labels=c('A','B'),
-                                               label_size = 24),
-                                     plot_grid(utilfits_by_exp+
-                                                 theme(text=element_text(size=16),
-                                                       legend.position = 'none'),
-                                               exp_legend,
-                                               labels = c('C',''),
-                                               label_size = 24,
-                                               rel_widths = c(.8,.2)),
-                                     nrow = 2)
-
-
-setwd(pref_plots_dir)
-if (save_plots){ggsave('grouped_utility_movedur.pdf',plot=grouped_utility_movedur,width=9/.8,height=9, useDingbats = FALSE)}
-
-```
-
-```{r groupedutilitymovedur1, echo = FALSE, warning = FALSE, fig.width=12, fig.height=9, fig.cap = 'Utility fits across experiments.'}
-  grouped_utility_movedur
-```
-
 
