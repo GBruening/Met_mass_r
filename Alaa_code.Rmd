@@ -3256,7 +3256,7 @@ kable(confint(torque2_model), caption = 'Confidence intervals for torque squared
 The probability function for the 2a is:
 $$ ln\left(\frac{P_i}{1-P_i}\right) = \beta_0 + \beta_2 x_2 $$
 Which leads to
-$$ P(Success|m,T) = \frac{1}{1+e^{-(\beta_0) - (\beta_2)T}} $$
+$$ P(Success|T) = \frac{1}{1+e^{-(\beta_0) - (\beta_2)T}} $$
 Mass is removed from this probability as according to the model it is insignificant. Duration nad mass alos condound here, so we only use duration.
 I leave it $\beta_2$ because that is more similar to the glm with mass from experiement 1.
 
@@ -3312,6 +3312,97 @@ success_tab = round(success_tab,4)
 kable(success_tab, caption = 'Success probabilities for experiment 2a and 2b. Also predicted from glm fitted using data from 2a and 2b')
 
 ```
+
+### 2a and 2b GLM probability plots
+
+```{r, echo = FALSE, warning = FALSE}
+exp_succ2a = cbind(aggregate(movedur ~ eff_mass + subj,prefdata,mean),
+                   aggregate(success ~ eff_mass + subj,prefdata,mean)$success,
+                   rep('2a',4))
+colnames(exp_succ2a) = c('eff_mass','subj','movedur','p_success','exp')
+exp_succ2b = cbind(aggregate(movedur ~ eff_mass + subj,smalltdata,mean),
+                   aggregate(success ~ eff_mass + subj,smalltdata,mean)$success,
+                   rep('2b',4))
+colnames(exp_succ2b) = c('eff_mass','subj','movedur','p_success','exp')
+exp_succ = rbind(exp_succ2a,exp_succ2b)
+
+exp_succ = rbind(cbind(aggregate(movedur ~ eff_mass, filter(exp_succ,exp=='2a'),mean),
+                       aggregate(movedur ~ eff_mass, filter(exp_succ,exp=='2a'),sd)$movedur/sqrt(length(unique(exp_succ2a$subj))),
+                       aggregate(p_success ~ eff_mass, filter(exp_succ,exp=='2a'),mean)$p_success,
+                       aggregate(p_success ~ eff_mass, filter(exp_succ,exp=='2a'),sd)$p_success/sqrt(length(unique(exp_succ2a$subj))),
+                       rep('2a',4)) %>% 
+                   `colnames<-`(c("eff_mass","movedur","movedurse","p_success","p_success_se","exp")),
+                 cbind(aggregate(movedur ~ eff_mass, filter(exp_succ,exp=='2b'),mean),
+                       aggregate(movedur ~ eff_mass, filter(exp_succ,exp=='2b'),sd)$movedur/sqrt(length(unique(exp_succ2b$subj))),
+                       aggregate(p_success ~ eff_mass, filter(exp_succ,exp=='2b'),mean)$p_success,
+                       aggregate(p_success ~ eff_mass, filter(exp_succ,exp=='2b'),sd)$p_success/sqrt(length(unique(exp_succ2b$subj))),
+                       rep('2b',4)) %>% 
+                   `colnames<-`(c("eff_mass","movedur","movedurse","p_success","p_success_se","exp")))
+
+masses = unique(prefdata$eff_mass)
+fun.1 <- function(t) 1/(1+exp(-coef(pref_p_glm)[1]-coef(pref_p_glm)[2]*t))
+
+fun.5 <- function(t) 1/(1+exp(-coef(smallt_p_glm)[1]-coef(smallt_p_glm)[2]*t))
+
+sim_success = as.data.frame(cbind(c(rep(2.46,1000),rep(4.73,1000),rep(6.99,1000),rep(11.50,1000)),
+                            c(seq(0,2,length.out=1000),seq(0,2,length.out=1000),seq(0,2,length.out=1000),seq(0,2,length.out=1000))))
+colnames(sim_success) = c('eff_mass','movedur')
+
+line_types = c('line_pref' = 'solid','line_smallt' = 'dashed')
+p_alpha_2a_2b_glm <- ggplot(data=sim_success,
+       aes(x=movedur))+
+  stat_function(fun=fun.1,size=1,color='black')+
+  stat_function(fun=fun.5,size=1,linetype='dashed',color='black')+
+  geom_errorbar(data = exp_succ,
+                aes(x     = movedur,
+                    ymin  = p_success-p_success_se,
+                    ymax  = p_success+p_success_se,
+                    color = factor(eff_mass)),
+                width = 0,
+                size  = met_errorbar_size + 2)+
+  geom_errorbarh(data = exp_succ,
+                 aes(xmin  = movedur-movedurse,
+                     xmax  = movedur+movedurse,
+                     y     = p_success,
+                     color = factor(eff_mass)),
+                 height = 0,
+                 size   = met_errorbar_size + 2)+
+  scale_color_manual(labels = masses,
+                     values = mass_colors)+
+  scale_fill_manual(values = mass_colors,
+                    labels = unique(metdata$eff_mass))+
+  scale_linetype_manual(name = 'Smooth',
+                        values = line_types)+
+  scale_shape_manual(values = c(21,22),
+                     labels = c('2a','2b'))+
+  guides(color = guide_legend(title="Effective\nMass (kg)"),
+         linetype = guide_legend(title = 'Target Type'),
+         shape = guide_legend(title = 'Target Type'),
+         fill =  'none',
+         size = 'none')+
+  labs(x='Movement Duration (s)',y='Probability of\nSuccess')+
+  theme_classic()+
+  theme(text              = element_text(size=20,color='black'),
+        axis.text         = element_text(color='black'),
+        axis.ticks        = element_line(color='black'),
+        legend.text       = element_text(size=15),
+        legend.text.align = 0,
+        legend.position   = 'right',
+        plot.title        = element_text(hjust = 0.5),
+        axis.line         = element_line(color='black'))+
+  scale_y_continuous(expand = c(0, 0), limits = c(0, 1.05))
+
+
+```
+
+The plot below shows the fits of the glm's fitted to only data from experiment 2a and 2b. Unfortunately, these glm's don't seem to have the same behavior as data fitted to experiment 1. This is probably due to the lack of really fast or really slow trials so it just predicts a flat line essentially.
+
+```{r p_alpha_2a_2b_glm_fig, echo=FALSE, warning = FALSE,  fig.width=8, fig.height=7, fig.cap = 'Probability of success with glm fitted to experiment 2a and 2b data.'}
+
+p_alpha_2a_2b_glm
+
+```
+
 
 ### Statistics on probability of success 2a
 
@@ -3410,67 +3501,67 @@ fun.6 <- function(t) 1/(1+exp(-coef(met_smallt_p_glm)[1]-coef(met_smallt_p_glm)[
 fun.7 <- function(t) 1/(1+exp(-coef(met_smallt_p_glm)[1]-coef(met_smallt_p_glm)[3]*6.99-coef(met_smallt_p_glm)[2]*t))
 fun.8 <- function(t) 1/(1+exp(-coef(met_smallt_p_glm)[1]-coef(met_smallt_p_glm)[3]*11.50-coef(met_smallt_p_glm)[2]*t))
 
-line_types = c('line_pref' = 'solid','line_smallt' = 'dashed')
-p_alpha_plot_cont <- ggplot(data=metdata,
-       aes(x=movedur))+
-   geom_rect(xmin = min(aggregate(movedur~eff_mass,prefdata,mean)$movedur),
-             xmax = max(aggregate(movedur~eff_mass,prefdata,mean)$movedur),
-             ymin = 0,
-             ymax = 2,
-             fill = alpha("grey",0),
-             color = 'Black')+
-   geom_rect(xmin = min(aggregate(movedur~eff_mass,smalltdata,mean)$movedur),
-             xmax = max(aggregate(movedur~eff_mass,smalltdata,mean)$movedur),
-             ymin = 0,
-             ymax = 2,
-             fill = alpha("grey",0),
-             color = 'Red')+
-  stat_function(fun=fun.1,size=1,color=rgb(color1[1],color1[2],color1[3]))+
-  stat_function(fun=fun.2,size=1,color=rgb(color2[1],color2[2],color2[3]))+
-  stat_function(fun=fun.3,size=1,color=rgb(color3[1],color3[2],color3[3]))+
-  stat_function(fun=fun.4,size=1,color=rgb(color4[1],color4[2],color4[3]))+
-  stat_function(fun=fun.5,size=1,linetype='dashed',color=rgb(color1[1],color1[2],color1[3]))+
-  stat_function(fun=fun.6,size=1,linetype='dashed',color=rgb(color2[1],color2[2],color2[3]))+
-  stat_function(fun=fun.7,size=1,linetype='dashed',color=rgb(color3[1],color3[2],color3[3]))+
-  stat_function(fun=fun.8,size=1,linetype='dashed',color=rgb(color4[1],color4[2],color4[3]))+
-  geom_point(data = pdata,
-             aes(x = movedur,
-                 y = yvar,
-                 color = factor(condition)),
-             size = 3)+
-  geom_point(data = pdata,
-             aes(x = movedur,
-                 y = yvar,
-                 fill = factor(condition),
-                 shape = exp),
-             size = 4)+
-  scale_color_manual(labels = unique(metdata$eff_mass),
-                     values = mass_colors)+
-  scale_fill_manual(values = mass_colors, 
-                    labels = unique(metdata$eff_mass))+
-  scale_linetype_manual(name = 'Smooth', 
-                        values = line_types)+
-  scale_shape_manual(values = c(21,22),
-                     labels = c('2a','2b'))+
-  guides(color = guide_legend(title="Effective\nMass (kg)"),
-         linetype = guide_legend(title = 'Target Type'),
-         shape = guide_legend(title = 'Target Type'),
-         fill =  'none',
-         size = 'none')+
-  labs(x='Movement Duration (s)',y='Probability of\nSuccess')+
-  theme_classic()+
-  theme(text              = element_text(size=20,color='black'),
-        axis.text         = element_text(color='black'),
-        axis.ticks        = element_line(color='black'),
-        legend.text       = element_text(size=15),
-        legend.text.align = 0,
-        legend.position   = 'right',
-        plot.title        = element_text(hjust = 0.5),
-        axis.line         = element_line(color='black'))+
-  scale_y_continuous(expand = c(0, 0), limits = c(0, 1.05))
-
-setwd(pref_plots_dir)
-if (save_plots){ggsave(filename='p_alpha_plot_cont.pdf',plot=p_alpha_plot_cont,height=6,width=9,useDingbats=FALSE)}
+# line_types = c('line_pref' = 'solid','line_smallt' = 'dashed')
+# p_alpha_plot_cont <- ggplot(data=metdata,
+#        aes(x=movedur))+
+#    geom_rect(xmin = min(aggregate(movedur~eff_mass,prefdata,mean)$movedur),
+#              xmax = max(aggregate(movedur~eff_mass,prefdata,mean)$movedur),
+#              ymin = 0,
+#              ymax = 2,
+#              fill = alpha("grey",0),
+#              color = 'Black')+
+#    geom_rect(xmin = min(aggregate(movedur~eff_mass,smalltdata,mean)$movedur),
+#              xmax = max(aggregate(movedur~eff_mass,smalltdata,mean)$movedur),
+#              ymin = 0,
+#              ymax = 2,
+#              fill = alpha("grey",0),
+#              color = 'Red')+
+#   stat_function(fun=fun.1,size=1,color=rgb(color1[1],color1[2],color1[3]))+
+#   stat_function(fun=fun.2,size=1,color=rgb(color2[1],color2[2],color2[3]))+
+#   stat_function(fun=fun.3,size=1,color=rgb(color3[1],color3[2],color3[3]))+
+#   stat_function(fun=fun.4,size=1,color=rgb(color4[1],color4[2],color4[3]))+
+#   stat_function(fun=fun.5,size=1,linetype='dashed',color=rgb(color1[1],color1[2],color1[3]))+
+#   stat_function(fun=fun.6,size=1,linetype='dashed',color=rgb(color2[1],color2[2],color2[3]))+
+#   stat_function(fun=fun.7,size=1,linetype='dashed',color=rgb(color3[1],color3[2],color3[3]))+
+#   stat_function(fun=fun.8,size=1,linetype='dashed',color=rgb(color4[1],color4[2],color4[3]))+
+#   geom_point(data = pdata,
+#              aes(x = movedur,
+#                  y = yvar,
+#                  color = factor(condition)),
+#              size = 3)+
+#   geom_point(data = pdata,
+#              aes(x = movedur,
+#                  y = yvar,
+#                  fill = factor(condition),
+#                  shape = exp),
+#              size = 4)+
+#   scale_color_manual(labels = unique(metdata$eff_mass),
+#                      values = mass_colors)+
+#   scale_fill_manual(values = mass_colors, 
+#                     labels = unique(metdata$eff_mass))+
+#   scale_linetype_manual(name = 'Smooth', 
+#                         values = line_types)+
+#   scale_shape_manual(values = c(21,22),
+#                      labels = c('2a','2b'))+
+#   guides(color = guide_legend(title="Effective\nMass (kg)"),
+#          linetype = guide_legend(title = 'Target Type'),
+#          shape = guide_legend(title = 'Target Type'),
+#          fill =  'none',
+#          size = 'none')+
+#   labs(x='Movement Duration (s)',y='Probability of\nSuccess')+
+#   theme_classic()+
+#   theme(text              = element_text(size=20,color='black'),
+#         axis.text         = element_text(color='black'),
+#         axis.ticks        = element_line(color='black'),
+#         legend.text       = element_text(size=15),
+#         legend.text.align = 0,
+#         legend.position   = 'right',
+#         plot.title        = element_text(hjust = 0.5),
+#         axis.line         = element_line(color='black'))+
+#   scale_y_continuous(expand = c(0, 0), limits = c(0, 1.05))
+# 
+# setwd(pref_plots_dir)
+# if (save_plots){ggsave(filename='p_alpha_plot_cont.pdf',plot=p_alpha_plot_cont,height=6,width=9,useDingbats=FALSE)}
 
 sim_success = as.data.frame(cbind(c(rep(2.46,1000),rep(4.73,1000),rep(6.99,1000),rep(11.50,1000)),
                             c(seq(0,2,length.out=1000),seq(0,2,length.out=1000),seq(0,2,length.out=1000),seq(0,2,length.out=1000))))
@@ -3537,25 +3628,16 @@ p_alpha_plot_cont2 <- ggplot(data=sim_success,
 setwd(pref_plots_dir)
 if (save_plots){ggsave(filename='p_alpha_plot_cont2.pdf',plot=p_alpha_plot_cont2,height=6,width=9,useDingbats=FALSE)}
 
-exp_succ2a = cbind(aggregate(movedur ~ eff_mass,prefdata,mean),
-                   aggregate(success ~ eff_mass,prefdata,mean)$success,
-                   rep('2b',4))
-colnames(exp_succ2a) = c('eff_mass','movedur','p_success','exp')
-exp_succ2b = cbind(aggregate(movedur ~ eff_mass,smalltdata,mean),
-                   aggregate(success ~ eff_mass,smalltdata,mean)$success,
-                   rep('2b',4))
-colnames(exp_succ2b) = c('eff_mass','movedur','p_success','exp')
-exp_succ = rbind(exp_succ2a,exp_succ2b)
+masses = unique(prefdata$eff_mass)
+fun.1 <- function(t) 1/(1+exp(-coef(met_p_glm)[1]-coef(met_p_glm)[3]*masses[1]-coef(met_p_glm)[2]*t))
+fun.2 <- function(t) 1/(1+exp(-coef(met_p_glm)[1]-coef(met_p_glm)[3]*masses[2]-coef(met_p_glm)[2]*t))
+fun.3 <- function(t) 1/(1+exp(-coef(met_p_glm)[1]-coef(met_p_glm)[3]*masses[3]-coef(met_p_glm)[2]*t))
+fun.4 <- function(t) 1/(1+exp(-coef(met_p_glm)[1]-coef(met_p_glm)[3]*masses[4]-coef(met_p_glm)[2]*t))
 
-fun.1 <- function(t) 1/(1+exp(-coef(met_p_glm)[1]-coef(met_p_glm)[3]*2.47-coef(met_p_glm)[2]*t))
-fun.2 <- function(t) 1/(1+exp(-coef(met_p_glm)[1]-coef(met_p_glm)[3]*4.73-coef(met_p_glm)[2]*t))
-fun.3 <- function(t) 1/(1+exp(-coef(met_p_glm)[1]-coef(met_p_glm)[3]*6.99-coef(met_p_glm)[2]*t))
-fun.4 <- function(t) 1/(1+exp(-coef(met_p_glm)[1]-coef(met_p_glm)[3]*11.50-coef(met_p_glm)[2]*t))
-
-fun.5 <- function(t) 1/(1+exp(-coef(met_smallt_p_glm)[1]-coef(met_smallt_p_glm)[3]*2.47-coef(met_smallt_p_glm)[2]*t))
-fun.6 <- function(t) 1/(1+exp(-coef(met_smallt_p_glm)[1]-coef(met_smallt_p_glm)[3]*4.73-coef(met_smallt_p_glm)[2]*t))
-fun.7 <- function(t) 1/(1+exp(-coef(met_smallt_p_glm)[1]-coef(met_smallt_p_glm)[3]*6.99-coef(met_smallt_p_glm)[2]*t))
-fun.8 <- function(t) 1/(1+exp(-coef(met_smallt_p_glm)[1]-coef(met_smallt_p_glm)[3]*11.50-coef(met_smallt_p_glm)[2]*t))
+fun.5 <- function(t) 1/(1+exp(-coef(met_smallt_p_glm)[1]-coef(met_smallt_p_glm)[3]*masses[1]-coef(met_smallt_p_glm)[2]*t))
+fun.6 <- function(t) 1/(1+exp(-coef(met_smallt_p_glm)[1]-coef(met_smallt_p_glm)[3]*masses[2]-coef(met_smallt_p_glm)[2]*t))
+fun.7 <- function(t) 1/(1+exp(-coef(met_smallt_p_glm)[1]-coef(met_smallt_p_glm)[3]*masses[3]-coef(met_smallt_p_glm)[2]*t))
+fun.8 <- function(t) 1/(1+exp(-coef(met_smallt_p_glm)[1]-coef(met_smallt_p_glm)[3]*masses[4]-coef(met_smallt_p_glm)[2]*t))
 
 line_types = c('line_pref' = 'solid','line_smallt' = 'dashed')
 p_alpha_plot_cont <- ggplot(data=metdata,
@@ -3568,25 +3650,39 @@ p_alpha_plot_cont <- ggplot(data=metdata,
   stat_function(fun=fun.6,size=1,linetype='dashed',color=rgb(color2[1],color2[2],color2[3]))+
   stat_function(fun=fun.7,size=1,linetype='dashed',color=rgb(color3[1],color3[2],color3[3]))+
   stat_function(fun=fun.8,size=1,linetype='dashed',color=rgb(color4[1],color4[2],color4[3]))+
-  geom_errorbar(data = pdata,
-                aes(x=movedur,
-                    ymin=yvar-yvarse,
-                    ymax=yvar+yvarse,
-                    color = factor(condition)),
+  # geom_errorbar(data = pdata,
+  #               aes(x=movedur,
+  #                   ymin=yvar-yvarse,
+  #                   ymax=yvar+yvarse,
+  #                   color = factor(condition)),
+  #               width = 0,
+  #               size = met_errorbar_size)+
+  # geom_errorbarh(data=pdata,
+  #                aes(xmin=movedur-movedurse,
+  #                    xmax=movedur+movedurse,
+  #                    y=yvar,
+  #                    color=factor(condition)),
+  #                height = 0,
+  #                size = met_errorbar_size)+
+  geom_errorbar(data = exp_succ,
+                aes(x     = movedur,
+                    ymin  = p_success-p_success_se,
+                    ymax  = p_success+p_success_se,
+                    color = factor(eff_mass)),
                 width = 0,
-                size = met_errorbar_size)+
-  geom_errorbarh(data=pdata,
-                 aes(xmin=movedur-movedurse,
-                     xmax=movedur+movedurse,
-                     y=yvar,
-                     color=factor(condition)),
+                size  = met_errorbar_size + 2)+
+  geom_errorbarh(data = exp_succ,
+                 aes(xmin  = movedur-movedurse,
+                     xmax  = movedur+movedurse,
+                     y     = p_success,
+                     color = factor(eff_mass)),
                  height = 0,
-                 size = met_errorbar_size)+
-  geom_point(data = exp_succ,
-             aes(x = movedur,
-                 y = p_success),
-             size = 4)+
-  scale_color_manual(labels = unique(metdata$eff_mass),
+                 size   = met_errorbar_size + 2)+
+  # geom_point(data = exp_succ,
+  #            aes(x = movedur,
+  #                y = p_success),
+  #            size = 4)+
+  scale_color_manual(labels = masses,
                      values = mass_colors)+
   scale_fill_manual(values = mass_colors,
                     labels = unique(metdata$eff_mass))+
@@ -6201,4 +6297,5 @@ colnames(Model_SSE_norm) = c('Model',
 ```{r ModelSSEnorm1_2c, echo = FALSE, warning = FALSE, tab.cap = 'Exp 2c - Sum squared errors for NORMALIZED movement duration and peak velocity.'}
 kable(Model_SSE_norm, caption = 'Exp 2c - Sum squared errors for NORMALIZED movement duration and peak velocity.')
 ```
+
 
