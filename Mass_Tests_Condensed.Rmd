@@ -3212,7 +3212,7 @@ Sum of torque sqaured is calcualted from the data and simulated minimum jerk pro
 
 $$ \dot{e} = \frac{bm^c}{T_m^d} $$
 
-The parameters fit for the effort models are shown in table @\ref(tab:effort_prarms).
+The parameters fit for the effort models are shown in table \@ref(tab:effort_prarms).
 
 ## Torque Squared
 
@@ -4854,8 +4854,8 @@ $$J = \frac{\alpha P(R|T_m) -\left( a_0 T_r + a T_m + \frac{bm^c}{T_m^d} \right)
 
 $T_r$ and $T_m$ are the reaction time and movement duration. Using the values from experiment 2a,b,c, we can optimize the error of the prediction by altering $\alpha$.
 
-The tables below show the movement durations (@\ref{rab:utilmovedurstab}), reaction time (@\ref{rab:utilreacttimestab}).
-<!-- , and probability of success (@\ref{rab:util_probs_tab}). -->
+The tables below show the movement durations (\@ref{rab:utilmovedurstab}), reaction time (\@ref{rab:utilreacttimestab}).
+<!-- , and probability of success (\@ref{rab:util_probs_tab}). -->
 
 ```{r, echo = FALSE, warnings = FALSE}
 
@@ -4894,7 +4894,7 @@ kable(reacttimes, caption = 'Reaction times by experiement and effective mass us
 
 ## Fitting alpha
 
-The next table (@\ref(tab:utilcoefftabs)) shows the fitted values for alpha given the specific utility model and the parameters fit previously. 
+The next table (\@ref(tab:utilcoefftabs)) shows the fitted values for alpha given the specific utility model and the parameters fit previously. These are only for experiment 2a. 
 
 ```{r , echo = FALSE, warning = FALSE, message = FALSE}
 tab1 = cbind(c(
@@ -4963,7 +4963,7 @@ colnames(opt_probs) = c('Utility Net','Utility Gross')
 ```
 
 
-This table (@\ref(tab:utildurs2a)) shows the duration from experiment 2a, along with the optimized predictions for each of the utility/effort models.
+This table (\@ref(tab:utildurs2a)) shows the duration from experiment 2a, along with the optimized predictions for each of the utility/effort models. The SSE for all these models is discussed later (section \@ref{SSE2a}).
 
 ```{r utildurs2a, echo = FALSE, warning = FALSE, message = FALSE}
   kable(tab2, caption = 'Preferred duration and predicted durations for each model')
@@ -4973,23 +4973,29 @@ This table (@\ref(tab:utildurs2a)) shows the duration from experiment 2a, along 
 
 The next table shows the alpha values for many of the experiements. These $\alpha$ values can be fit from a single experiment or multiple. 'Utility gross 2a and 2b' is the combined alpha in the following tables/plots.
 
-```{r alphavalues, echo = FALSE, warning = FALSE, message = FALSE, tab.cap = '$\alpha$ fits for the different experiements'}
+
+The SSE for experiment 2a/2b when using one alpha is `r formatC(sum((mvttimes_pref -util_dur_pref_alpha_comb_gross[1:4])^2)+sum((mvttimes_smallt -util_dur_pref_alpha_comb_gross[5:8])^2),format = 'e', digits = 3)`.
+
+```{r alphavalues, echo = FALSE, warning = FALSE, message = FALSE, tab.cap = '$\alpha$ fits and SSE for the different experiements'}
 tab = cbind(c('Utility 2a Net','Utility 2b Gross','Utility Gross 2a and 2b','Utility 2b Gross','Utility 2c Gross'),
             round(c(alpha_utility_net_rx$minimum,
                     alpha_utility_gross_rx$minimum,
                     alpha_pref_comb_gross$minimum,
                     alpha_smallt$minimum,
-                    alpha_pilot$minimum),3))
-colnames(tab) = c('Experiments fit','$\alpha$')
-kable(tab, caption = '$\alpha$ fits for the different experiements')
+                    alpha_pilot$minimum),3),
+            c(formatC(sum((mvttimes_pref-util_dur_net_rx)^2),format = 'e', digits = 3),
+              formatC(sum((mvttimes_pref-util_dur_gross_rx)^2),format = 'e', digits = 3),
+              formatC(sum((mvttimes_pref-util_dur_pref_alpha_comb_gross[1:4])^2)+sum((mvttimes_smallt -util_dur_pref_alpha_comb_gross[5:8])^2),
+                      format = 'e', digits = 3),
+              formatC(sum((mvttimes_smallt-util_dur_smallt)^2),format = 'e', digits = 3),
+              formatC(sum((mvttimes_pilot-util_dur_pilot)^2),format = 'e', digits = 3)))
+colnames(tab) = c('Experiments fit','$\alpha$','SSE')
+kable(tab, caption = '$\alpha$ fits and SSE for the different experiements.')
 ```
 
-<!-- These next plots show how different models for effort can predict preferred movement duration. Utility is fit from the group, not the individual utility fits like the plot before. -->
-
-<!-- ## Movement Duration Plotting -->
 The probabilites and movement durations for the combined alpha are showin at the end, in section Utility fits accross experiements.
 
-The probability of success for utility in experiement 2b using the optimized alpha value are shown below. 2a can be found above in @\ref{tab:optprobstab2a}
+The probability of success for utility in experiement 2b using the optimized alpha value are shown below. 2a can be found above in \@ref{tab:optprobstab2a}
 
 ```{r optprobstabcomb, echo = FALSE, warning = FALSE, message = FALSE}
   
@@ -5003,11 +5009,10 @@ colnames(opt_probs) = c('Utility Net','Utility Gross')
   
 # inv.logit(predict(met_smallt_p_glm,data.frame(movedur=util_dur_net_rx,eff_mass=masses))),
       
-      
   kable(opt_probs, caption = 'Probability of success used in utility modeling when fitting alpha, Expirement 2b.')
 ```
 
-This table (@\ref(tab:utildurscombalpha)) shows the duration from experiment 2a/2b. The first table is one alpha fitted to 2a and 2b. Second table, one alpha for 2b. Third table one alpha for 2c.
+This table (\@ref(tab:utildurscombalpha)) shows the duration from experiment 2a/2b. The first table is one alpha fitted to 2a and 2b. Second table, one alpha for 2b. Third table one alpha for 2c.
 
 ```{r utildurscombalpha, echo = FALSE, warning = FALSE, message = FALSE}
   
@@ -5118,6 +5123,8 @@ kable(comb_ut_probtab, caption = 'Probabilites of success for the experiments.')
 ```{r alphtab1, echo = FALSE, warning = FALSE, tab.cap = 'Alpha values fitted to experiment 2a/2b, and a seperate alpha for 2c.'}
 kable(alph_tab, caption = 'Alpha values fitted to experiment 2a/2b, and a seperate alpha for 2c.')
 ```
+
+The SSE for experiment 2a/2b when using one alpha is `r formatC(sum((mvttimes_pref -util_dur_pref_alpha_comb_gross[1:4])^2)+sum((mvttimes_smallt -util_dur_pref_alpha_comb_gross[5:8])^2),format = 'e', digits = 3)`.
 
 ```{r, echo = FALSE, warning = FALSE}
 
@@ -5679,7 +5686,7 @@ Model_normpeakvel_color <- model_plotting('norm_vels','Norm Velocity (m/s)',
 #   Model_normpeakvel_shape
 ```
 
-## SSE of models - Exp 2a
+## SSE of models - Exp 2a {#SSE2a}
 
 The utility combined alpha is using the alpha value predicted off fitting a utility model to the preferred and small target experiement at the same time. This alpha value is used to make figure \@ref(fig:groupedutilitymovedur1).
 
