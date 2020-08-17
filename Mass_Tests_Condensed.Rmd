@@ -1526,14 +1526,14 @@ kable(miss_dist_time, caption = 'Miss Distance average values (cm)')
 ```
 
 This next stat output shows the a LME with miss_dist ~ target + eff_mass*exp + (1|subj).
-```{r miss_dist_exp_stat, echo = FALSE, warning = FALSE}
+```{r missdistexpstat, echo = FALSE, warning = FALSE}
 # ```{r movedur2, echo = FALSE, warning = FALSE, fig.width=12, fig.height=8, fig.cap = 'Movement duration by experiment.'}
 cftest(lmer(miss_dist ~ factor(targetnum) + eff_mass + eff_mass*factor(exp) +  (1|subj),data=prefpilot))
 ```
 
 `r mass_exp_int_stringgen(prefpilot,'miss_dist','endpoint error')`
 
-```{r miss_dist_by_experiment1, echo = FALSE, warning = FALSE, fig.width=12, fig.height=8, fig.cap = 'Miss Distance (cm) by experiment.'}
+```{r missdistexperiment, echo = FALSE, warning = FALSE, fig.width=12, fig.height=8, fig.cap = 'Miss Distance (cm) by experiment.'}
 miss_dist_by_experiment+theme(text = element_text(size = 18))
 ```
 
@@ -1662,14 +1662,14 @@ kable(missangle_time, caption = 'Miss Angle Variance average values (deg^2)')
 ```
 
 This next stat output shows the a LME with missangle ~ target + eff_mass*exp + (1|subj).
-```{r missangle_exp_stat, echo = FALSE, warning = FALSE}
+```{r missangleexpstat, echo = FALSE, warning = FALSE}
 # ```{r movedur2, echo = FALSE, warning = FALSE, fig.width=12, fig.height=8, fig.cap = 'Movement duration by experiment.'}
 cftest(lmer(missangle ~ eff_mass*factor(exp) +  (1|subj),data=var_data))
 ```
 
 `r mass_exp_int_stringgen(var_data,'missangle','miss angle variance')`
 
-```{r missangle_by_experiement1, echo = FALSE, warning = FALSE, fig.width=12, fig.height=8, fig.cap = 'Miss Angle Variance (deg^2) by experiment.'}
+```{r missanglebyexperiement1, echo = FALSE, warning = FALSE, fig.width=12, fig.height=8, fig.cap = 'Miss Angle Variance (deg^2) by experiment.'}
   missangle_by_experiement+theme(text = element_text(size = 18))
 ```
 
@@ -1794,14 +1794,14 @@ kable(miss_rad_time, caption = 'Miss Radial Variance average values (cm^2)')
 ```
 
 This next stat output shows the a LME with miss_rad ~ eff_mass*exp + (1|subj).
-```{r miss_rad_exp_stat, echo = FALSE, warning = FALSE}
+```{r missradexpstat, echo = FALSE, warning = FALSE}
 # ```{r movedur2, echo = FALSE, warning = FALSE, fig.width=12, fig.height=8, fig.cap = 'Movement duration by experiment.'}
 cftest(lmer(miss_rad ~ eff_mass * factor(exp) +  (1|subj),data=var_data))+theme(text = element_text(size = 18))
 ```
 
 `r mass_exp_int_stringgen(var_data,'miss_rad','miss radial variance')`
 
-```{r miss_rad_by_experiement1, echo = FALSE, warning = FALSE, fig.width=12, fig.height=8, fig.cap = 'Miss Radial Variance by experiment.'}
+```{r missradbyexperiement1, echo = FALSE, warning = FALSE, fig.width=12, fig.height=8, fig.cap = 'Miss Radial Variance by experiment.'}
   miss_rad_by_experiement
 ```
 
@@ -1838,7 +1838,7 @@ miss_rad_nv[['smallt']]<-avg_plot('miss_rad',filter(var_data,exp=='smallt'),ylab
 
 ```
 
-```{r miss_rad1, echo = FALSE, warning = FALSE, fig.width=12, fig.height=8, fig.cap = 'Miss Rad Variance (cm^2) broken by experiment.'}
+```{r missrad1, echo = FALSE, warning = FALSE, fig.width=12, fig.height=8, fig.cap = 'Miss Rad Variance (cm^2) broken by experiment.'}
   plot_grid(miss_rad[['pref']],
             miss_rad[['smallt']],
             miss_rad[['pilot']],
@@ -2391,7 +2391,7 @@ if (save_plots){ggsave('MPNet_by_movedur.pdf',plot = MPNet,height = 6, width = 8
 
 ```
 
-```{r mpower_net_tab1, echo = FALSE, warning = FALSE}
+```{r mpowernettab1, echo = FALSE, warning = FALSE}
 
 mpower_net_tab = table_func(mpdata_factor, 'metpowernet')
 kable(mpower_net_tab, caption = 'Net Metabolic power plus/minus standard error for the metabolic experiment')
@@ -2664,7 +2664,7 @@ colnames(temppref) = c('effmass','MCostmin_obj','MCostnet_min_dur','pref_avg_dur
 ```
 
 
-```{r mcostcost_net_tab1, echo = FALSE, warning = FALSE}
+```{r mcostcostnettab1, echo = FALSE, warning = FALSE}
 
 mcost_cost_net_tab = table_func(mpdata_factor, 'netcost')
 kable(mcost_cost_net_tab, caption = 'Net Metabolic Cost plus/minus standard error for the metabolic experiment')
@@ -3206,7 +3206,7 @@ torque_mj_plot <-
 
 ```
 
-We compute 4 effort models here. Gross metabolics, net metabolics, and sum of torque squared. Net and gross metabolics have been addressed before, here we add sum of torque squared.
+We compute 4 effort models here. Gross metabolics, net metabolics, and sum of torque squared (experimentally calculated and calcualted from minimum jerk). Net and gross metabolics have been addressed before, here we add sum of torque squared.
 
 Sum of torque sqaured is calcualted from the data and simulated minimum jerk profiles and then fit to an effort model like net metabolic and gross metabolic power but without the a parameter.
 
@@ -3220,13 +3220,10 @@ The parameters fit for the effort models are shown in table @\ref(tab:effort_pra
 torque_plot
 ```
 
-The SSE for torque squared was `r sum(modelsum_torque2$residuals^2)`, AIC = `r AIC(torque2_model)`, BIC = `r BIC(torque2_model)`.
-The SSE for torque squared using minimum jerk was `r sum(modelsum_torque_mj$residuals^2)`, AIC = `r AIC(torque2_mj_model)`, BIC = `r BIC(torque2_mj_model)`.
-
 ## Effort model parameters
 
 This table shows a summary of all the parameters that were fitted in the effort models. SSE, AIC, and BIC can be found in their respective sections.
-```{r effort_prarms, echo = FALSE, warning = FALSE, message = FALSE}
+```{r effortprarms, echo = FALSE, warning = FALSE, message = FALSE}
 
 a0 = mean(mpdata$metpowerrest)
 a0_se = sd(mpdata$metpowerrest)/sqrt(8)
@@ -3235,26 +3232,34 @@ tab1 = cbind(c(paste(round(a0,4),'±',round(a0_se,4),sep=''),
                paste(round(coef(MPNet_model)[1],4),'±',round(coef(modelsum_mpnet)[1,2],4),sep=' '),
                paste(round(coef(MPNet_model)[2],4),'±',round(coef(modelsum_mpnet)[2,2],4),sep=' '),
                paste(round(coef(MPNet_model)[3],4),'±',round(coef(modelsum_mpnet)[3,2],4),sep=' '),
-               paste(round(coef(MPNet_model)[4],4),'±',round(coef(modelsum_mpnet)[4,2],4),sep=' ')),
+               paste(round(coef(MPNet_model)[4],4),'±',round(coef(modelsum_mpnet)[4,2],4),sep=' '),
+               AIC(MPNet_model),
+               BIC(MPNet_model)),
             c(paste(round(a0,4),'±',round(a0_se,4),sep=''),
               paste(round(coef(MPGross_model)[1],4),'±',round(coef(modelsum_mpgross)[1,2],4),sep=' '),
               paste(round(coef(MPGross_model)[2]*100,4),'±',round(100*coef(modelsum_mpgross)[2,2],4),sep=' '),
               paste(round(coef(MPGross_model)[3],4),'±',round(coef(modelsum_mpgross)[3,2],4),sep=' '),
-              paste(round(coef(MPGross_model)[4],4),'±',round(coef(modelsum_mpgross)[4,2],4),sep=' ')),
+              paste(round(coef(MPGross_model)[4],4),'±',round(coef(modelsum_mpgross)[4,2],4),sep=' '),
+              AIC(MPGross_model),
+              BIC(MPGross_model)),
             c(0,0,
               paste(round(coef(modelsum_torque2)[1,1],4),'±',round(coef(modelsum_torque2)[1,2],4),sep=' '),
               paste(round(coef(modelsum_torque2)[2,1],4),'±',round(coef(modelsum_torque2)[2,2],4),sep=' '),
-              paste(round(coef(modelsum_torque2)[3,1],4),'±',round(coef(modelsum_torque2)[3,2],4),sep=' ')),
+              paste(round(coef(modelsum_torque2)[3,1],4),'±',round(coef(modelsum_torque2)[3,2],4),sep=' '),
+              AIC(torque2_model),
+              BIC(torque2_model)),
             c(0,0,
               paste(round(coef(modelsum_torque_mj)[1,1],4),'±',round(coef(modelsum_torque_mj)[1,2],4),sep=' '),
               paste(round(coef(modelsum_torque_mj)[2,1],4),'±',round(coef(modelsum_torque_mj)[2,2],4),sep=' '),
-              paste(round(coef(modelsum_torque_mj)[3,1],4),'±',round(coef(modelsum_torque_mj)[3,2],4),sep=' ')))
-rownames(tab1) = c('a0','a','b','c','d')
+              paste(round(coef(modelsum_torque_mj)[3,1],4),'±',round(coef(modelsum_torque_mj)[3,2],4),sep=' '),
+              AIC(torque2_mj_model),
+              BIC(torque2_mj_model)))
+rownames(tab1) = c('a0','a','b','c','d','AIC','BIC')
 colnames(tab1) = c('Net Metabolics', 'Gross Metabolics','Torque$^2$','Torque$^2$ minjerk')
 
 ```
 
-```{r effort_mod_tab, echo = FALSE, warning = FALSE, message = FALSE}
+```{r effortmodtab, echo = FALSE, warning = FALSE, message = FALSE}
 
   kable(tab1, caption = 'Parameters fit in the effort models.')
 
@@ -3284,7 +3289,7 @@ modelsum_torque_mj = summary(torque2_mj_model)
 
 This table shows the confident intervals on the torque with $a$ model. The probability of $a$ ($a_1$) being greater than 0 is `r dnorm(0, coef(modelsum_torque2)[1,1] , coef(modelsum_torque2)[1,2])`.
 
-```{r, echo = FALSE, warning = FALSE}
+```{r, echo = FALSE, warning = FALSE, message = FALSE}
 kable(confint(torque2_model), caption = 'Confidence intervals for torque squared model.')
 ```
 
@@ -3319,7 +3324,7 @@ smalltdata$p_success = inv.logit(predict(smallt_p_glm))
 
 The following table shows the beta coefficients for the inverse logit function only predicting from experiment 2a and 2b.
 
-```{r beta_coeffs_prefsmallt, echo = FALSE, warning = FALSE}
+```{r betacoeffsprefsmallt, echo = FALSE, warning = FALSE}
 
 tab = cbind(c(paste(round(coef(pref_p_glm)[1],4),'±',round(coef(summary(pref_p_glm))[1,2],3),sep=' '),
               paste(round(coef(pref_p_glm)[2],4),'±',round(coef(summary(pref_p_glm))[2,2],3),sep=' ')),
@@ -3433,9 +3438,9 @@ p_alpha_2a_2b_glm <- ggplot(data=sim_success,
 
 ```
 
-The plot below shows the fits of the glm's fitted to only data from experiment 2a and 2b. Unfortunately, these glm's don't seem to have the same behavior as data fitted to experiment 1. This is probably due to the lack of really fast or really slow trials so it just predicts a flat line essentially.
+The plot below shows the fits of the glm's fitted to only data from experiment 2a and 2b. Unfortunately, these glm's don't seem to have the same behavior as data fitted to experiment 1 of dropping off to 0 at faster speeds. This is probably due to the lack of really fast or really slow trials so it just predicts a flat line essentially.
 
-```{r p_alpha_2a_2b_glm_fig, echo=FALSE, warning = FALSE,  fig.width=8, fig.height=7, fig.cap = 'Probability of success with glm fitted to experiment 2a and 2b data.'}
+```{r PAlpha2a2bGlmFig, echo=FALSE, warning = FALSE,  fig.width=8, fig.height=7, fig.cap = 'Probability of success with glm fitted to experiment 2a and 2b data.'}
 
 p_alpha_2a_2b_glm
 
@@ -3751,7 +3756,7 @@ p_alpha_plot_cont <- ggplot(data=metdata,
 
 This table shows the beta coefficients when using an inverse logit on experiment 1 trying to predict 2a and 2b.
 
-```{r beta_coeffs, echo = FALSE, warning = FALSE}
+```{r betacoeffs, echo = FALSE, warning = FALSE}
 
 tab = cbind(c(paste(round(coef(met_p_glm)[1],4),'±',round(coef(summary(met_p_glm))[1,2],3),sep=' '),
               paste(round(coef(met_p_glm)[3],4),'±',round(coef(summary(met_p_glm))[3,2],3),sep=' '),
@@ -4840,14 +4845,16 @@ The utility function that is fit for these next plots is below.
 $T_r$ and $T_m$ are the reaction time and movement duration.
 $P(R|m,t)$ is determined from the section above, probability alpha modeling. $a$, $b$, $c$, $d$ are determined from the metabolic data.
 Resting rate is shown by $a_0$, and $a_0$ = `r round(mean(mpdata_rest),3)`.
-The parameters a, b, c, and d are shown in \@ref(tab:effort_mod_tab).
+The parameters a, b, c, and d are shown in \@ref(tab:effortmodtab).
 
-$$J = \frac{\alpha P(R|m,T) -\left( a_0 T_r + a T_m + \frac{bm^c}{T_m^d} \right)}{T_r+T_m}$$
+$$J = \frac{\alpha P(R|m,T_m) -\left( a_0 T_r + a T_m + \frac{bm^c}{T_m^d} \right)}{T_r+T_m}$$
+Ideally the probability function has an effect of mass in it, but for the following results we use the glm from experiement 2a/2b to fit $\alpha$, which leads to the probability function only including a term of time.
 
+$$J = \frac{\alpha P(R|T_m) -\left( a_0 T_r + a T_m + \frac{bm^c}{T_m^d} \right)}{T_r+T_m}$$
 
 $T_r$ and $T_m$ are the reaction time and movement duration. Using the values from experiment 2a,b,c, we can optimize the error of the prediction by altering $\alpha$.
 
-The tables below show the movement durations (@\ref{rab:util_movedurs_tab}), reaction time (@\ref{rab:util_reacttimes_tab}).
+The tables below show the movement durations (@\ref{rab:utilmovedurstab}), reaction time (@\ref{rab:utilreacttimestab}).
 <!-- , and probability of success (@\ref{rab:util_probs_tab}). -->
 
 ```{r, echo = FALSE, warnings = FALSE}
@@ -4873,11 +4880,11 @@ rownames(reacttimes) = c('2.47 kg','3.80 kg','4.70 kg','6.10 kg')
 
 ```
 
-```{r util_movedurs_tab, echo = FALSE, warning = FALSE, message = FALSE}
+```{r utilmovedurstab, echo = FALSE, warning = FALSE, message = FALSE}
 kable(movedurs, caption = 'Movement durations by experiement and effective mass used in the Utility model')
 ```
 
-```{r util_reacttimes_tab, echo = FALSE, warnigns = FALSE}
+```{r utilreacttimestab, echo = FALSE, warnigns = FALSE}
 kable(reacttimes, caption = 'Reaction times by experiement and effective mass used in the Utility model')
 ```
 
@@ -4939,7 +4946,7 @@ colnames(tab2) = c('Preferred Experiment','Net Metabolic Power','Gross Metabolic
 
 The probability of success for utility in experiement 2a using the optimized alpha value are shown below.
 
-```{r opt_probs_tab_2a, echo = FALSE, warning = FALSE, message = FALSE}
+```{r optprobstab2a, echo = FALSE, warning = FALSE, message = FALSE}
   
 opt_probs = cbind(inv.logit(predict(pref_p_glm,data.frame(movedur=util_dur_net_rx,eff_mass=masses))),
                   inv.logit(predict(pref_p_glm,data.frame(movedur=util_dur_gross_rx,eff_mass=masses))))
@@ -4956,9 +4963,9 @@ colnames(opt_probs) = c('Utility Net','Utility Gross')
 ```
 
 
-This table (@\ref(tab:util_durs_2a)) shows the duration from experiment 2a, along with the optimized predictions for each of the utility/effort models.
+This table (@\ref(tab:utildurs2a)) shows the duration from experiment 2a, along with the optimized predictions for each of the utility/effort models.
 
-```{r util_durs_2a, echo = FALSE, warning = FALSE, message = FALSE}
+```{r utildurs2a, echo = FALSE, warning = FALSE, message = FALSE}
   kable(tab2, caption = 'Preferred duration and predicted durations for each model')
 ```
 
@@ -4966,7 +4973,7 @@ This table (@\ref(tab:util_durs_2a)) shows the duration from experiment 2a, alon
 
 The next table shows the alpha values for many of the experiements. These $\alpha$ values can be fit from a single experiment or multiple. 'Utility gross 2a and 2b' is the combined alpha in the following tables/plots.
 
-```{r alpha_values, echo = FALSE, warning = FALSE, message = FALSE, tab.cap = '$\alpha$ fits for the different experiements'}
+```{r alphavalues, echo = FALSE, warning = FALSE, message = FALSE, tab.cap = '$\alpha$ fits for the different experiements'}
 tab = cbind(c('Utility 2a Net','Utility 2b Gross','Utility Gross 2a and 2b','Utility 2b Gross','Utility 2c Gross'),
             round(c(alpha_utility_net_rx$minimum,
                     alpha_utility_gross_rx$minimum,
@@ -4982,9 +4989,9 @@ kable(tab, caption = '$\alpha$ fits for the different experiements')
 <!-- ## Movement Duration Plotting -->
 The probabilites and movement durations for the combined alpha are showin at the end, in section Utility fits accross experiements.
 
-The probability of success for utility in experiement 2b using the optimized alpha value are shown below. 2a can be found above in @\ref{tab:opt_probs_tab_2a}
+The probability of success for utility in experiement 2b using the optimized alpha value are shown below. 2a can be found above in @\ref{tab:optprobstab2a}
 
-```{r opt_probs_tab_comb, echo = FALSE, warning = FALSE, message = FALSE}
+```{r optprobstabcomb, echo = FALSE, warning = FALSE, message = FALSE}
   
 opt_probs = cbind(inv.logit(predict(smallt_p_glm,data.frame(movedur=util_dur_net_rx,eff_mass=masses))),
                   inv.logit(predict(smallt_p_glm,data.frame(movedur=util_dur_gross_rx,eff_mass=masses))))
@@ -5000,9 +5007,9 @@ colnames(opt_probs) = c('Utility Net','Utility Gross')
   kable(opt_probs, caption = 'Probability of success used in utility modeling when fitting alpha, Expirement 2b.')
 ```
 
-This table (@\ref(tab:util_durs_comb_alpha)) shows the duration from experiment 2a/2b. The first table is one alpha fitted to 2a and 2b. Second table, one alpha for 2b. Third table one alpha for 2c.
+This table (@\ref(tab:utildurscombalpha)) shows the duration from experiment 2a/2b. The first table is one alpha fitted to 2a and 2b. Second table, one alpha for 2b. Third table one alpha for 2c.
 
-```{r util_durs_comb_alpha, echo = FALSE, warning = FALSE, message = FALSE}
+```{r utildurscombalpha, echo = FALSE, warning = FALSE, message = FALSE}
   
 comb_alpha_durs = cbind(aggregate(movedur ~ eff_mass,prefdata,mean)$movedur,
                         util_dur_pref_alpha_comb_gross[1:4],
@@ -5068,7 +5075,7 @@ rownames(tab) = masses
 colnames(tab) = c('2b Move Dur','Predicted 2b using 2a alpha')
 ```
 
-```{r 2b_from_2a_tab, echo = FALSE, warning = FALSE,  tab.cap = 'Predicted movement durations for experiment 2b using the alpha from 2a and the probabilities from 2b.'}
+```{r 2bfrom2atab, echo = FALSE, warning = FALSE,  tab.cap = 'Predicted movement durations for experiment 2b using the alpha from 2a and the probabilities from 2b.'}
 kable(tab, caption = paste('Predicted movement durations for experiment 2b using the alpha from 2a and the probabilities from 2b. SSE = ',round(sum(tab[,1]-tab[,2])^2,4),sep=''))
 ```
 
@@ -5100,15 +5107,15 @@ rownames(alph_tab) = '\alpha'
 
 ```
 
-```{r comb_ut_durtab1, echo = FALSE, warning = FALSE, tab.cap = 'Experimental and predicted movement durations for the experiments.'}
+```{r combutdurtab1, echo = FALSE, warning = FALSE, tab.cap = 'Experimental and predicted movement durations for the experiments.'}
 kable(comb_ut_durtab, caption = 'Experimental and predicted movement durations for the experiments.')
 ```
 
-```{r comb_ut_probtab1, echo = FALSE, warning = FALSE, tab.cap = 'Probabilites of success for the experiments.'}
+```{r combutprobtab1, echo = FALSE, warning = FALSE, tab.cap = 'Probabilites of success for the experiments.'}
 kable(comb_ut_probtab, caption = 'Probabilites of success for the experiments.')
 ```
 
-```{r alph_tab1, echo = FALSE, warning = FALSE, tab.cap = 'Alpha values fitted to experiment 2a/2b, and a seperate alpha for 2c.'}
+```{r alphtab1, echo = FALSE, warning = FALSE, tab.cap = 'Alpha values fitted to experiment 2a/2b, and a seperate alpha for 2c.'}
 kable(alph_tab, caption = 'Alpha values fitted to experiment 2a/2b, and a seperate alpha for 2c.')
 ```
 
@@ -6043,7 +6050,7 @@ colnames(Model_SSE) = c('Model',
 
 This table shows the SSE for the 2b movement duration and peak velocity predictions. These SSE's are calculated from only taking the predicted durations as before, and seeing how they compare to 2b. No new model fitting was done.
 
-```{r ModelSSE1_2b, echo = FALSE, warning = FALSE, tab.cap = 'Exp 2b - Sum squared errors for movement duration and peak velocity.'}
+```{r ModelSSE2b, echo = FALSE, warning = FALSE, tab.cap = 'Exp 2b - Sum squared errors for movement duration and peak velocity.'}
 kable(Model_SSE, caption = 'Exp 2b - Sum squared errors for movement duration and peak velocity.')
 ```
 
@@ -6133,7 +6140,7 @@ colnames(Model_SSE_norm) = c('Model',
                         'Peak Velocity BIC')
 ```
 
-```{r ModelSSEnorm1_2b, echo = FALSE, warning = FALSE, tab.cap = 'Exp 2b - Sum squared errors for NORMALIZED movement duration and peak velocity.'}
+```{r ModelSSEnorm12b, echo = FALSE, warning = FALSE, tab.cap = 'Exp 2b - Sum squared errors for NORMALIZED movement duration and peak velocity.'}
 kable(Model_SSE_norm, caption = 'Exp 2b - Sum squared errors for NORMALIZED movement duration and peak velocity.')
 ```
 
@@ -6242,7 +6249,7 @@ colnames(Model_SSE) = c('Model',
 
 This table shows the SSE for the 2c movement duration and peak velocity predictions. These SSE's are calculated from only taking the predicted durations as before, and seeing how they compare to 2b. No new model fitting was done.
 
-```{r ModelSSE1_2c, echo = FALSE, warning = FALSE, tab.cap = 'Exp 2c - Sum squared errors for movement duration and peak velocity.'}
+```{r ModelSSE12c, echo = FALSE, warning = FALSE, tab.cap = 'Exp 2c - Sum squared errors for movement duration and peak velocity.'}
 kable(Model_SSE, caption = 'Exp 2c - Sum squared errors for movement duration and peak velocity.')
 ```
 
@@ -6332,6 +6339,6 @@ colnames(Model_SSE_norm) = c('Model',
                         'Peak Velocity BIC')
 ```
 
-```{r ModelSSEnorm1_2c, echo = FALSE, warning = FALSE, tab.cap = 'Exp 2c - Sum squared errors for NORMALIZED movement duration and peak velocity.'}
+```{r ModelSSEnorm12c, echo = FALSE, warning = FALSE, tab.cap = 'Exp 2c - Sum squared errors for NORMALIZED movement duration and peak velocity.'}
 kable(Model_SSE_norm, caption = 'Exp 2c - Sum squared errors for NORMALIZED movement duration and peak velocity.')
 ```
