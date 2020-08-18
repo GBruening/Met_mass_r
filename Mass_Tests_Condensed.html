@@ -415,8 +415,8 @@ summary {
 </ul></li>
 <li><a href="#table-for-the-coefficients-in-utility-modeling"><span class="toc-section-number">5.3</span> Table for the coefficients in Utility Modeling</a></li>
 <li><a href="#a-alpha"><span class="toc-section-number">5.4</span> 2a Alpha</a></li>
-<li><a href="#b-alphas"><span class="toc-section-number">5.5</span> 2b alphas</a></li>
-<li><a href="#c-alphas"><span class="toc-section-number">5.6</span> 2c alphas</a><ul>
+<li><a href="#b-alpha"><span class="toc-section-number">5.5</span> 2b Alpha</a></li>
+<li><a href="#c-alpha"><span class="toc-section-number">5.6</span> 2c Alpha</a><ul>
 <li><a href="#alpha-from-2a-predicting-2b"><span class="toc-section-number">5.6.1</span> Alpha from 2a predicting 2b</a></li>
 <li><a href="#a-with-2b-utility-fits"><span class="toc-section-number">5.6.2</span> 2a with 2b Utility fits</a></li>
 </ul></li>
@@ -2778,7 +2778,7 @@ Ideally the probability function has an effect of mass in it, but for the follow
 </table>
 <p>This table (<a href="#tab:utildurs2a">5.4</a>) shows the <span class="math inline">\(\alpha\)</span> value, predicted durations for the models, and the SSE between that and the experimental data. The SSE for all these models is shown in detail later (section @ref{SSE2a}).</p>
 <table style="width:100%;">
-<caption><span id="tab:utildurs2a">Table 5.4: </span>Preferred duration and predicted durations for each model</caption>
+<caption><span id="tab:utildurs2a">Table 5.4: </span>Preferred duration and predicted durations for each model.</caption>
 <colgroup>
 <col width="4%"></col>
 <col width="10%"></col>
@@ -2792,239 +2792,345 @@ Ideally the probability function has an effect of mass in it, but for the follow
 <thead>
 <tr class="header">
 <th align="left"></th>
-<th align="right">2a Experiment</th>
-<th align="right">Net Metabolic Power</th>
-<th align="right">Gross Metabolic power</th>
-<th align="right">Utility (Net Power)</th>
-<th align="right">Utility (Gross Power</th>
-<th align="right">Torque<span class="math inline">\(^2\)</span></th>
-<th align="right">Torque<span class="math inline">\(^2\)</span> minjerk</th>
+<th align="left">2a Experiment</th>
+<th align="left">Net Metabolic Power</th>
+<th align="left">Gross Metabolic power</th>
+<th align="left">Utility (Net Power)</th>
+<th align="left">Utility (Gross Power</th>
+<th align="left">Torque<span class="math inline">\(^2\)</span></th>
+<th align="left">Torque<span class="math inline">\(^2\)</span> minjerk</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
 <td align="left">Alpha</td>
-<td align="right">NaN</td>
-<td align="right">NaN</td>
-<td align="right">NaN</td>
-<td align="right">60.8204</td>
-<td align="right">43.2101</td>
-<td align="right">22.2412</td>
-<td align="right">27.1342</td>
+<td align="left">0</td>
+<td align="left">0</td>
+<td align="left">0</td>
+<td align="left">60.8204</td>
+<td align="left">43.2101</td>
+<td align="left">22.2412</td>
+<td align="left">27.1342</td>
 </tr>
 <tr class="even">
 <td align="left">2.47</td>
-<td align="right">0.7667</td>
-<td align="right">0.8543</td>
-<td align="right">0.6613</td>
-<td align="right">0.7660</td>
-<td align="right">0.7670</td>
-<td align="right">0.4800</td>
-<td align="right">0.0600</td>
+<td align="left">0.7667</td>
+<td align="left">0.8543</td>
+<td align="left">0.6613</td>
+<td align="left">0.766</td>
+<td align="left">0.767</td>
+<td align="left">0.48</td>
+<td align="left">0.06</td>
 </tr>
 <tr class="odd">
 <td align="left">4.73</td>
-<td align="right">0.8296</td>
-<td align="right">0.9078</td>
-<td align="right">0.7033</td>
-<td align="right">0.8250</td>
-<td align="right">0.8240</td>
-<td align="right">0.6900</td>
-<td align="right">0.1900</td>
+<td align="left">0.8296</td>
+<td align="left">0.9078</td>
+<td align="left">0.7033</td>
+<td align="left">0.825</td>
+<td align="left">0.824</td>
+<td align="left">0.69</td>
+<td align="left">0.19</td>
 </tr>
 <tr class="even">
 <td align="left">6.99</td>
-<td align="right">0.8546</td>
-<td align="right">0.9353</td>
-<td align="right">0.7249</td>
-<td align="right">0.8560</td>
-<td align="right">0.8540</td>
-<td align="right">0.8300</td>
-<td align="right">0.4200</td>
+<td align="left">0.8546</td>
+<td align="left">0.9353</td>
+<td align="left">0.7249</td>
+<td align="left">0.856</td>
+<td align="left">0.854</td>
+<td align="left">0.83</td>
+<td align="left">0.42</td>
 </tr>
 <tr class="odd">
 <td align="left">11.50</td>
-<td align="right">0.8896</td>
-<td align="right">0.9703</td>
-<td align="right">0.7524</td>
-<td align="right">0.8950</td>
-<td align="right">0.8920</td>
-<td align="right">1.0400</td>
-<td align="right">1.1700</td>
+<td align="left">0.8896</td>
+<td align="left">0.9703</td>
+<td align="left">0.7524</td>
+<td align="left">0.895</td>
+<td align="left">0.892</td>
+<td align="left">1.04</td>
+<td align="left">1.17</td>
 </tr>
 <tr class="even">
 <td align="left">SSE</td>
-<td align="right">NaN</td>
-<td align="right">0.0268</td>
-<td align="right">0.0627</td>
-<td align="right">0.0001</td>
-<td align="right">0.0000</td>
-<td align="right">0.1249</td>
-<td align="right">1.1759</td>
+<td align="left">0</td>
+<td align="left">2.683e-02</td>
+<td align="left">6.267e-02</td>
+<td align="left">5.245e-05</td>
+<td align="left">3.717e-05</td>
+<td align="left">1.249e-01</td>
+<td align="left">1.176e+00</td>
 </tr>
 </tbody>
 </table>
 </div>
-<div id="b-alphas" class="section level2">
-<h2><span class="header-section-number">5.5</span> 2b alphas</h2>
-<p>The next table shows the alpha values for many of the experiements. These <span class="math inline">\(\alpha\)</span> values can be fit from a single experiment or multiple. ‘Utility gross 2a and 2b’ is the combined alpha in the following tables/plots.</p>
-<p>The SSE for experiment 2a/2b when using one alpha is 4.794e-04.</p>
+<div id="b-alpha" class="section level2">
+<h2><span class="header-section-number">5.5</span> 2b Alpha</h2>
+<p>Table (<a href="#tab:utildurs2b">5.6</a>) shows the fitted values for alpha given the specific utility model and the parameters fit previously. These are only for experiment 2b.</p>
+<p>The probability of success for utility in experiement 2b using the optimized alpha value are shown below.</p>
 <table>
-<caption><span id="tab:alphavalues2b">Table 5.5: </span><span class="math inline">\(lpha\)</span> fits and SSE for the different experiements.</caption>
-<thead>
-<tr class="header">
-<th align="left">Experiments fit</th>
-<th align="left"><span class="math inline">\(lpha\)</span></th>
-<th align="left">SSE</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td align="left">Utility 2b Gross</td>
-<td align="left">47.003</td>
-<td align="left">8.770e-05</td>
-</tr>
-<tr class="even">
-<td align="left">Utility 2b Net</td>
-<td align="left">78.866</td>
-<td align="left">1.268e-04</td>
-</tr>
-</tbody>
-</table>
-<p>These tables (@) show the predicted utility durations given one alpha fit to 2b</p>
-<p>The probability of success for utility in experiement 2b using the optimized alpha value are shown below (tab @{ref:probs2atab}.</p>
-<table>
-<caption><span id="tab:probs2atab">Table 5.6: </span>Probability of success used in utility modeling when fitting alpha, Expirement 2b.</caption>
+<caption><span id="tab:optprobstab2b">Table 5.5: </span>Probability of success used in utility modeling when fitting alpha, Expirement 2b.</caption>
 <thead>
 <tr class="header">
 <th align="left"></th>
-<th align="right">Utility Gross</th>
 <th align="right">Utility Net</th>
+<th align="right">Utility Gross</th>
+<th align="right">Utility Torque</th>
+<th align="right">Utility Torque Mj</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
 <td align="left">2.47</td>
-<td align="right">0.7271211</td>
 <td align="right">0.7265045</td>
+<td align="right">0.7271211</td>
+<td align="right">0.6911545</td>
+<td align="right">0.6256458</td>
 </tr>
 <tr class="even">
 <td align="left">3.8</td>
-<td align="right">0.7345741</td>
 <td align="right">0.7343318</td>
+<td align="right">0.7345741</td>
+<td align="right">0.7220389</td>
+<td align="right">0.6528522</td>
 </tr>
 <tr class="odd">
 <td align="left">4.7</td>
-<td align="right">0.7383115</td>
 <td align="right">0.7381915</td>
+<td align="right">0.7383115</td>
+<td align="right">0.7415388</td>
+<td align="right">0.6938000</td>
 </tr>
 <tr class="even">
 <td align="left">6.1</td>
-<td align="right">0.7432020</td>
 <td align="right">0.7434390</td>
+<td align="right">0.7432020</td>
+<td align="right">0.7701696</td>
+<td align="right">0.7851999</td>
 </tr>
 </tbody>
 </table>
-<table>
-<caption><span id="tab:utildurs2b">Table 5.7: </span>One alpha to 2b. Gross and net cost as effort term.</caption>
+<p>This table (<a href="#tab:utildurs2a">5.4</a>) shows the <span class="math inline">\(\alpha\)</span> value, predicted durations for the models, and the SSE between that and the experimental data. The SSE for all these models is shown in detail later (section @ref{SSE2b}).</p>
+<table style="width:100%;">
+<caption><span id="tab:utildurs2b">Table 5.6: </span>Preferred duration and predicted durations for each model.</caption>
+<colgroup>
+<col width="4%"></col>
+<col width="10%"></col>
+<col width="15%"></col>
+<col width="16%"></col>
+<col width="15%"></col>
+<col width="15%"></col>
+<col width="8%"></col>
+<col width="14%"></col>
+</colgroup>
 <thead>
 <tr class="header">
 <th align="left"></th>
-<th align="right">2b Experim</th>
-<th align="right">2b Predict Gross Util</th>
-<th align="right">2b Predict Net Util</th>
+<th align="left">2b Experiment</th>
+<th align="left">Net Metabolic Power</th>
+<th align="left">Gross Metabolic power</th>
+<th align="left">Utility (Net Power)</th>
+<th align="left">Utility (Gross Power</th>
+<th align="left">Torque<span class="math inline">\(^2\)</span></th>
+<th align="left">Torque<span class="math inline">\(^2\)</span> minjerk</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
-<td align="left">2.47</td>
-<td align="right">0.825</td>
-<td align="right">0.821</td>
-<td align="right">0.816</td>
+<td align="left">Alpha</td>
+<td align="left">0</td>
+<td align="left">0</td>
+<td align="left">0</td>
+<td align="left">78.8661</td>
+<td align="left">47.0029</td>
+<td align="left">35.5605</td>
+<td align="left">46.8934</td>
 </tr>
 <tr class="even">
-<td align="left">3.8</td>
-<td align="right">0.881</td>
-<td align="right">0.882</td>
-<td align="right">0.880</td>
+<td align="left">2.47</td>
+<td align="left">0.8248</td>
+<td align="left">0.8543</td>
+<td align="left">0.6613</td>
+<td align="left">0.816</td>
+<td align="left">0.821</td>
+<td align="left">0.54</td>
+<td align="left">0.07</td>
 </tr>
 <tr class="odd">
-<td align="left">4.7</td>
-<td align="right">0.905</td>
-<td align="right">0.913</td>
-<td align="right">0.912</td>
+<td align="left">4.73</td>
+<td align="left">0.8815</td>
+<td align="left">0.9078</td>
+<td align="left">0.7033</td>
+<td align="left">0.88</td>
+<td align="left">0.882</td>
+<td align="left">0.78</td>
+<td align="left">0.26</td>
 </tr>
 <tr class="even">
-<td align="left">6.1</td>
-<td align="right">0.958</td>
-<td align="right">0.954</td>
-<td align="right">0.956</td>
+<td align="left">6.99</td>
+<td align="left">0.9053</td>
+<td align="left">0.9353</td>
+<td align="left">0.7249</td>
+<td align="left">0.912</td>
+<td align="left">0.913</td>
+<td align="left">0.94</td>
+<td align="left">0.56</td>
+</tr>
+<tr class="odd">
+<td align="left">11.50</td>
+<td align="left">0.9578</td>
+<td align="left">0.9703</td>
+<td align="left">0.7524</td>
+<td align="left">0.956</td>
+<td align="left">0.954</td>
+<td align="left">1.19</td>
+<td align="left">1.33</td>
+</tr>
+<tr class="even">
+<td align="left">SSE</td>
+<td align="left">0</td>
+<td align="left">2.618e-03</td>
+<td align="left">1.332e-01</td>
+<td align="left">1.268e-04</td>
+<td align="left">8.770e-05</td>
+<td align="left">1.465e-01</td>
+<td align="left">1.214e+00</td>
 </tr>
 </tbody>
 </table>
 </div>
-<div id="c-alphas" class="section level2">
-<h2><span class="header-section-number">5.6</span> 2c alphas</h2>
-<p>The next table shows the alpha values for many of the experiements. These <span class="math inline">\(\alpha\)</span> values can be fit from a single experiment or multiple. ‘Utility gross 2a and 2b’ is the combined alpha in the following tables/plots.</p>
-<p>The SSE for experiment 2a/2b when using one alpha is 4.794e-04.</p>
+<div id="c-alpha" class="section level2">
+<h2><span class="header-section-number">5.6</span> 2c Alpha</h2>
+<p>Table (<a href="#tab:utildurs2c">5.8</a>) shows the fitted values for alpha given the specific utility model and the parameters fit previously. These are only for experiment 2c.</p>
+<p>The probability of success for utility in experiement 2b using the optimized alpha value are shown below.</p>
 <table>
-<caption><span id="tab:alphavalues2c">Table 5.8: </span><span class="math inline">\(lpha\)</span> fits and SSE for the different experiements.</caption>
-<thead>
-<tr class="header">
-<th align="left">Experiments fit</th>
-<th align="left"><span class="math inline">\(lpha\)</span></th>
-<th align="left">SSE</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td align="left">Utility 2c Gross</td>
-<td align="left">96.479</td>
-<td align="left">8.843e-04</td>
-</tr>
-<tr class="even">
-<td align="left">Utility 2c Net</td>
-<td align="left">115.486</td>
-<td align="left">8.553e-04</td>
-</tr>
-</tbody>
-</table>
-<p>These tables (@) show the predicted utility durations given one alpha fit to 2c.
-Experiment 2c had probabilities equal to 1.</p>
-<table>
-<caption><span id="tab:utildurs2c">Table 5.9: </span>One alpha to 2c. Gross and net cost as effort term.</caption>
+<caption><span id="tab:optprobstab2c">Table 5.7: </span>Probability of success used in utility modeling when fitting alpha, Expirement 2c.</caption>
 <thead>
 <tr class="header">
 <th align="left"></th>
-<th align="right">2c Experim</th>
-<th align="right">2c Predict Gross Util</th>
-<th align="right">2b Predict Net Util</th>
+<th align="right">Utility Net</th>
+<th align="right">Utility Gross</th>
+<th align="right">Utility Torque</th>
+<th align="right">Utility Torque Mj</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
 <td align="left">2.47</td>
-<td align="right">0.632</td>
-<td align="right">0.657</td>
-<td align="right">0.658</td>
+<td align="right">1</td>
+<td align="right">1</td>
+<td align="right">1</td>
+<td align="right">1</td>
 </tr>
 <tr class="even">
 <td align="left">3.8</td>
-<td align="right">0.703</td>
-<td align="right">0.707</td>
-<td align="right">0.709</td>
+<td align="right">1</td>
+<td align="right">1</td>
+<td align="right">1</td>
+<td align="right">1</td>
 </tr>
 <tr class="odd">
 <td align="left">4.7</td>
-<td align="right">0.741</td>
-<td align="right">0.733</td>
-<td align="right">0.735</td>
+<td align="right">1</td>
+<td align="right">1</td>
+<td align="right">1</td>
+<td align="right">1</td>
 </tr>
 <tr class="even">
 <td align="left">6.1</td>
-<td align="right">0.780</td>
-<td align="right">0.766</td>
-<td align="right">0.769</td>
+<td align="right">1</td>
+<td align="right">1</td>
+<td align="right">1</td>
+<td align="right">1</td>
+</tr>
+</tbody>
+</table>
+<p>This table (<a href="#tab:utildurs2c">5.8</a>) shows the <span class="math inline">\(\alpha\)</span> value, predicted durations for the models, and the SSE between that and the experimental data. The SSE for all these models is shown in detail later (section @ref{SSE2b}).</p>
+<table style="width:100%;">
+<caption><span id="tab:utildurs2c">Table 5.8: </span>Preferred duration and predicted durations for each model.</caption>
+<colgroup>
+<col width="4%"></col>
+<col width="10%"></col>
+<col width="15%"></col>
+<col width="16%"></col>
+<col width="15%"></col>
+<col width="15%"></col>
+<col width="8%"></col>
+<col width="14%"></col>
+</colgroup>
+<thead>
+<tr class="header">
+<th align="left"></th>
+<th align="left">2c Experiment</th>
+<th align="left">Net Metabolic Power</th>
+<th align="left">Gross Metabolic power</th>
+<th align="left">Utility (Net Power)</th>
+<th align="left">Utility (Gross Power</th>
+<th align="left">Torque<span class="math inline">\(^2\)</span></th>
+<th align="left">Torque<span class="math inline">\(^2\)</span> minjerk</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">Alpha</td>
+<td align="left">0</td>
+<td align="left">0</td>
+<td align="left">0</td>
+<td align="left">115.486</td>
+<td align="left">96.4791</td>
+<td align="left">27.0272</td>
+<td align="left">24.4599</td>
+</tr>
+<tr class="even">
+<td align="left">2.47</td>
+<td align="left">0.6319</td>
+<td align="left">0.8543</td>
+<td align="left">0.6613</td>
+<td align="left">0.658</td>
+<td align="left">0.657</td>
+<td align="left">0.42</td>
+<td align="left">0.05</td>
+</tr>
+<tr class="odd">
+<td align="left">4.73</td>
+<td align="left">0.7033</td>
+<td align="left">0.9078</td>
+<td align="left">0.7033</td>
+<td align="left">0.709</td>
+<td align="left">0.707</td>
+<td align="left">0.6</td>
+<td align="left">0.15</td>
+</tr>
+<tr class="even">
+<td align="left">6.99</td>
+<td align="left">0.7407</td>
+<td align="left">0.9353</td>
+<td align="left">0.7249</td>
+<td align="left">0.735</td>
+<td align="left">0.733</td>
+<td align="left">0.72</td>
+<td align="left">0.29</td>
+</tr>
+<tr class="odd">
+<td align="left">11.50</td>
+<td align="left">0.7795</td>
+<td align="left">0.9703</td>
+<td align="left">0.7524</td>
+<td align="left">0.769</td>
+<td align="left">0.766</td>
+<td align="left">0.91</td>
+<td align="left">0.93</td>
+</tr>
+<tr class="even">
+<td align="left">SSE</td>
+<td align="left">0</td>
+<td align="left">1.655e-01</td>
+<td align="left">1.850e-03</td>
+<td align="left">8.553e-04</td>
+<td align="left">8.843e-04</td>
+<td align="left">7.304e-02</td>
+<td align="left">8.706e-01</td>
 </tr>
 </tbody>
 </table>
@@ -3032,7 +3138,7 @@ Experiment 2c had probabilities equal to 1.</p>
 <h3><span class="header-section-number">5.6.1</span> Alpha from 2a predicting 2b</h3>
 <p>This table shows the predicted movement durations of 2b using the alpha values from 2a.</p>
 <table>
-<caption><span id="tab:2bfrom2atab">Table 5.10: </span>Predicted movement durations for experiment 2b using the alpha from 2a and the probabilities from 2b. SSE = 0.1665</caption>
+<caption><span id="tab:2bfrom2atab">Table 5.9: </span>Predicted movement durations for experiment 2b using the alpha from 2a and the probabilities from 2b. SSE = 0.1665</caption>
 <thead>
 <tr class="header">
 <th align="left"></th>
@@ -3074,7 +3180,7 @@ The SSE for experiment 2a/2b when using one alpha is 4.794e-04.
 The SSE for experiment 2c is 8.843e-04.
 The total SSE for all 3 is 1.364e-03.</p>
 <table>
-<caption><span id="tab:combutdurtab1">Table 5.11: </span>Experimental and predicted movement durations for the experiments.</caption>
+<caption><span id="tab:combutdurtab1">Table 5.10: </span>Experimental and predicted movement durations for the experiments.</caption>
 <thead>
 <tr class="header">
 <th align="left"></th>
@@ -3126,7 +3232,7 @@ The total SSE for all 3 is 1.364e-03.</p>
 </tbody>
 </table>
 <table>
-<caption><span id="tab:combutprobtab1">Table 5.12: </span>Probabilites of success for the experiments.</caption>
+<caption><span id="tab:combutprobtab1">Table 5.11: </span>Probabilites of success for the experiments.</caption>
 <thead>
 <tr class="header">
 <th align="left"></th>
@@ -3163,7 +3269,7 @@ The total SSE for all 3 is 1.364e-03.</p>
 </tbody>
 </table>
 <table>
-<caption><span id="tab:alphtab1">Table 5.13: </span>Alpha values fitted to experiment 2a/2b, and a seperate alpha for 2c.</caption>
+<caption><span id="tab:alphtab1">Table 5.12: </span>Alpha values fitted to experiment 2a/2b, and a seperate alpha for 2c.</caption>
 <thead>
 <tr class="header">
 <th align="left"></th>
@@ -3198,7 +3304,7 @@ Figure 5.2: Utility fits across experiments.
 <p>The utility combined alpha is using the alpha value predicted off fitting a utility model to the preferred and small target experiement at the same time. This alpha value is used to make figure <a href="#fig:groupedutilitymovedur1">5.2</a>.</p>
 <p>This table shows the SSE for the 2a movement duration and peak velocity predictions.</p>
 <table>
-<caption><span id="tab:ModelSSE1">Table 5.14: </span>Exp 2a - Sum squared errors for movement duration and peak velocity.</caption>
+<caption><span id="tab:ModelSSE1">Table 5.13: </span>Exp 2a - Sum squared errors for movement duration and peak velocity.</caption>
 <colgroup>
 <col width="4%"></col>
 <col width="18%"></col>
@@ -3305,7 +3411,7 @@ Figure 5.2: Utility fits across experiments.
 </tbody>
 </table>
 <table>
-<caption><span id="tab:ModelSSEnorm1">Table 5.15: </span>Exp 2a - Sum squared errors for NORMALIZED movement duration and peak velocity.</caption>
+<caption><span id="tab:ModelSSEnorm1">Table 5.14: </span>Exp 2a - Sum squared errors for NORMALIZED movement duration and peak velocity.</caption>
 <colgroup>
 <col width="4%"></col>
 <col width="18%"></col>
@@ -3425,7 +3531,7 @@ Figure 5.3: Modeling Results
 <h2><span class="header-section-number">5.10</span> SSE of models - Exp 2b</h2>
 <p>This table shows the SSE for the 2b movement duration and peak velocity predictions. These SSE’s are calculated from only taking the predicted durations as before, and seeing how they compare to 2b. No new model fitting was done.</p>
 <table>
-<caption><span id="tab:ModelSSE2b">Table 5.16: </span>Exp 2b - Sum squared errors for movement duration and peak velocity.</caption>
+<caption><span id="tab:ModelSSE2b">Table 5.15: </span>Exp 2b - Sum squared errors for movement duration and peak velocity.</caption>
 <colgroup>
 <col width="4%"></col>
 <col width="18%"></col>
@@ -3532,7 +3638,7 @@ Figure 5.3: Modeling Results
 </tbody>
 </table>
 <table>
-<caption><span id="tab:ModelSSEnorm12b">Table 5.17: </span>Exp 2b - Sum squared errors for NORMALIZED movement duration and peak velocity.</caption>
+<caption><span id="tab:ModelSSEnorm12b">Table 5.16: </span>Exp 2b - Sum squared errors for NORMALIZED movement duration and peak velocity.</caption>
 <colgroup>
 <col width="4%"></col>
 <col width="18%"></col>
@@ -3643,7 +3749,7 @@ Figure 5.3: Modeling Results
 <h2><span class="header-section-number">5.11</span> SSE of models - Exp 2c</h2>
 <p>This table shows the SSE for the 2c movement duration and peak velocity predictions. These SSE’s are calculated from only taking the predicted durations as before, and seeing how they compare to 2b. No new model fitting was done.</p>
 <table>
-<caption><span id="tab:ModelSSE12c">Table 5.18: </span>Exp 2c - Sum squared errors for movement duration and peak velocity.</caption>
+<caption><span id="tab:ModelSSE12c">Table 5.17: </span>Exp 2c - Sum squared errors for movement duration and peak velocity.</caption>
 <colgroup>
 <col width="4%"></col>
 <col width="18%"></col>
@@ -3750,7 +3856,7 @@ Figure 5.3: Modeling Results
 </tbody>
 </table>
 <table>
-<caption><span id="tab:ModelSSEnorm12c">Table 5.19: </span>Exp 2c - Sum squared errors for NORMALIZED movement duration and peak velocity.</caption>
+<caption><span id="tab:ModelSSEnorm12c">Table 5.18: </span>Exp 2c - Sum squared errors for NORMALIZED movement duration and peak velocity.</caption>
 <colgroup>
 <col width="4%"></col>
 <col width="18%"></col>

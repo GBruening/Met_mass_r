@@ -5083,14 +5083,27 @@ tab1 = cbind(c(round(alpha_utility_net_rx$minimum,4)),
 rownames(tab1) = c('$\\alpha$')
 colnames(tab1) = c('Net Metabolics', 'Gross Metabolics','Torque$^2$','Torque$^2$ minjerk')
 
-tab2 = cbind(c(NaN,aggregate(movedur ~ eff_mass,prefdata,mean)$movedur,NaN),
-             c(NaN,met_net_dur,sum((met_net_dur-mvttimes_pref)^2)),
-             c(NaN,met_gross_dur,sum((met_gross_dur-mvttimes_pref)^2)),
-             c(round(alpha_utility_net_rx$minimum,4),util_dur_net_rx,sum((util_dur_net_rx-mvttimes_pref)^2)),
-             c(round(alpha_utility_gross_rx$minimum,4),util_dur_gross_rx,sum((util_dur_gross_rx-mvttimes_pref)^2)),
-             c(round(alpha_torque_2a,4),torque_dur_2a,sum((torque_dur_2a-mvttimes_pref)^2)),
-             c(round(alpha_torque_2a_mj,4),torque_mj_dur_2a,sum((torque_mj_dur_2a-mvttimes_pref)^2)))
-tab2 = round(tab2,4)
+tab2 = cbind(c(0,
+               round(aggregate(movedur ~ eff_mass,prefdata,mean)$movedur,4),
+               0),
+             c(0,
+               round(met_net_dur,4),
+               formatC(sum((met_net_dur-mvttimes_pref)^2),format = 'e', digits = 3)),
+             c(0,
+               round(met_gross_dur,4),
+               formatC(sum((met_gross_dur-mvttimes_pref)^2),format = 'e', digits = 3)),
+             c(round(alpha_utility_net_rx$minimum,4),
+               round(util_dur_net_rx,4),
+               formatC(sum((util_dur_net_rx-mvttimes_pref)^2),format = 'e', digits = 3)),
+             c(round(alpha_utility_gross_rx$minimum,4),
+               round(util_dur_gross_rx,4),
+               formatC(sum((util_dur_gross_rx-mvttimes_pref)^2),format = 'e', digits = 3)),
+             c(round(alpha_torque_2a,4),
+               round(torque_dur_2a,4),
+               formatC(sum((torque_dur_2a-mvttimes_pref)^2),format = 'e', digits = 3)),
+             c(round(alpha_torque_2a_mj,4),
+               round(torque_mj_dur_2a,4),
+               formatC(sum((torque_mj_dur_2a-mvttimes_pref)^2),format = 'e', digits = 3)))
 rownames(tab2) = c('Alpha','2.47','4.73','6.99','11.50','SSE')
 colnames(tab2) = c('2a Experiment','Net Metabolic Power','Gross Metabolic power','Utility (Net Power)', 'Utility (Gross Power','Torque$^2$','Torque$^2$ minjerk')
 
@@ -5119,84 +5132,135 @@ kable(opt_probs, caption = 'Probability of success used in utility modeling when
 This table (\@ref(tab:utildurs2a)) shows the $\alpha$ value, predicted durations for the models, and the SSE between that and the experimental data. The SSE for all these models is shown in detail later (section \@ref{SSE2a}).
 
 ```{r utildurs2a, echo = FALSE, warning = FALSE, message = FALSE}
-  kable(tab2, caption = 'Preferred duration and predicted durations for each model')
+  kable(tab2, caption = 'Preferred duration and predicted durations for each model.')
 ```
 
-## 2b alphas
+## 2b Alpha
 
-The next table shows the alpha values for many of the experiements. These $\alpha$ values can be fit from a single experiment or multiple. 'Utility gross 2a and 2b' is the combined alpha in the following tables/plots.
+Table (\@ref(tab:utildurs2b)) shows the fitted values for alpha given the specific utility model and the parameters fit previously. These are only for experiment 2b.
 
+```{r , echo = FALSE, warning = FALSE, message = FALSE}
+tab1 = cbind(c(round(alpha_smallt_net$minimum,4)),
+             c(round(alpha_smallt_gross$minimum,4)),
+             c(round(alpha_torque_2b,4)),
+             c(round(alpha_torque_2b_mj,4)))
+# rownames(tab1) = c('a0','a','b','c','d','$\\alpha$')
+rownames(tab1) = c('$\\alpha$')
+colnames(tab1) = c('Net Metabolics', 'Gross Metabolics','Torque$^2$','Torque$^2$ minjerk')
 
-The SSE for experiment 2a/2b when using one alpha is `r formatC(sum((mvttimes_pref -util_dur_pref_alpha_comb_gross[1:4])^2)+sum((mvttimes_smallt -util_dur_pref_alpha_comb_gross[5:8])^2),format = 'e', digits = 3)`.
+tab2 = cbind(c(0,
+               round(mvttimes_smallt,4),
+               0),
+             c(0,
+               round(met_net_dur,4),
+               formatC(sum((met_net_dur-mvttimes_smallt)^2),format = 'e', digits = 3)),
+             c(0,
+               round(met_gross_dur,4),
+               formatC(sum((met_gross_dur-mvttimes_smallt)^2),format = 'e', digits = 3)),
+             c(round(alpha_smallt_net$minimum,4),
+               round(util_dur_smallt_net,4),
+               formatC(sum((util_dur_smallt_net-mvttimes_smallt)^2),format = 'e', digits = 3)),
+             c(round(alpha_smallt_gross$minimum,4),
+               round(util_dur_smallt_gross,4),
+               formatC(sum((util_dur_smallt_gross-mvttimes_smallt)^2),format = 'e', digits = 3)),
+             c(round(alpha_torque_2b,4),
+               round(torque_dur_2b,4),
+               formatC(sum((torque_dur_2b-mvttimes_smallt)^2),format = 'e', digits = 3)),
+             c(round(alpha_torque_2b_mj,4),
+               round(torque_mj_dur_2b,4),
+               formatC(sum((torque_mj_dur_2b-mvttimes_smallt)^2),format = 'e', digits = 3)))
+rownames(tab2) = c('Alpha','2.47','4.73','6.99','11.50','SSE')
+colnames(tab2) = c('2b Experiment','Net Metabolic Power','Gross Metabolic power','Utility (Net Power)', 'Utility (Gross Power','Torque$^2$','Torque$^2$ minjerk')
 
-```{r alphavalues2b, echo = FALSE, warning = FALSE, message = FALSE, tab.cap = '$\alpha$ fits and SSE for the different experiements'}
-tab = cbind(c('Utility 2b Gross',
-              'Utility 2b Net'),
-            round(c(alpha_smallt_gross$minimum,
-                    alpha_smallt_net$minimum),3),
-            c(formatC(sum((mvttimes_smallt-util_dur_smallt_gross)^2),format = 'e', digits = 3),
-              formatC(sum((mvttimes_smallt-util_dur_smallt_net)^2),format = 'e', digits = 3)))
-colnames(tab) = c('Experiments fit','$\alpha$','SSE')
-kable(tab, caption = '$\alpha$ fits and SSE for the different experiements.')
 ```
 
-These tables (@\ref{tab:utildurs2b}) show the predicted utility durations given one alpha fit to 2b 
+The probability of success for utility in experiement 2b using the optimized alpha value are shown below.
 
-The probability of success for utility in experiement 2b using the optimized alpha value are shown below (tab \@{ref:probs2atab}.
-
-```{r probs2atab, echo = FALSE, warning = FALSE, message = FALSE}
+```{r optprobstab2b, echo = FALSE, warning = FALSE, message = FALSE}
   
-opt_probs = cbind(inv.logit(predict(smallt_p_glm,data.frame(movedur=util_dur_smallt_gross,eff_mass=masses))),
-                  inv.logit(predict(smallt_p_glm,data.frame(movedur=util_dur_smallt_net,eff_mass=masses))))
+opt_probs = cbind(inv.logit(predict(smallt_p_glm,data.frame(movedur=util_dur_smallt_net,eff_mass=masses))),
+                  inv.logit(predict(smallt_p_glm,data.frame(movedur=util_dur_smallt_gross,eff_mass=masses))),
+                  inv.logit(predict(smallt_p_glm,data.frame(movedur=torque_dur_2b,eff_mass=masses))),
+                  inv.logit(predict(smallt_p_glm,data.frame(movedur=torque_mj_dur_2b,eff_mass=masses))))
 
 rownames(opt_probs) = masses
-colnames(opt_probs) = c('Utility Gross','Utility Net')
+colnames(opt_probs) = c('Utility Net','Utility Gross','Utility Torque','Utility Torque Mj')
+
 kable(opt_probs, caption = 'Probability of success used in utility modeling when fitting alpha, Expirement 2b.')
 ```
 
+
+This table (\@ref(tab:utildurs2a)) shows the $\alpha$ value, predicted durations for the models, and the SSE between that and the experimental data. The SSE for all these models is shown in detail later (section \@ref{SSE2b}).
+
 ```{r utildurs2b, echo = FALSE, warning = FALSE, message = FALSE}
+  kable(tab2, caption = 'Preferred duration and predicted durations for each model.')
+```
 
-twob_alpha_durs = cbind(aggregate(movedur ~ eff_mass,smalltdata,mean)$movedur,
-                        util_dur_smallt_gross,
-                        util_dur_smallt_net)
-rownames(twob_alpha_durs) = masses
-colnames(twob_alpha_durs) = c('2b Experim','2b Predict Gross Util','2b Predict Net Util')
-twob_alpha_durs <- round(twob_alpha_durs,3)
-kable(twob_alpha_durs, caption = 'One alpha to 2b. Gross and net cost as effort term.')
+## 2c Alpha
+
+Table (\@ref(tab:utildurs2c)) shows the fitted values for alpha given the specific utility model and the parameters fit previously. These are only for experiment 2c.
+
+```{r , echo = FALSE, warning = FALSE, message = FALSE}
+tab1 = cbind(c(round(alpha_pilot_net$minimum,4)),
+             c(round(alpha_pilot_gross$minimum,4)),
+             c(round(alpha_torque_2c,4)),
+             c(round(alpha_torque_2c_mj,4)))
+# rownames(tab1) = c('a0','a','b','c','d','$\\alpha$')
+rownames(tab1) = c('$\\alpha$')
+colnames(tab1) = c('Net Metabolics', 'Gross Metabolics','Torque$^2$','Torque$^2$ minjerk')
+
+tab2 = cbind(c(0,
+               round(mvttimes_pilot,4),
+               0),
+             
+             c(0,
+               round(met_net_dur,4),
+               formatC(sum((met_net_dur-mvttimes_pilot)^2),format = 'e', digits = 3)),
+             
+             c(0,
+               round(met_gross_dur,4),
+               formatC(sum((met_gross_dur-mvttimes_pilot)^2),format = 'e', digits = 3)),
+             
+             c(round(alpha_pilot_net$minimum,4),
+               round(util_dur_pilot_net,4),
+               formatC(sum((util_dur_pilot_net-mvttimes_pilot)^2),format = 'e', digits = 3)),
+             
+             c(round(alpha_pilot_gross$minimum,4),
+               round(util_dur_pilot_gross,4),
+               formatC(sum((util_dur_pilot_gross-mvttimes_pilot)^2),format = 'e', digits = 3)),
+             
+             c(round(alpha_torque_2c,4),
+               round(torque_dur_2c,4),
+               formatC(sum((torque_dur_2c-mvttimes_pilot)^2),format = 'e', digits = 3)),
+             
+             c(round(alpha_torque_2c_mj,4),
+               round(torque_mj_dur_2c,4),
+               formatC(sum((torque_mj_dur_2c-mvttimes_pilot)^2),format = 'e', digits = 3)))
+rownames(tab2) = c('Alpha','2.47','4.73','6.99','11.50','SSE')
+colnames(tab2) = c('2c Experiment','Net Metabolic Power','Gross Metabolic power','Utility (Net Power)', 'Utility (Gross Power','Torque$^2$','Torque$^2$ minjerk')
 
 ```
 
-## 2c alphas
+The probability of success for utility in experiement 2b using the optimized alpha value are shown below.
 
-The next table shows the alpha values for many of the experiements. These $\alpha$ values can be fit from a single experiment or multiple. 'Utility gross 2a and 2b' is the combined alpha in the following tables/plots.
+```{r optprobstab2c, echo = FALSE, warning = FALSE, message = FALSE}
+  
+opt_probs = cbind(c(1,1,1,1),
+                  c(1,1,1,1),
+                  c(1,1,1,1),
+                  c(1,1,1,1))
 
+rownames(opt_probs) = masses
+colnames(opt_probs) = c('Utility Net','Utility Gross','Utility Torque','Utility Torque Mj')
 
-The SSE for experiment 2a/2b when using one alpha is `r formatC(sum((mvttimes_pref -util_dur_pref_alpha_comb_gross[1:4])^2)+sum((mvttimes_smallt -util_dur_pref_alpha_comb_gross[5:8])^2),format = 'e', digits = 3)`.
-
-```{r alphavalues2c, echo = FALSE, warning = FALSE, message = FALSE, tab.cap = '$\alpha$ fits and SSE for the different experiements'}
-tab = cbind(c('Utility 2c Gross',
-              'Utility 2c Net'),
-            round(c(alpha_pilot_gross$minimum,
-                    alpha_pilot_net$minimum),3),
-            c(formatC(sum((mvttimes_pilot-util_dur_pilot_gross)^2),format = 'e', digits = 3),
-              formatC(sum((mvttimes_pilot-util_dur_pilot_net)^2),format = 'e', digits = 3)))
-colnames(tab) = c('Experiments fit','$\alpha$','SSE')
-kable(tab, caption = '$\alpha$ fits and SSE for the different experiements.')
+kable(opt_probs, caption = 'Probability of success used in utility modeling when fitting alpha, Expirement 2c.')
 ```
 
-These tables (@\ref{tab:utildurs2c}) show the predicted utility durations given one alpha fit to 2c. 
-Experiment 2c had probabilities equal to 1.
+
+This table (\@ref(tab:utildurs2c)) shows the $\alpha$ value, predicted durations for the models, and the SSE between that and the experimental data. The SSE for all these models is shown in detail later (section \@ref{SSE2b}).
 
 ```{r utildurs2c, echo = FALSE, warning = FALSE, message = FALSE}
-
-twoc_alpha_durs = cbind(aggregate(movedur ~ eff_mass,pilotdata,mean)$movedur,
-                        util_dur_pilot_gross,
-                        util_dur_pilot_net)
-rownames(twoc_alpha_durs) = masses
-colnames(twoc_alpha_durs) = c('2c Experim','2c Predict Gross Util','2b Predict Net Util')
-twoc_alpha_durs <- round(twoc_alpha_durs,3)
-kable(twoc_alpha_durs, caption = 'One alpha to 2c. Gross and net cost as effort term.')
-
+  kable(tab2, caption = 'Preferred duration and predicted durations for each model.')
 ```
 
 
