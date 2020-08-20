@@ -5043,7 +5043,7 @@ $$J = \frac{\alpha P(R|T_m) -\left( a_0 T_r + a T_m + \frac{bm^c}{T_m^d} \right)
 
 $T_r$ and $T_m$ are the reaction time and movement duration. Using the values from experiment 2a,b,c, we can optimize the error of the prediction by altering $\alpha$.
 
-The tables below show the movement durations (\@ref{rab:utilmovedurstab}), reaction time (\@ref{rab:utilreacttimestab}).
+The tables below show the movement durations (\@ref{tab:utilmovedurstab}), reaction time (\@ref{rab:utilreacttimestab}).
 
 ```{r, echo = FALSE, warnings = FALSE}
 
