@@ -79,42 +79,53 @@ save_plots = 1
 # 
 # # mpdata = subset(mpdata, metpowernet<max(mpdata$metpowernet)*.99)
 
-#====================== LOAD DATA - Desky ==============================
-met_plots_dir <- 'F:/Google Drive/Muscle modeling/Metabolics/Graphs/'
-pref_plots_dir <- 'F:/Google Drive/Preferred Mass/Graphs/'
-
-prefdata <-read.csv('F:/Google Drive/Preferred Mass/2018Data-UnorderednoFML.csv')
-metdata<-read.csv('F:/Google Drive/Muscle modeling/Metabolics/Data/Met_data_erik_test.csv')
-mpdata <- read.csv('F:/Google Drive/Muscle modeling/Metabolics/Data/met_power_data.csv')
-mpdata_rest <- readMat('F:/Google Drive/Muscle modeling/Metabolics/Data/baselinemetabolics.mat')$baseline
-pilotdata <- read.csv('F:/Google Drive/Preferred Mass/Pilot_Data-UnorderednoFML.csv')
-smalltdata <- read.csv('F:/Google Drive/Preferred Mass/FullData_SmallTargetnoFML_test.csv')
-
-eff_masses_pref <- read.csv('F:/Google Drive/Preferred Mass/eff_masses.csv',header=0)
-eff_masses_meta <- read.csv('F:/Google Drive/Muscle modeling/Metabolics/Data/eff_masses.csv',header=0)
-
-react_sim <-read.csv('F:/Google Drive/Muscle Modeling/Min_jerk_files/Data/react_sim.csv')
-torque2_data <- read.csv('F:/Google Drive/Muscle modeling/Min_jerk_files/Data/sum_torque2_only.csv')
-torque2_mj_data <- read.csv('F:/Google Drive/Muscle modeling/Min_jerk_files/Data/sum_torque2_scscript.csv')
-
-resample_data_pref_abs = readMat('F:/Google Drive/Preferred Mass/Data/Resample_data_abs2.mat')
-resample_data_pref_perc = readMat('F:/Google Drive/Preferred Mass/Data/Resample_data_perc.mat')
-resample_data_pilot_abs = readMat('F:/Google Drive/Preferred Mass/Data/Resample_data_pilot_abs.mat')
-resample_data_smallt_abs = readMat('F:/Google Drive/Preferred Mass/Data/Resample_data_smallt_abs.mat')
-
-
-#====================== LOAD DATA - Lappy ==============================
-# met_plots_dir <- 'C:/Users/Gary/Google Drive/Muscle modeling/Metabolics/Graphs/'
-# pref_plots_dir <- 'C:/Users/Gary/Google Drive/Preferred Mass/Graphs/'
+# #====================== LOAD DATA - Desky ==============================
+# met_plots_dir <- 'F:/Google Drive/Muscle modeling/Metabolics/Graphs/'
+# pref_plots_dir <- 'F:/Google Drive/Preferred Mass/Graphs/'
 # 
-# prefdata <-read.csv('C:/Users/Gary/Google Drive/Preferred Mass/NewData_noFML.csv')
-# metdata<-read.csv('C:/Users/Gary/Google Drive/Muscle modeling/Metabolics/Lappy Data/Met_data_erik.csv')
-# mpdata <- read.csv('C:/Users/Gary/Google Drive/Muscle modeling/Metabolics/Lappy Data/met_power_data.csv')
-# pilotdata <- read.csv('C:/Users/Gary/Google Drive/Preferred Mass/FullData_PilotnoFML_test.csv')
-# smalltdata <- read.csv('C:/Users/Gary/Google Drive/Preferred Mass/FullData_SmallTargetnoFML.csv')
+# prefdata <-read.csv('F:/Google Drive/Preferred Mass/2018Data-UnorderednoFML.csv')
+# metdata<-read.csv('F:/Google Drive/Muscle modeling/Metabolics/Data/Met_data_erik_test.csv')
+# mpdata <- read.csv('F:/Google Drive/Muscle modeling/Metabolics/Data/met_power_data.csv')
+# mpdata_rest <- readMat('F:/Google Drive/Muscle modeling/Metabolics/Data/baselinemetabolics.mat')$baseline
+# pilotdata <- read.csv('F:/Google Drive/Preferred Mass/Pilot_Data-UnorderednoFML.csv')
+# smalltdata <- read.csv('F:/Google Drive/Preferred Mass/FullData_SmallTargetnoFML_test.csv')
 # 
-# eff_masses_pref <- read.csv('C:/Users/Gary/Google Drive/Preferred Mass/eff_masses.csv',header=0)
-# eff_masses_meta <- read.csv('C:/Users/Gary/Google Drive/Muscle modeling/Metabolics/Lappy Data/eff_masses.csv',header=0)
+# eff_masses_pref <- read.csv('F:/Google Drive/Preferred Mass/eff_masses.csv',header=0)
+# eff_masses_meta <- read.csv('F:/Google Drive/Muscle modeling/Metabolics/Data/eff_masses.csv',header=0)
+# 
+# react_sim <-read.csv('F:/Google Drive/Muscle Modeling/Min_jerk_files/Data/react_sim.csv')
+# torque2_data <- read.csv('F:/Google Drive/Muscle modeling/Min_jerk_files/Data/sum_torque2_only.csv')
+# torque2_mj_data <- read.csv('F:/Google Drive/Muscle modeling/Min_jerk_files/Data/sum_torque2_scscript.csv')
+# 
+# resample_data_pref_abs = readMat('F:/Google Drive/Preferred Mass/Data/Resample_data_abs2.mat')
+# resample_data_pref_perc = readMat('F:/Google Drive/Preferred Mass/Data/Resample_data_perc.mat')
+# resample_data_pilot_abs = readMat('F:/Google Drive/Preferred Mass/Data/Resample_data_pilot_abs.mat')
+# resample_data_smallt_abs = readMat('F:/Google Drive/Preferred Mass/Data/Resample_data_smallt_abs.mat')
+
+#====================== LOAD DATA ==============================
+parent_directory = 'F:/Google Drive/Preferred Mass/alaa code'
+setwd(parent_directory)
+met_plots_dir <- paste(parent_directory,'/Graphs_met/',sep='')
+pref_plots_dir <- paste(parent_directory,'/Graphs_pref/',sep='')
+
+prefdata <-read.csv('2018Data-UnorderednoFML.csv')
+metdata<-read.csv('Met_data_erik_test.csv')
+mpdata <- read.csv('met_power_data.csv')
+mpdata_rest <- readMat('baselinemetabolics.mat')$baseline
+pilotdata <- read.csv('Pilot_Data-UnorderednoFML.csv')
+smalltdata <- read.csv('FullData_SmallTargetnoFML_test.csv')
+
+eff_masses_pref <- read.csv('eff_masses_pref.csv',header=0)
+eff_masses_meta <- read.csv('eff_masses_meta.csv',header=0)
+
+react_sim <-read.csv('react_sim.csv')
+torque2_data <- read.csv('sum_torque2_only.csv')
+torque2_mj_data <- read.csv('sum_torque2_scscript.csv')
+
+resample_data_pref_abs = readMat('Resample_data_abs2.mat')
+resample_data_pref_perc = readMat('Resample_data_perc.mat')
+resample_data_pilot_abs = readMat('Resample_data_pilot_abs.mat')
+resample_data_smallt_abs = readMat('Resample_data_smallt_abs.mat')
 
 # ===================== Add things =================================================
 pilotdata$reacttoback <- (pilotdata$idxmoveback - pilotdata$idxonset)*.005
@@ -5462,7 +5473,7 @@ grouped_utility_movedur <- plot_grid(plot_grid(Movedur_by_experiment+
                                                label_size = 24,
                                                rel_widths = c(.8,.2)),
                                      nrow = 2,
-                                     rel_heights = c(.4,.6))
+                                     rel_heights = c(.4,.8))
 
 
 setwd(pref_plots_dir)
