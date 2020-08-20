@@ -5400,6 +5400,12 @@ utilfits_by_exp <- ggplot()+
                   color=expnum,
                   alpha = datatype),
               size=3)+
+  geom_line(data=data.frame(cbind(unique(control_times$eff_mass),
+                            util_dur_pilot_gross_alpha_comb_gross) %>% `colnames<-`(c('eff_mass','movedur'))),
+            aes(x=eff_mass,
+                y=movedur),
+            linetype = 'dashed',
+            size=3)+
   scale_linetype_manual(values=c('solid','dashed'),
                         labels=c('Data (Solid)','Model (Dashed)'))+
   scale_alpha_discrete(range=c(.5,1),
