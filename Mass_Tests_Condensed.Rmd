@@ -5461,7 +5461,8 @@ grouped_utility_movedur <- plot_grid(plot_grid(Movedur_by_experiment+
                                                labels = c('C',''),
                                                label_size = 24,
                                                rel_widths = c(.8,.2)),
-                                     nrow = 2)
+                                     nrow = 2,
+                                     rel_heights = c(.4,.6))
 
 
 setwd(pref_plots_dir)
