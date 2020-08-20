@@ -5070,7 +5070,8 @@ kable(movedurs, caption = 'Movement durations by experiement and effective mass 
 kable(reacttimes, caption = 'Reaction times by experiement and effective mass used in the Utility model')
 ```
 
-## 2a Alpha
+## Experimental Utility Fits
+### 2a Alpha
 
 Table (\@ref(tab:utildurs2a)) shows the fitted values for alpha given the specific utility model and the parameters fit previously. These are only for experiment 2a.
 
@@ -5113,6 +5114,12 @@ colnames(tab2) = c('2a Experiment','Net Metabolic Power','Gross Metabolic power'
 <!--   kable(tab1, caption = 'Parameters used in the Utility modeling') -->
 <!-- ``` -->
 
+This table (\@ref(tab:utildurs2a)) shows the $\alpha$ value, predicted durations for the models, and the SSE between that and the experimental data. The SSE for all these models is shown in detail later (section \@ref{SSE2a}).
+
+```{r utildurs2a, echo = FALSE, warning = FALSE, message = FALSE}
+  kable(tab2, caption = 'Preferred duration and predicted durations for each model.')
+```
+
 The probability of success for utility in experiement 2a using the optimized alpha value are shown below.
 
 ```{r optprobstab2a, echo = FALSE, warning = FALSE, message = FALSE}
@@ -5129,13 +5136,7 @@ kable(opt_probs, caption = 'Probability of success used in utility modeling when
 ```
 
 
-This table (\@ref(tab:utildurs2a)) shows the $\alpha$ value, predicted durations for the models, and the SSE between that and the experimental data. The SSE for all these models is shown in detail later (section \@ref{SSE2a}).
-
-```{r utildurs2a, echo = FALSE, warning = FALSE, message = FALSE}
-  kable(tab2, caption = 'Preferred duration and predicted durations for each model.')
-```
-
-## 2b Alpha
+### 2b Alpha
 
 Table (\@ref(tab:utildurs2b)) shows the fitted values for alpha given the specific utility model and the parameters fit previously. These are only for experiment 2b.
 
@@ -5174,6 +5175,12 @@ colnames(tab2) = c('2b Experiment','Net Metabolic Power','Gross Metabolic power'
 
 ```
 
+This table (\@ref(tab:utildurs2a)) shows the $\alpha$ value, predicted durations for the models, and the SSE between that and the experimental data. The SSE for all these models is shown in detail later (section \@ref{SSE2b}).
+
+```{r utildurs2b, echo = FALSE, warning = FALSE, message = FALSE}
+  kable(tab2, caption = 'Preferred duration and predicted durations for each model.')
+```
+
 The probability of success for utility in experiement 2b using the optimized alpha value are shown below.
 
 ```{r optprobstab2b, echo = FALSE, warning = FALSE, message = FALSE}
@@ -5190,13 +5197,7 @@ kable(opt_probs, caption = 'Probability of success used in utility modeling when
 ```
 
 
-This table (\@ref(tab:utildurs2a)) shows the $\alpha$ value, predicted durations for the models, and the SSE between that and the experimental data. The SSE for all these models is shown in detail later (section \@ref{SSE2b}).
-
-```{r utildurs2b, echo = FALSE, warning = FALSE, message = FALSE}
-  kable(tab2, caption = 'Preferred duration and predicted durations for each model.')
-```
-
-## 2c Alpha
+### 2c Alpha
 
 Table (\@ref(tab:utildurs2c)) shows the fitted values for alpha given the specific utility model and the parameters fit previously. These are only for experiment 2c.
 
@@ -5241,6 +5242,13 @@ colnames(tab2) = c('2c Experiment','Net Metabolic Power','Gross Metabolic power'
 
 ```
 
+
+This table (\@ref(tab:utildurs2c)) shows the $\alpha$ value, predicted durations for the models, and the SSE between that and the experimental data. The SSE for all these models is shown in detail later (section \@ref{SSE2b}).
+
+```{r utildurs2c, echo = FALSE, warning = FALSE, message = FALSE}
+  kable(tab2, caption = 'Preferred duration and predicted durations for each model.')
+```
+
 The probability of success for utility in experiement 2b using the optimized alpha value are shown below.
 
 ```{r optprobstab2c, echo = FALSE, warning = FALSE, message = FALSE}
@@ -5257,56 +5265,49 @@ kable(opt_probs, caption = 'Probability of success used in utility modeling when
 ```
 
 
-This table (\@ref(tab:utildurs2c)) shows the $\alpha$ value, predicted durations for the models, and the SSE between that and the experimental data. The SSE for all these models is shown in detail later (section \@ref{SSE2b}).
+<!-- ### Alpha from 2a predicting 2b -->
+<!-- This table shows the predicted movement durations of 2b using the alpha values from 2a. -->
+<!-- ```{r ,echo = FALSE, warning = FALSE} -->
+<!-- masses = c(2.47,3.8,4.7,6.1) -->
+<!-- mvttimes = aggregate(movedur~condition,prefdata,mean)$movedur -->
+<!-- rxtimes = aggregate(reaction_tanv~condition,prefdata,mean)$reaction_tanv -->
 
-```{r utildurs2c, echo = FALSE, warning = FALSE, message = FALSE}
-  kable(tab2, caption = 'Preferred duration and predicted durations for each model.')
-```
+<!-- mvttimes_smallt = aggregate(movedur~condition,smalltdata,mean)$movedur -->
+<!-- rxtimes_smallt = aggregate(reaction_tanv~eff_mass,smalltdata,mean)$reaction_tanv -->
 
+<!-- a0 = mean(mpdata$metpowerrest) -->
+<!-- a0_se = sd(mpdata$metpowerrest)/sqrt(8) -->
+<!-- a=coef(MPGross_model)[1] -->
+<!-- b=coef(MPGross_model)[2]*100 -->
+<!-- c=coef(MPGross_model)[3] -->
+<!-- d=coef(MPGross_model)[4] -->
 
-### Alpha from 2a predicting 2b
-This table shows the predicted movement durations of 2b using the alpha values from 2a.
-```{r ,echo = FALSE, warning = FALSE}
-masses = c(2.47,3.8,4.7,6.1)
-mvttimes = aggregate(movedur~condition,prefdata,mean)$movedur
-rxtimes = aggregate(reaction_tanv~condition,prefdata,mean)$reaction_tanv
+<!-- util_2b_from_2a = optimize(fun_optim_prx_logit, -->
+<!--                            masses = masses, -->
+<!--                            mvttimes = mvttimes, -->
+<!--                            p_alpha  = met_p_glm, -->
+<!--                            rxtimes = rxtimes, -->
+<!--                            opt_or_dur = 'optimize', -->
+<!--                            interval=c(-100,300)) -->
 
-mvttimes_smallt = aggregate(movedur~condition,smalltdata,mean)$movedur
-rxtimes_smallt = aggregate(reaction_tanv~eff_mass,smalltdata,mean)$reaction_tanv
+<!-- util_dur_2b_from_2a = as.numeric(fun_optim_prx_logit(util_2b_from_2a$minimum, -->
+<!--                                        masses = masses, -->
+<!--                                        mvttimes = mvttimes_smallt, -->
+<!--                                        p_alpha  = met_smallt_p_glm, -->
+<!--                                        opt_or_dur = 'duration', -->
+<!--                                        rxtimes = rxtimes_smallt)) -->
 
-a0 = mean(mpdata$metpowerrest)
-a0_se = sd(mpdata$metpowerrest)/sqrt(8)
-a=coef(MPGross_model)[1]
-b=coef(MPGross_model)[2]*100
-c=coef(MPGross_model)[3]
-d=coef(MPGross_model)[4]
+<!-- tab = round(cbind(mvttimes_smallt,util_dur_2b_from_2a),3) -->
+<!-- rownames(tab) = masses -->
+<!-- colnames(tab) = c('2b Move Dur','Predicted 2b using 2a alpha') -->
+<!-- ``` -->
 
-util_2b_from_2a = optimize(fun_optim_prx_logit,
-                           masses = masses,
-                           mvttimes = mvttimes,
-                           p_alpha  = met_p_glm,
-                           rxtimes = rxtimes,
-                           opt_or_dur = 'optimize',
-                           interval=c(-100,300))
-
-util_dur_2b_from_2a = as.numeric(fun_optim_prx_logit(util_2b_from_2a$minimum,
-                                       masses = masses,
-                                       mvttimes = mvttimes_smallt,
-                                       p_alpha  = met_smallt_p_glm,
-                                       opt_or_dur = 'duration',
-                                       rxtimes = rxtimes_smallt))
-
-tab = round(cbind(mvttimes_smallt,util_dur_2b_from_2a),3)
-rownames(tab) = masses
-colnames(tab) = c('2b Move Dur','Predicted 2b using 2a alpha')
-```
-
-```{r 2bfrom2atab, echo = FALSE, warning = FALSE,  tab.cap = 'Predicted movement durations for experiment 2b using the alpha from 2a and the probabilities from 2b.'}
-kable(tab, caption = paste('Predicted movement durations for experiment 2b using the alpha from 2a and the probabilities from 2b. SSE = ',round(sum(tab[,1]-tab[,2])^2,4),sep=''))
-```
+<!-- ```{r 2bfrom2atab, echo = FALSE, warning = FALSE,  tab.cap = 'Predicted movement durations for experiment 2b using the alpha from 2a and the probabilities from 2b.'} -->
+<!-- kable(tab, caption = paste('Predicted movement durations for experiment 2b using the alpha from 2a and the probabilities from 2b. SSE = ',round(sum(tab[,1]-tab[,2])^2,4),sep='')) -->
+<!-- ``` -->
 
 
-### 2a with 2b Utility fits
+## 2a and 2b Combined Utility fits
 This section analysis fits one $\alpha$ value to experiment 2a and 2b at the same time.
 These next tables show the movement durations, predicted movement durations, the fitted alpha values, and the probabilities of success.
 The $\alpha$ value for 2a and 2b are fit at once, so it is the same. 2c has its own $\alpha$ value.
@@ -6182,8 +6183,6 @@ Results_model_r_shape
 
 
 ## SSE of models - Exp 2b
-
-
 ```{r, echo = FALSE, warning = FALSE}
 
 Model_SSE_movedur = c()
