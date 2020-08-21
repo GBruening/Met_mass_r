@@ -182,16 +182,16 @@ filtering_func <- function(vars,data,dataname){
 }
 
 # ========================== Filtering ================================================
-prefdata <- filtering_func(c('movedur','reaction_tanv','miss_dist'),prefdata,'prefdata')
+prefdata <- filtering_func(c('movedur','reaction_tanv','reaction_tanvel','miss_dist'),prefdata,'prefdata')
 prefdata <- filter(prefdata,maxex<.14,odd_trial==1)
 
 # pilotdata <- filter(pilotdata,reacttoback<3.0,reacttoback>.25,idxonset1<100)
 pilotdata <- filter(pilotdata,trialtot>200)
 pilotdata$miss_dist <- pilotdata$maxex
-pilotdata <-filtering_func(c('movedur','reaction_tanv','miss_dist'),pilotdata,'pilotdata')
+pilotdata <-filtering_func(c('movedur','reaction_tanv','reaction_tanvel','miss_dist'),pilotdata,'pilotdata')
 pilotdata <- filter(pilotdata,maxex<.20)
 
-smalltdata <- filtering_func(c('movedur','reaction_tanv'),smalltdata,'smalltdata')
+smalltdata <- filtering_func(c('movedur','reaction_tanv','reaction_tanvel'),smalltdata,'smalltdata')
 # smalltdata <- filter(pilotdata,max)
 
 prefdata_factor <- prefdata
@@ -508,10 +508,10 @@ all_exp_avg_plot <- function(variable,data1,data2,data3,ylab,...){
                   y = dep_var,
                   group = exp),
               size=v_plot_line_size)+
-    geom_hline(aes(yintercept = filter(c,exp=='Circle')[1,2]),
+    geom_hline(aes(yintercept = filter(c,exp=='2a')[1,2]),
                linetype = 'dashed',
                size=.5)+
-    geom_hline(aes(yintercept = filter(c,exp=='Arc')[1,2]),
+    geom_hline(aes(yintercept = filter(c,exp=='2b')[1,2]),
                linetype = 'dashed',
                size=.5)+
     geom_hline(aes(yintercept = filter(c,exp=='2c')[1,2]),
@@ -1569,7 +1569,7 @@ reaction_tanv_nv[['pilot']]<-avg_plot('reaction_tanv',pilotdata,ylab = 'Reaction
 reaction_tanv_nv[['smallt']]<-avg_plot('reaction_tanv',smalltdata,ylab = 'Reaction Time (s)')+theme(legend.position = 'none')
 ```
 
-```{r reactiontanv1, echo = FALSE, warning = FALSE, fig.width=12, fig.height=8, fig.cap = 'Reaction Time broken by experiment.'}
+```{r reactiontanvel1, echo = FALSE, warning = FALSE, fig.width=12, fig.height=8, fig.cap = 'Reaction Time broken by experiment.'}
   plot_grid(reaction_tanv[['pref']],
             reaction_tanv[['smallt']],
             reaction_tanv[['pilot']],
@@ -1583,7 +1583,9 @@ reaction_tanv_nv[['smallt']]<-avg_plot('reaction_tanv',smalltdata,ylab = 'Reacti
 
 ### Reaction Time Algorithm 
 
-```{r echo = FALSE, warning = FALSE, message = FALSE}
+These next plots are made to try and show the effect of reaciton time algorithms on reaction. Figure \@ref{fig:reactiontanvalgoplot} shows the reaction time by experiment and algorithm. Figure \@ref{fig:reactiontanvelalgoplot} shows the velocity at reaction time by the experiments and algorithms. This plot shows that my algorithm is detecting movement onset at very very low movement speeds, whereas other methods detect it at MUCH higher movement speeds.
+
+```{r reactiontanvalgoplot, echo = FALSE, warning = FALSE, message = FALSE, fig.width=12, fig.height=5, fig.cap = 'Reaction Time Algorithm method.'}
 reaction_tanv_algo = list()
 reaction_tanv_algo[['pref']] <- avg_plot2(c('reaction_tanv','reaction_erik','reaction_vthresh'),prefdata,ylab='Reaction Time (s)',shape_labs = c('Mine','Erik','V Thresh'))
 
@@ -1591,17 +1593,38 @@ reaction_tanv_algo[['smallt']] <- avg_plot2(c('reaction_tanv','reaction_erik','r
 
 reaction_tanv_algo[['pilot']] <- avg_plot2(c('reaction_tanv','reaction_erik','reaction_vthresh'),pilotdata,ylab='Reaction Time (s)',shape_labs = c('Mine','Erik','V Thresh'))
 
+plot_grid(reaction_tanv_algo[['pref']]+theme(legend.position = 'none')+scale_y_continuous(breaks = seq(.16,.32,.02), limits = c(.16,.32)),
+          reaction_tanv_algo[['smallt']]+theme(legend.position = 'none')+scale_y_continuous(breaks = seq(.16,.32,.02), limits = c(.16,.32)),
+          reaction_tanv_algo[['pilot']]+theme(legend.position = 'none')+scale_y_continuous(breaks = seq(.16,.32,.02), limits = c(.16,.32)),
+          get_legend(reaction_tanv_algo[['pref']]),
+          nrow = 1,
+          rel_widths = c(1,1,1,.2),
+          align = 'vh',
+          labels = c('2a','2b','2c',''))
 ```
 
-```{r reactiontanvalgo1, echo = FALSE, warning = FALSE, fig.width=12, fig.height=8, fig.cap = 'Reaction Time Algorithm method.'}
-  plot_grid(reaction_tanv_algo[['pref']]+theme(legend.position = 'none'),
-            reaction_tanv_algo[['smallt']]+theme(legend.position = 'none'),
-            reaction_tanv_algo[['pilot']]+theme(legend.position = 'none'),
-            get_legend(reaction_tanv_algo[['pref']]),
-            nrow = 1,
-            rel_widths = c(1,1,1,.2),
-            align = 'vh',
-            labels = c('2a','2b','2c',''))
+```{r reactiontanvelalgoplot, echo = FALSE, warning = FALSE, message = FALSE, fig.width=12, fig.height=5, fig.cap = 'Reaction Velocity Algorithm method.'}
+reaction_tanvel_algo = list()
+reaction_tanvel_algo[['pref']] <- avg_plot2(c('reaction_tanvel','onsetErik_vel','onsetvthresh_vel'),
+                                            prefdata,ylab='Reaction Velocity (m/s)',
+                                            shape_labs = c('Mine','Erik','V Thresh'))
+
+reaction_tanvel_algo[['smallt']] <- avg_plot2(c('reaction_tanvel','onsetErik_vel','onsetvthresh_vel'),
+                                              smalltdata,ylab='Reaction Velocity (m/s)',
+                                              shape_labs = c('Mine','Erik','V Thresh'))
+
+reaction_tanvel_algo[['pilot']] <- avg_plot2(c('reaction_tanvel','onsetErik_vel','onsetvthresh_vel'),
+                                             pilotdata,ylab='Reaction Velocity (m/s)',
+                                             shape_labs = c('Mine','Erik','V Thresh'))
+
+plot_grid(reaction_tanvel_algo[['pref']]+theme(legend.position = 'none')+scale_y_continuous(breaks = seq(0,.024,.004), limits = c(-.001,.024)),
+          reaction_tanvel_algo[['smallt']]+theme(legend.position = 'none')+scale_y_continuous(breaks = seq(0,.024,.004), limits = c(-.001,.024)),
+          reaction_tanvel_algo[['pilot']]+theme(legend.position = 'none')+scale_y_continuous(breaks = seq(0,.024,.004), limits = c(-.001,.024)),
+          get_legend(reaction_tanvel_algo[['pref']]),
+          nrow = 1,
+          rel_widths = c(1,1,1,.2),
+          align = 'vh',
+          labels = c('2a','2b','2c',''))
 ```
 
 ## Endpoint Error
@@ -3438,7 +3461,7 @@ pref_p_glm  = glm(success ~ movedur,
                  family=binomial(link="logit"))
 prefdata$p_success = inv.logit(predict(pref_p_glm))
 
-smalltdata$success = abs(smalltdata$maxex)<.11 & abs(smalltdata$missangle)<3
+smalltdata$success = abs(smalltdata$maxex)<.11 & abs(smalltdata$missangle)<7
 smallt_p_glm  = glm(success ~ movedur,
                     data=smalltdata,
                     family=binomial(link="logit"))
