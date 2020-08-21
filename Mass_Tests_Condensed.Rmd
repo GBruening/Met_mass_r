@@ -53,7 +53,7 @@ theme_set(theme_classic()+
         axis.line         = element_line(color='black')))
 theme_set(theme_cowplot())
 
-save_plots = 1
+save_plots = 0
 
 # #====================== LOAD DATA - Neuromech ==============================
 # met_plots_dir  <- 'D:/Users/Gary/Google Drive/Muscle modeling/Metabolics/Graphs/'
@@ -88,7 +88,7 @@ save_plots = 1
 # mpdata <- read.csv('F:/Google Drive/Muscle modeling/Metabolics/Data/met_power_data.csv')
 # mpdata_rest <- readMat('F:/Google Drive/Muscle modeling/Metabolics/Data/baselinemetabolics.mat')$baseline
 # pilotdata <- read.csv('F:/Google Drive/Preferred Mass/Pilot_Data-UnorderednoFML.csv')
-# smalltdata <- read.csv('F:/Google Drive/Preferred Mass/FullData_SmallTargetnoFML_test.csv')
+# smalltdata <- read.csv('F:/Google Drive/Preferred Mass/DataArcT-UnorderednoFML.csv')
 # 
 # eff_masses_pref <- read.csv('F:/Google Drive/Preferred Mass/eff_masses.csv',header=0)
 # eff_masses_meta <- read.csv('F:/Google Drive/Muscle modeling/Metabolics/Data/eff_masses.csv',header=0)
@@ -113,7 +113,7 @@ metdata<-read.csv('Met_data_erik_test.csv')
 mpdata <- read.csv('met_power_data.csv')
 mpdata_rest <- readMat('baselinemetabolics.mat')$baseline
 pilotdata <- read.csv('Pilot_Data-UnorderednoFML.csv')
-smalltdata <- read.csv('FullData_SmallTargetnoFML_test.csv')
+smalltdata <- read.csv('DataArcT-UnorderednoFML.csv')
 
 eff_masses_pref <- read.csv('eff_masses_pref.csv',header=0)
 eff_masses_meta <- read.csv('eff_masses_meta.csv',header=0)
@@ -135,6 +135,13 @@ pilotdata$peakvel_target <- pilotdata$peakvel_radv
 
 prefdata$reaction_tanv <- .005*prefdata$reaction_tanv
 smalltdata$reaction_tanv <- .005*smalltdata$reaction_tanv
+
+prefdata$reaction_erik <- 0.005*(prefdata$idxonsetErik-prefdata$idxtargetshow)
+prefdata$reaction_vthresh <- 0.005*(prefdata$vthres_onset-prefdata$idxtargetshow)
+smalltdata$reaction_erik <- 0.005*(smalltdata$idxonsetErik-smalltdata$idxtargetshow)
+smalltdata$reaction_vthresh <- 0.005*(smalltdata$vthres_onset-smalltdata$idxtargetshow)
+pilotdata$reaction_erik <- 0.005*(pilotdata$idxonsetErik-pilotdata$idxtargetshow)
+pilotdata$reaction_vthresh <- 0.005*(pilotdata$vthres_onset-pilotdata$idxtargetshow)
 
 # ===================== Adding Eff_mass =======================
 # Adding Column for estimated eff_mass to preferred experiment.
@@ -352,7 +359,6 @@ avg_plot <- function(variable,data,ylab,...){
                  sep = ''
                  )
   eval(parse(text=string))
-                
   
   g<-ggplot()+
     scale_x_continuous(breaks=c(sort(unique(data$eff_mass))))+
@@ -390,6 +396,90 @@ avg_plot <- function(variable,data,ylab,...){
 }
 #theme(axis.line = element_line(color=\'black\',size = 2,linetype=\'solid\'))+
 
+avg_plot2 <- function(variable,data,ylab,shape_labs,...){
+  exp = list(...)
+  if (length(variable)>1){
+    var_count = 1
+    var1 = variable[1]
+    tempdf = eval(parse(text = paste('aggregate(',var1,' ~ subj + eff_mass,data,mean)',sep='')))
+    nsubj = max(tempdf$subj)
+    
+    string = paste('a = aggregate(',var1,' ~ eff_mass,tempdf,mean)
+                    b = aggregate(',var1,' ~ eff_mass,tempdf,sd)
+                    c = cbind(a,b$',var1,'/sqrt(nsubj),rep(var_count,4))
+                    colnames(c) = c(\'eff_mass\',\'dep_var\',\'dep_var_se\',\'var_num\')',
+                   sep = ''
+                   )
+    eval(parse(text=string))
+    
+    var_count = 2
+    for (var1 in variable[2:length(variable)]){
+      tempdf = eval(parse(text = paste('aggregate(',var1,' ~ subj + eff_mass,data,mean)',sep='')))
+      nsubj = max(tempdf$subj)
+      
+      string = paste('a = aggregate(',var1,' ~ eff_mass,tempdf,mean) %>% `colnames<-`(c(\'eff_mass\',\'dep_var\'))
+                    b = aggregate(',var1,' ~ eff_mass,tempdf,sd) %>% `colnames<-`(c(\'eff_mass\',\'dep_var_sd\'))')
+      eval(parse(text = string))
+      string = paste('c = rbind(c,cbind(a, b$dep_var_sd/sqrt(nsubj), rep(var_count,4)) %>% `colnames<-`(c(\'eff_mass\',\'dep_var\',\'dep_var_se\',\'var_num\')))')
+      eval(parse(text = string))
+      
+      var_count = var_count + 1
+    }
+  } else {
+    tempdf = eval(parse(text = paste('aggregate(',var1,' ~ subj + eff_mass,data,mean)',sep='')))
+    nsubj = max(tempdf$subj)
+    
+    string = paste('a = aggregate(',variable,' ~ eff_mass,tempdf,mean)
+                    b = aggregate(',variable,' ~ eff_mass,tempdf,sd)
+                    c = cbind(a,b$',variable,'/sqrt(nsubj))
+                    colnames(c) = c(\'eff_mass\',\'dep_var',1,'\',\'dep_var_se',1,'\')',
+                   sep = ''
+                   )
+    eval(parse(text=string))
+  }
+  
+  g<-ggplot()+
+    scale_x_continuous(breaks=c(sort(unique(data$eff_mass))))
+    
+  for (var_count in 1:length(variable)){
+    g <- g+geom_line(data=filter(c,var_count==var_num),
+              aes(x=eff_mass,
+                  y=dep_var),
+              size=v_plot_line_size)
+  }
+    g<-g+geom_hline(data = c,
+               aes(yintercept = c[1,2]),
+               linetype = 'dashed',
+               size=.5)+
+    geom_errorbar(data=data.frame(c),
+                  aes(x    = eff_mass,
+                      y    = dep_var, 
+                      ymin = dep_var-dep_var_se,
+                      ymax = dep_var+dep_var_se),
+                  size=v_plot_err_bar_size,
+                  width = 0)+
+    geom_point(data=c,
+               aes(x=eff_mass,
+                   y=dep_var,
+                   color = factor(eff_mass),
+                   shape = factor(var_num)),
+               size=vplot_point_size+6)+
+    scale_color_manual(values=mass_colors)+
+    theme_classic()+
+    theme(text              = element_text(color='black'),
+         axis.text         = element_text(color ='black'),
+         axis.ticks        = element_line(color ='black'),
+         plot.title        = element_text(hjust = 0.5),
+         axis.line         = element_line(color ='black'))+
+    labs(x = 'Effective Mass (kg)', color = 'Effective\nMass (kg)')
+  if (!missing(ylab)){
+    g <- g+labs(y = ylab)
+  }
+  if (!missing(shape_labs)){
+    g <- g+scale_shape_manual(values = c(16,17,15),labels = shape_labs)+labs(shape = 'Algorithm')
+  }
+  return(g)
+}
 
 all_exp_avg_plot <- function(variable,data1,data2,data3,ylab,...){
   exp = list(...)
@@ -1489,6 +1579,29 @@ reaction_tanv_nv[['smallt']]<-avg_plot('reaction_tanv',smalltdata,ylab = 'Reacti
             nrow = 2,
             align = 'vh',
             labels = c('Preferred','Smallt','2c','','',''))
+```
+
+### Reaction Time Algorithm 
+
+```{r echo = FALSE, warning = FALSE, message = FALSE}
+reaction_tanv_algo = list()
+reaction_tanv_algo[['pref']] <- avg_plot2(c('reaction_tanv','reaction_erik','reaction_vthresh'),prefdata,ylab='Reaction Time (s)',shape_labs = c('Mine','Erik','V Thresh'))
+
+reaction_tanv_algo[['smallt']] <- avg_plot2(c('reaction_tanv','reaction_erik','reaction_vthresh'),smalltdata,ylab='Reaction Time (s)',shape_labs = c('Mine','Erik','V Thresh'))
+
+reaction_tanv_algo[['pilot']] <- avg_plot2(c('reaction_tanv','reaction_erik','reaction_vthresh'),pilotdata,ylab='Reaction Time (s)',shape_labs = c('Mine','Erik','V Thresh'))
+
+```
+
+```{r reactiontanvalgo1, echo = FALSE, warning = FALSE, fig.width=12, fig.height=8, fig.cap = 'Reaction Time Algorithm method.'}
+  plot_grid(reaction_tanv_algo[['pref']]+theme(legend.position = 'none'),
+            reaction_tanv_algo[['smallt']]+theme(legend.position = 'none'),
+            reaction_tanv_algo[['pilot']]+theme(legend.position = 'none'),
+            get_legend(reaction_tanv_algo[['pref']]),
+            nrow = 1,
+            rel_widths = c(1,1,1,.2),
+            align = 'vh',
+            labels = c('2a','2b','2c',''))
 ```
 
 ## Endpoint Error
