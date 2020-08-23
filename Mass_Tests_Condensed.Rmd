@@ -5635,74 +5635,12 @@ if (save_plots){ggsave('grouped_utility_movedur.pdf',plot=grouped_utility_movedu
   grouped_utility_movedur
 ```
 
-## Modeling plots code
+
+
+## 2a Durations
+### MOdel Plotting Function
 
 ```{r, echo = FALSE, warning = FALSE}
-options(warn=-1)
-# ================  Fitting Movement Duration
-# models = c('Pref','MPNet_Cost','MGross_Cost','Utility','m1','m2','Torque')
-masses = c(2.47,3.8,4.7,6.1)
-models = c('Pref','MPNet_Cost','MGross_Cost','Utility','m1','Torque')
-model_durs = data.frame('eff_mass' = cbind(rep(masses,13)),
-                        'model' = c(rep('Pref',4),
-                                    rep('MPNet_Cost',4),
-                                    rep('MGross_cost',4),
-                                    rep('Util_gross',4),
-                                    rep('Util_net',4),
-                                    rep('Util_gross_rx',4),
-                                    rep('Util_net_rx',4),
-                                    rep('Util_comb_alpha_gross',4),
-                                    rep('Util_comb_alpha_net',4),
-                                    rep('m1',4),
-                                    rep('m2',4),
-                                    rep('torque2',4),
-                                    rep('accuracy',4)),
-                        'movedur' = c(aggregate(movedur~eff_mass,prefdata,mean)$movedur,
-                                     met_net_dur,
-                                     met_gross_dur,
-                                     util_dur_gross,
-                                     util_dur_net,
-                                     util_dur_gross_rx,
-                                     util_dur_net_rx,
-                                     util_dur_pref_alpha_comb_gross[1:4],
-                                     util_dur_pref_alpha_comb_net[1:4],
-                                     m1_dur,
-                                     m2_dur,
-                                     torque_dur_2a,
-                                     prob_dur_pref),
-                        'modelnum' = c(rep(6,4),
-                                      rep(5,4),
-                                      rep(4,4),
-                                      rep(7,4),
-                                      rep(8,4),
-                                      rep(9,4),
-                                      rep(10,4),
-                                      rep(11,4),
-                                      rep(12,4),
-                                      rep(1,4),
-                                      rep(2,4),
-                                      rep(3,4),
-                                      rep(13,4)))
-
-errbar = cbind(aggregate(movedur~eff_mass,prefdata,mean),aggregate(movedur~eff_mass,prefdata,sd)[2]/sqrt(8))
-colnames(errbar) = c('eff_mass','movedur','sd')
-
-model_labs = c(TeX('$Mass^1$'),
-               TeX('$Mass^2$'),
-               TeX('$Torque^2$'),
-               TeX('Met Cost\nGross'),
-               TeX('Met Cost\nNet'),
-               TeX('Preferred\nDuration'),
-               TeX('Utility Gross'),
-               TeX('Utility Net'),
-               TeX('Utility Gross'),
-               TeX('Utility Net'),
-               TeX('Utility Gross\nComb Alpha'),
-               TeX('Utility Net\nComb Alpha'),
-               TeX('Accuracy Prob'))
-models_to_plot = c(3,4,5,6,9,10,11,12)
-# models_to_plot = c(1:9)
-temp_durs = filter(model_durs, modelnum %in% models_to_plot)
 
 model_plotting <- function(variable,label,temp_durs,errbar,cs,normalized){
   if (length(unique(temp_durs$model))==10){
@@ -5798,6 +5736,12 @@ model_plotting <- function(variable,label,temp_durs,errbar,cs,normalized){
                                       y=',variable,'),
                                   color= \'black\',
                                   size=1)+
+        geom_errorbar(data=errbar,aes(x=eff_mass,
+                                      ymin=',variable,'-sd,
+                                      ymax=',variable,'+sd),
+                      color = \'black\',
+                      size=1,
+                      width = 0)+
         geom_point(data=temp_durs,aes(x=eff_mass,
                                       y=',variable,',
                                       group=factor(modelnum),
@@ -5854,67 +5798,78 @@ model_plotting <- function(variable,label,temp_durs,errbar,cs,normalized){
   eval(parse(text = string))
   return(g)
 }
+```
 
-Model_movedur_shape <- model_plotting('movedur','Movement Duration (s)',temp_durs,errbar,'shape',normalized = 0)+
-  theme_classic()+
-  theme(text              = element_text(color='black'),
-        axis.text         = element_text(color='black'),
-        axis.ticks        = element_line(color='black'),
-        plot.title        = element_text(hjust = 0.5),
-        axis.line         = element_line(color='black'))
-Model_movedur_color <- model_plotting('movedur','Movement Duration (s)',temp_durs,errbar,'color',normalized = 0)+
-  theme_classic()+
-  theme(text              = element_text(color='black'),
-        axis.text         = element_text(color='black'),
-        axis.ticks        = element_line(color='black'),
-        plot.title        = element_text(hjust = 0.5),
-        axis.line         = element_line(color='black'))
+### DF Creation
 
-# function(x) c(mean = mean(x), sd = sd(x))
+```{r, echo = FALSE, warning = FALSE}
 
-# setwd(pref_plots_dir)
-# if (save_plots){ggsave('Model_movedur_shape.pdf',plot=Model_movedur_shape, useDingbats = FALSE)}
+options(warn=-1)
+# ================  Fitting Movement Duration
+masses = c(2.47,3.8,4.7,6.1)
+models = c('Pref','MPNet_Cost','MGross_Cost','Utility','m1','Torque')
+model_durs = data.frame('eff_mass' = cbind(rep(masses,13)),
+                        'model' = c(rep('Pref',4),
+                                    rep('MPNet_Cost',4),
+                                    rep('MGross_cost',4),
+                                    rep('Util_gross',4),
+                                    rep('Util_net',4),
+                                    rep('Util_gross_rx',4),
+                                    rep('Util_net_rx',4),
+                                    rep('Util_comb_alpha_gross',4),
+                                    rep('Util_comb_alpha_net',4),
+                                    rep('m1',4),
+                                    rep('m2',4),
+                                    rep('torque2',4),
+                                    rep('accuracy',4)),
+                        'movedur' = c(aggregate(movedur~eff_mass,prefdata,mean)$movedur,
+                                     met_net_dur,
+                                     met_gross_dur,
+                                     util_dur_gross,
+                                     util_dur_net,
+                                     util_dur_gross_rx,
+                                     util_dur_net_rx,
+                                     util_dur_pref_alpha_comb_gross[1:4],
+                                     util_dur_pref_alpha_comb_net[1:4],
+                                     m1_dur,
+                                     m2_dur,
+                                     torque_dur_2a,
+                                     prob_dur_pref),
+                        'modelnum' = c(rep(6,4),
+                                      rep(5,4),
+                                      rep(4,4),
+                                      rep(7,4),
+                                      rep(8,4),
+                                      rep(9,4),
+                                      rep(10,4),
+                                      rep(11,4),
+                                      rep(12,4),
+                                      rep(1,4),
+                                      rep(2,4),
+                                      rep(3,4),
+                                      rep(13,4)))
 
-norm_durs = c()
-for (c in 1:length(unique(model_durs$modelnum))){
-  x = model_durs$movedur[seq(4*c-3,4*c)]/model_durs$movedur[4*c-3]
-  norm_durs = c(norm_durs,x)
-}
-model_durs$norm_durs = norm_durs
-temp_durs = model_durs
 
-# models_to_plot = c(1,3,4,6,9)
+model_labs = c(TeX('$Mass^1$'),
+               TeX('$Mass^2$'),
+               TeX('$Torque^2$'),
+               TeX('Met Cost\nGross'),
+               TeX('Met Cost\nNet'),
+               TeX('Preferred\nDuration'),
+               TeX('Utility Gross'),
+               TeX('Utility Net'),
+               TeX('Utility Gross'),
+               TeX('Utility Net'),
+               TeX('Utility Gross\nComb Alpha'),
+               TeX('Utility Net\nComb Alpha'),
+               TeX('Accuracy Prob'))
+models_to_plot = c(3,4,5,6,9,10,11,12)
 temp_durs = filter(model_durs, modelnum %in% models_to_plot)
 
-Model_normmovedur_shape <- model_plotting('norm_durs','Norm Movement Duration (s)',temp_durs,errbar,'shape',normalized = 1)+
-  theme_classic()+
-  theme(text              = element_text(color='black'),
-        axis.text         = element_text(color='black'),
-        axis.ticks        = element_line(color='black'),
-        plot.title        = element_text(hjust = 0.5),
-        axis.line         = element_line(color='black'))
-Model_normmovedur_color <- model_plotting('norm_durs','Norm Movement Duration (s)',temp_durs,errbar,'color',normalized = 1)+
-  theme_classic()+
-  theme(text              = element_text(color='black'),
-        axis.text         = element_text(color='black'),
-        axis.ticks        = element_line(color='black'),
-        plot.title        = element_text(hjust = 0.5),
-        axis.line         = element_line(color='black'))
 
-
-# setwd(pref_plots_dir)
-# if (save_plots){ggsave('Model_movedurnorm_shape.pdf',plot=Model_normmovedur_shape,useDingbats = FALSE)}
 ```
 
-```{r, echo = FALSE, warning = FALSE, fig.width=9, fig.height=6}
-#   Model_movedur_shape
-```
-
-```{r, echo = FALSE, warning = FALSE, fig.width=9, fig.height=6}
-#   Model_normmovedur_shape
-```
-
-<!-- ## Peak Velocity Plotting -->
+### Peak Velocity Plotting
 
 ```{r, echo = FALSE, warning = FALSE}
 #================  Peak Velocity Sim
@@ -5933,10 +5888,6 @@ min_jerk_vel <- function(tm){
   t5=t4*ts
   
   v=((60*t3-30*t4-30*t2)/tm)*(ro-rf)
-  # t = seq(0,d,.001)
-  # v = (.1)*(30*((t/d)^2)-60*((t/d)^3)+30*((t/d)^4))
-  # plot(t,v)
-  # print(sum(v)*0.001)
   return(max(v))
 } 
 
@@ -6013,73 +5964,9 @@ model_vels = data.frame('eff_mass' = cbind(rep(masses,13)),
 errbar = cbind(aggregate(peakvel_target~eff_mass,prefdata,mean),
                aggregate(peakvel_target~eff_mass,prefdata,var)[2])
 colnames(errbar) = c('eff_mass','peakvel','sd')
-
-temp_vels = model_vels
-temp_vels = filter(temp_vels, modelnum %in% models_to_plot)
-
-Model_peakvel_shape <- model_plotting('peakvel','Peak Velocity (m/s)',
-                                      temp_vels,errbar,'shape',normalized = 0)+
-  theme_classic()+
-  theme(text              = element_text(color='black'),
-        axis.text         = element_text(color='black'),
-        axis.ticks        = element_line(color='black'),
-        plot.title        = element_text(hjust = 0.5),
-        axis.line         = element_line(color='black'))
-Model_peakvel_color <- model_plotting('peakvel','Peak Velocity (m/s)',
-                                      temp_vels,errbar,'color',normalized = 0)+
-  theme_classic()+
-  theme(text              = element_text(color='black'),
-        axis.text         = element_text(color='black'),
-        axis.ticks        = element_line(color='black'),
-        plot.title        = element_text(hjust = 0.5),
-        axis.line         = element_line(color='black'))
-
-
-# setwd(pref_plots_dir)
-# if (save_plots){ggsave('Model_peakvel_shape.pdf',plot=Model_peakvel_shape,useDingbats = FALSE)}
-
-norm_vels = c()
-for (c in 1:length(unique(model_durs$modelnum))){
-  x = model_vels$peakvel[seq(4*c-3,4*c)]/model_vels$peakvel[4*c-3]
-  norm_vels = c(norm_vels,x)
-}
-model_vels$norm_vels = norm_vels
-temp_vels = model_vels
-
-temp_vels = model_vels
-temp_vels = filter(temp_vels, modelnum %in% models_to_plot)
-
-Model_normpeakvel_shape <- model_plotting('norm_vels','Norm Peak Velocity (m/s)',
-                                          temp_vels,errbar,'shape',normalized = 1)+
-  theme_classic()+
-  theme(text              = element_text(color='black'),
-        axis.text         = element_text(color='black'),
-        axis.ticks        = element_line(color='black'),
-        plot.title        = element_text(hjust = 0.5),
-        axis.line         = element_line(color='black'))
-Model_normpeakvel_color <- model_plotting('norm_vels','Norm Velocity (m/s)',
-                                          temp_vels,errbar,'color',normalized = 1)+
-  theme_classic()+
-  theme(text              = element_text(color='black'),
-        axis.text         = element_text(color='black'),
-        axis.ticks        = element_line(color='black'),
-        plot.title        = element_text(hjust = 0.5),
-        axis.line         = element_line(color='black'))
-
-# setwd(pref_plots_dir)
-# if (save_plots){ggsave('Model_peakvelnorm_shape.pdf',plot=Model_normpeakvel_shape,useDingbats = FALSE)}
 ```
 
-```{r, echo = FALSE, warning = FALSE, fig.width=9, fig.height=6}
-#   Model_peakvel_shape
-```
-
-```{r, echo = FALSE, warning = FALSE, fig.width=9, fig.height=6}
-#   Model_normpeakvel_shape
-```
-
-## SSE of models - Exp 2a {#SSE2a}
-
+### SSE of models - Exp 2a
 The utility combined alpha is using the alpha value predicted off fitting a utility model to the preferred and small target experiement at the same time. This alpha value is used to make figure \@ref(fig:groupedutilitymovedur1).
 
 ```{r, echo = FALSE, warning = FALSE}
@@ -6278,12 +6165,146 @@ colnames(Model_SSE_norm) = c('Model',
 kable(Model_SSE_norm, caption = 'Exp 2a - Sum squared errors for NORMALIZED movement duration and peak velocity.')
 ```
 
-## Making the Model Group plot
+### Making the Model Group plot
 
 ```{r, echo = FALSE, warning = FALSE, fig.cap = 'Modeled movement durations and peak velocities.'}
 ## Making the Model Group plot
 
+## Movement Duration
 theme_set(theme_cowplot(font_size=12))
+
+norm_vals <- function(data){
+  dur0 = aggregate(movedur ~ eff_mass + subj, data, mean)
+  vel0 = aggregate(peakvel_target ~ eff_mass + subj, data, mean)
+  for (k in 1:length(data$subj)){
+    data[k,'movedurnorm'] = data[k,'movedur']/filter(dur0,subj==data[k,'subj'])$movedur[1]
+    data[k,'peakvelnorm'] = data[k,'peakvel_target']/filter(vel0,subj==data[k,'subj'])$peakvel_target[1]
+  }
+  return(data)
+}
+
+prefdata <- norm_vals(prefdata)
+
+errbar = cbind(aggregate(movedur~eff_mass,prefdata,mean),
+               aggregate(movedur~eff_mass,prefdata,sd)[2]/sqrt(length(unique(prefdata$subj))))
+colnames(errbar) = c('eff_mass','movedur','sd')
+
+Model_movedur_shape <- model_plotting('movedur','Movement Duration (s)',temp_durs,errbar,'shape',normalized = 0)+
+  theme_classic()+
+  theme(text              = element_text(color='black'),
+        axis.text         = element_text(color='black'),
+        axis.ticks        = element_line(color='black'),
+        plot.title        = element_text(hjust = 0.5),
+        axis.line         = element_line(color='black'))
+
+Model_movedur_color <- model_plotting('movedur','Movement Duration (s)',temp_durs,errbar,'color',normalized = 0)+
+  theme_classic()+
+  theme(text              = element_text(color='black'),
+        axis.text         = element_text(color='black'),
+        axis.ticks        = element_line(color='black'),
+        plot.title        = element_text(hjust = 0.5),
+        axis.line         = element_line(color='black'))
+
+# setwd(pref_plots_dir)
+# if (save_plots){ggsave('Model_movedur_shape.pdf',plot=Model_movedur_shape, useDingbats = FALSE)}
+
+norm_durs = c()
+for (c in 1:length(unique(model_durs$modelnum))){
+  x = model_durs$movedur[seq(4*c-3,4*c)]/model_durs$movedur[4*c-3]
+  norm_durs = c(norm_durs,x)
+}
+model_durs$norm_durs = norm_durs
+temp_durs = model_durs
+
+# models_to_plot = c(1,3,4,6,9)
+temp_durs = filter(model_durs, modelnum %in% models_to_plot)
+
+errbar = cbind(aggregate(movedurnorm~eff_mass,prefdata,mean),
+               aggregate(movedurnorm~eff_mass,prefdata,sd)[2]/sqrt(length(unique(prefdata$subj))))
+colnames(errbar) = c('eff_mass','norm_durs','sd')
+
+Model_normmovedur_shape <- model_plotting('norm_durs','Norm Movement Duration (s)',temp_durs,errbar,'shape',normalized = 1)+
+  theme_classic()+
+  theme(text              = element_text(color='black'),
+        axis.text         = element_text(color='black'),
+        axis.ticks        = element_line(color='black'),
+        plot.title        = element_text(hjust = 0.5),
+        axis.line         = element_line(color='black'))
+Model_normmovedur_color <- model_plotting('norm_durs','Norm Movement Duration (s)',temp_durs,errbar,'color',normalized = 1)+
+  theme_classic()+
+  theme(text              = element_text(color='black'),
+        axis.text         = element_text(color='black'),
+        axis.ticks        = element_line(color='black'),
+        plot.title        = element_text(hjust = 0.5),
+        axis.line         = element_line(color='black'))
+
+## Peak Velocity
+
+temp_vels = model_vels
+temp_vels = filter(temp_vels, modelnum %in% models_to_plot)
+
+
+errbar = cbind(aggregate(peakvel_target~eff_mass,prefdata,mean),
+               aggregate(peakvel_target~eff_mass,prefdata,sd)[2]/sqrt(length(unique(prefdata$subj))))
+colnames(errbar) = c('eff_mass','peakvel','sd')
+
+Model_peakvel_shape <- model_plotting('peakvel','Peak Velocity (m/s)',
+                                      temp_vels,errbar,'shape',normalized = 0)+
+  theme_classic()+
+  theme(text              = element_text(color='black'),
+        axis.text         = element_text(color='black'),
+        axis.ticks        = element_line(color='black'),
+        plot.title        = element_text(hjust = 0.5),
+        axis.line         = element_line(color='black'))
+Model_peakvel_color <- model_plotting('peakvel','Peak Velocity (m/s)',
+                                      temp_vels,errbar,'color',normalized = 0)+
+  theme_classic()+
+  theme(text              = element_text(color='black'),
+        axis.text         = element_text(color='black'),
+        axis.ticks        = element_line(color='black'),
+        plot.title        = element_text(hjust = 0.5),
+        axis.line         = element_line(color='black'))
+
+
+# setwd(pref_plots_dir)
+# if (save_plots){ggsave('Model_peakvel_shape.pdf',plot=Model_peakvel_shape,useDingbats = FALSE)}
+
+norm_vels = c()
+for (c in 1:length(unique(model_durs$modelnum))){
+  x = model_vels$peakvel[seq(4*c-3,4*c)]/model_vels$peakvel[4*c-3]
+  norm_vels = c(norm_vels,x)
+}
+model_vels$norm_vels = norm_vels
+temp_vels = model_vels
+
+temp_vels = model_vels
+temp_vels = filter(temp_vels, modelnum %in% models_to_plot)
+
+errbar = cbind(aggregate(peakvelnorm~eff_mass,prefdata,mean),
+               aggregate(peakvelnorm~eff_mass,prefdata,sd)[2]/sqrt(length(unique(prefdata$subj))))
+colnames(errbar) = c('eff_mass','norm_vels','sd')
+
+Model_normpeakvel_shape <- model_plotting('norm_vels','Norm Peak Velocity (m/s)',
+                                          temp_vels,errbar,'shape',normalized = 1)+
+  theme_classic()+
+  theme(text              = element_text(color='black'),
+        axis.text         = element_text(color='black'),
+        axis.ticks        = element_line(color='black'),
+        plot.title        = element_text(hjust = 0.5),
+        axis.line         = element_line(color='black'))
+Model_normpeakvel_color <- model_plotting('norm_vels','Norm Velocity (m/s)',
+                                          temp_vels,errbar,'color',normalized = 1)+
+  theme_classic()+
+  theme(text              = element_text(color='black'),
+        axis.text         = element_text(color='black'),
+        axis.ticks        = element_line(color='black'),
+        plot.title        = element_text(hjust = 0.5),
+        axis.line         = element_line(color='black'))
+
+# setwd(pref_plots_dir)
+# if (save_plots){ggsave('Model_peakvelnorm_shape.pdf',plot=Model_normpeakvel_shape,useDingbats = FALSE)}
+
+## Grouping
 
 add_legend_shape <- get_legend(Model_movedur_shape)
 add_legend_color <- get_legend(Model_movedur_color)
@@ -6344,7 +6365,7 @@ Results_model_r_shape
 ```
 
 
-## SSE of models - Exp 2b
+### SSE of models - Exp 2b
 ```{r, echo = FALSE, warning = FALSE}
 
 Model_SSE_movedur = c()
@@ -6385,7 +6406,7 @@ for (model1 in models_SEE){
   Model_BIC_movedur = c(Model_BIC_movedur, 4*log(SSE)-4*log(4)+log(4)*(n_params+1))
   
   model_peakvel_temp1 = filter(model_vels,model==model1)$peakvel
-  model_peakvel_temp2 = filter(model_vels,model=='Pref')$peakvel
+  model_peakvel_temp2 = aggregate(peakvel_target~eff_mass,smalltdata,mean)$peakvel_target
   SSE = sum((model_peakvel_temp1-model_peakvel_temp2)^2)
   Model_SSE_peakvel = rbind(Model_SSE_peakvel,SSE)
   # Model_SSE_colnames = rbind(Model_SSE_colnames,model1)
@@ -6478,7 +6499,7 @@ for (model1 in models_SEE){
   Model_BIC_movedur_norm = c(Model_BIC_movedur_norm, 4*log(SSE)-4*log(4)+log(4)*(n_params+1))
   
   model_peakvel_temp1_norm = filter(model_vels,model==model1)$norm_vels
-  model_peakvel_temp2_norm = filter(model_vels,model=='Pref')$norm_vels
+  model_peakvel_temp2_norm = aggregate(peakvel_target~eff_mass,smalltdata,mean)$movedur/aggregate(peakvel_target~eff_mass,smalltdata,mean)$peakvel_target[1]
   SSE = sum((model_peakvel_temp1_norm-model_peakvel_temp2_norm)^2)
   Model_SSE_peakvel_norm = rbind(Model_SSE_peakvel_norm,SSE)
   # Model_SSE_colnames = rbind(Model_SSE_colnames,model1)
@@ -6541,7 +6562,7 @@ colnames(Model_SSE_norm) = c('Model',
 kable(Model_SSE_norm, caption = 'Exp 2b - Sum squared errors for NORMALIZED movement duration and peak velocity.')
 ```
 
-## SSE of models - Exp 2c
+### SSE of models - Exp 2c
 
 
 ```{r, echo = FALSE, warning = FALSE}
@@ -6555,19 +6576,6 @@ Model_BIC_peakvel = c()
 Model_SSE_colnames = c()
 Model_SSE = c()
 
-models_SEE = c('m1',
-               'm2',
-               'accuracy',
-               'MGross_cost',
-               'MPNet_Cost',
-               'torque2',
-               'Util_gross',
-               'Util_gross_rx',
-               'Util_net',
-               'Util_net_rx',
-               'Util_comb_alpha_gross',
-               'Util_comb_alpha_net',
-               'Pref')
 for (model1 in models_SEE){
   if (model1 %in% c('Util_gross','Util_gross_rx','Util_net_rx','Util_net','Util_comb_alpha_gross','Util_comb_alpha_net')){
     n_params = 1
@@ -6584,7 +6592,7 @@ for (model1 in models_SEE){
   Model_BIC_movedur = c(Model_BIC_movedur, 4*log(SSE)-4*log(4)+log(4)*(n_params+1))
   
   model_peakvel_temp1 = filter(model_vels,model==model1)$peakvel
-  model_peakvel_temp2 = filter(model_vels,model=='Pref')$peakvel
+  model_peakvel_temp2 = aggregate(peakvel_target~eff_mass,pilotdata,mean)$peakvel_target
   SSE = sum((model_peakvel_temp1-model_peakvel_temp2)^2)
   Model_SSE_peakvel = rbind(Model_SSE_peakvel,SSE)
   # Model_SSE_colnames = rbind(Model_SSE_colnames,model1)
@@ -6677,7 +6685,7 @@ for (model1 in models_SEE){
   Model_BIC_movedur_norm = c(Model_BIC_movedur_norm, 4*log(SSE)-4*log(4)+log(4)*(n_params+1))
   
   model_peakvel_temp1_norm = filter(model_vels,model==model1)$norm_vels
-  model_peakvel_temp2_norm = filter(model_vels,model=='Pref')$norm_vels
+  model_peakvel_temp2_norm = aggregate(peakvel_target~eff_mass,pilotdata,mean)$movedur/aggregate(peakvel_target~eff_mass,pilotdata,mean)$peakvel_target[1]
   SSE = sum((model_peakvel_temp1_norm-model_peakvel_temp2_norm)^2)
   Model_SSE_peakvel_norm = rbind(Model_SSE_peakvel_norm,SSE)
   # Model_SSE_colnames = rbind(Model_SSE_colnames,model1)
@@ -6739,3 +6747,5 @@ colnames(Model_SSE_norm) = c('Model',
 ```{r ModelSSEnorm12c, echo = FALSE, warning = FALSE, tab.cap = 'Exp 2c - Sum squared errors for NORMALIZED movement duration and peak velocity.'}
 kable(Model_SSE_norm, caption = 'Exp 2c - Sum squared errors for NORMALIZED movement duration and peak velocity.')
 ```
+
+
