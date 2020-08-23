@@ -1,5 +1,5 @@
 ---
-title: "Mass Tests Condensed"
+title: "Mass Tests"
 author: "Garrick Bruening"
 output:
   bookdown::html_document2:
