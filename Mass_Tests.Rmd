@@ -122,10 +122,15 @@ react_sim <-read.csv('react_sim.csv')
 torque2_data <- read.csv('sum_torque2_only.csv')
 torque2_mj_data <- read.csv('sum_torque2_scscript.csv')
 
-resample_data_pref_abs = readMat('Resample_data_abs2.mat')
+resample_data_pref_abs = readMat('Resample_data_pref_abs_wait4mvt.mat')
 resample_data_pref_perc = readMat('Resample_data_perc.mat')
-resample_data_pilot_abs = readMat('Resample_data_pilot_abs.mat')
-resample_data_smallt_abs = readMat('Resample_data_smallt_abs.mat')
+resample_data_pilot_abs = readMat('Resample_data_pilot_abs_wait4mvt.mat')
+resample_data_smallt_abs = readMat('Resample_data_smallt_abs_wait4mvt.mat')
+
+# resample_data_pref_abs = readMat('Resample_data_abs2.mat')
+# resample_data_pref_perc = readMat('Resample_data_perc.mat')
+# resample_data_pilot_abs = readMat('Resample_data_pilot_abs.mat')
+# resample_data_smallt_abs = readMat('Resample_data_smallt_abs.mat')
 
 # ===================== Add things =================================================
 pilotdata$reacttoback <- (pilotdata$idxmoveback - pilotdata$idxonset)*.005
@@ -2048,6 +2053,7 @@ resamp_plots[['pref']] <- resample_plot(resample_data_pref_abs,250)+
         axis.ticks        = element_line(color='black'),
         plot.title        = element_text(hjust = 0.5),
         axis.line         = element_line(color='black'))
+
 resamp_plots[['pilot']] <- resample_plot(resample_data_pilot_abs,150)+
   scale_y_continuous(breaks = c(0,0.05,0.1,0.15,0.20,0.25,0.30),
                      labels = c(0,0.05,0.1,0.15,0.20,0.25,0.30))+
@@ -2057,6 +2063,7 @@ resamp_plots[['pilot']] <- resample_plot(resample_data_pilot_abs,150)+
         axis.ticks        = element_line(color='black'),
         plot.title        = element_text(hjust = 0.5),
         axis.line         = element_line(color='black'))
+
 resamp_plots[['smallt']] <- resample_plot(resample_data_smallt_abs,250)+
   theme(legend.position='none')+
   theme(text              = element_text(color='black'),
