@@ -7760,14 +7760,14 @@ model_durs = data.frame('eff_mass' = cbind(rep(masses,13)),
                                     rep('m2',4),
                                     rep('torque2',4),
                                     rep('accuracy',4)),
-                        'movedur' = c(aggregate(movedur~eff_mass,smalltdata,mean)$movedur,
+                        'movedur' = c(aggregate(movedur~eff_mass,pilotdata,mean)$movedur,
                                      met_net_dur,
                                      met_gross_dur,
                                      util_dur_gross,
                                      util_dur_net,
                                      # Change here for 2a/b/c
-                                     util_dur_smallt_gross,
-                                     util_dur_smallt_net,
+                                     util_dur_pilot_gross,
+                                     util_dur_pilot_net,
   
                                      util_dur_pref_alpha_comb_gross[1:4],
                                      util_dur_pref_alpha_comb_net[1:4],
@@ -7857,8 +7857,8 @@ for (c in 1:4){
   util_peakvel_gross[c] = min_jerk_vel(util_dur_gross[c])
   util_peakvel_net[c] = min_jerk_vel(util_dur_net[c])
   # Change here for 2a/b/c
-  util_peakvel_gross_rx[c] = min_jerk_vel(util_dur_smallt_gross[c])
-  util_peakvel_net_rx[c] = min_jerk_vel(util_dur_smallt_net[c])
+  util_peakvel_gross_rx[c] = min_jerk_vel(util_dur_pilot_gross[c])
+  util_peakvel_net_rx[c] = min_jerk_vel(util_dur_pilot_net[c])
   
   util_peakvel_comb_alpha_gross[c] = min_jerk_vel(util_dur_pref_alpha_comb_gross[c])
   util_peakvel_comb_alpha_net[c] = min_jerk_vel(util_dur_pref_alpha_comb_net[c])
@@ -7878,21 +7878,19 @@ model_vels = data.frame('eff_mass' = cbind(rep(masses,13)),
                                     # Change here for 2a/b/c
                                     rep('util_dur_pilot_gross',4),
                                     rep('util_dur_pilot_net',4),
-                                    
                                     rep('Util_comb_alpha_gross',4),
                                     rep('Util_comb_alpha_net',4),
                                     rep('m1',4),
                                     rep('m2',4),
                                     rep('torque2',4),
                                     rep('accuracy',4)),
-                        'peakvel' = c(aggregate(peakvel_target~eff_mass,smalltdata,mean)$peakvel_target,
+                        'peakvel' = c(aggregate(peakvel_target~eff_mass,pilotdata,mean)$peakvel_target,
                                       met_net_peakvel,
                                       met_gross_peakvel,
                                       util_peakvel_gross,
                                       util_peakvel_net,
                                       util_peakvel_gross_rx,
                                       util_peakvel_net_rx,
-                                      
                                       util_peakvel_comb_alpha_gross,
                                       util_peakvel_comb_alpha_net,
                                       m1_peakvel,
@@ -8143,10 +8141,10 @@ kable(Model_SSE_norm, caption = 'Exp 2a - Sum squared errors for NORMALIZED move
 ## Movement Duration
 theme_set(theme_cowplot(font_size=12))
 
-# smalltdata <- norm_vals(smalltdata)
+# pilotdata <- norm_vals(pilotdata)
 
-errbar = cbind(aggregate(movedur~eff_mass,smalltdata,mean),
-               aggregate(movedur~eff_mass,smalltdata,sd)[2]/sqrt(length(unique(smalltdata$subj))))
+errbar = cbind(aggregate(movedur~eff_mass,pilotdata,mean),
+               aggregate(movedur~eff_mass,pilotdata,sd)[2]/sqrt(length(unique(pilotdata$subj))))
 colnames(errbar) = c('eff_mass','movedur','sd')
 
 Model_movedur_shape <- model_plotting('movedur','Movement Duration (s)',temp_durs,errbar,'shape',normalized = 0)+
@@ -8172,8 +8170,8 @@ Model_movedur_color <- model_plotting('movedur','Movement Duration (s)',temp_dur
 temp_durs = model_durs
 temp_durs = filter(model_durs, modelnum %in% models_to_plot)
 
-errbar = cbind(aggregate(movedurnorm~eff_mass,smalltdata,mean),
-               aggregate(movedurnorm~eff_mass,smalltdata,sd)[2]/sqrt(length(unique(smalltdata$subj))))
+errbar = cbind(aggregate(movedurnorm~eff_mass,pilotdata,mean),
+               aggregate(movedurnorm~eff_mass,pilotdata,sd)[2]/sqrt(length(unique(pilotdata$subj))))
 colnames(errbar) = c('eff_mass','norm_durs','sd')
 
 Model_normmovedur_shape <- model_plotting('norm_durs','Norm Movement Duration (s)',temp_durs,errbar,'shape',normalized = 1)+
@@ -8197,8 +8195,8 @@ temp_vels = model_vels
 temp_vels = filter(temp_vels, modelnum %in% models_to_plot)
 
 
-errbar = cbind(aggregate(peakvel_target~eff_mass,smalltdata,mean),
-               aggregate(peakvel_target~eff_mass,smalltdata,sd)[2]/sqrt(length(unique(smalltdata$subj))))
+errbar = cbind(aggregate(peakvel_target~eff_mass,pilotdata,mean),
+               aggregate(peakvel_target~eff_mass,pilotdata,sd)[2]/sqrt(length(unique(pilotdata$subj))))
 colnames(errbar) = c('eff_mass','peakvel','sd')
 
 Model_peakvel_shape <- model_plotting('peakvel','Peak Velocity (m/s)',
@@ -8233,8 +8231,8 @@ temp_vels = model_vels
 temp_vels = model_vels
 temp_vels = filter(temp_vels, modelnum %in% models_to_plot)
 
-errbar = cbind(aggregate(peakvelnorm~eff_mass,smalltdata,mean),
-               aggregate(peakvelnorm~eff_mass,smalltdata,sd)[2]/sqrt(length(unique(smalltdata$subj))))
+errbar = cbind(aggregate(peakvelnorm~eff_mass,pilotdata,mean),
+               aggregate(peakvelnorm~eff_mass,pilotdata,sd)[2]/sqrt(length(unique(pilotdata$subj))))
 colnames(errbar) = c('eff_mass','norm_vels','sd')
 
 Model_normpeakvel_shape <- model_plotting('norm_vels','Norm Peak Velocity (m/s)',
@@ -8537,7 +8535,7 @@ for (model1 in models_SSE){
   
   model_movedur_temp1 = filter(model_durs,model==model1)$movedur
   # Change here for 2a/b/c
-  model_movedur_temp2 = aggregate(movedur~eff_mass,smalltdata,mean)$movedur
+  model_movedur_temp2 = aggregate(movedur~eff_mass,pilotdata,mean)$movedur
   SSE = sum((model_movedur_temp1-model_movedur_temp2)^2)
   Model_SSE_movedur = rbind(Model_SSE_movedur,SSE)
   
@@ -8546,7 +8544,7 @@ for (model1 in models_SSE){
   
   model_peakvel_temp1 = filter(model_vels,model==model1)$peakvel
   # Change here for 2a/b/c
-  model_peakvel_temp2 = aggregate(peakvel_target~eff_mass,smalltdata,mean)$peakvel_target
+  model_peakvel_temp2 = aggregate(peakvel_target~eff_mass,pilotdata,mean)$peakvel_target
   SSE = sum((model_peakvel_temp1-model_peakvel_temp2)^2)
   Model_SSE_peakvel = rbind(Model_SSE_peakvel,SSE)
   # Model_SSE_colnames = rbind(Model_SSE_colnames,model1)
@@ -8635,7 +8633,7 @@ for (model1 in models_SSE){
   
   model_movedur_temp1_norm = filter(model_durs,model==model1)$norm_durs
   # Change here for 2a/b/c
-  model_movedur_temp2_norm = aggregate(movedur~eff_mass,smalltdata,mean)$movedur/aggregate(movedur~eff_mass,smalltdata,mean)$movedur[1]
+  model_movedur_temp2_norm = aggregate(movedur~eff_mass,pilotdata,mean)$movedur/aggregate(movedur~eff_mass,pilotdata,mean)$movedur[1]
   SSE = sum((model_movedur_temp1_norm-model_movedur_temp2_norm)^2)
   Model_SSE_movedur_norm = rbind(Model_SSE_movedur_norm,SSE)
   
@@ -8644,7 +8642,7 @@ for (model1 in models_SSE){
   
   model_peakvel_temp1_norm = filter(model_vels,model==model1)$norm_vels
   # Change here for 2a/b/c
-  model_peakvel_temp2_norm = aggregate(peakvel_target~eff_mass,smalltdata,mean)$peakvel_target/aggregate(peakvel_target~eff_mass,smalltdata,mean)$peakvel_target[1]
+  model_peakvel_temp2_norm = aggregate(peakvel_target~eff_mass,pilotdata,mean)$peakvel_target/aggregate(peakvel_target~eff_mass,pilotdata,mean)$peakvel_target[1]
   SSE = sum((model_peakvel_temp1_norm-model_peakvel_temp2_norm)^2)
   Model_SSE_peakvel_norm = rbind(Model_SSE_peakvel_norm,SSE)
   # Model_SSE_colnames = rbind(Model_SSE_colnames,model1)
@@ -8706,6 +8704,3 @@ colnames(Model_SSE_norm) = c('Model',
 ```{r ModelSSEnorm2cto2b, echo = FALSE, warning = FALSE, tab.cap = 'Exp 2c - Sum squared errors for NORMALIZED movement duration and peak velocity.'}
 kable(Model_SSE_norm, caption = 'Exp 2c - Sum squared errors for NORMALIZED movement duration and peak velocity.')
 ```
-
-
-
