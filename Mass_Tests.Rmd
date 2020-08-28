@@ -143,10 +143,15 @@ smalltdata$reaction_tanv <- .005*smalltdata$reaction_tanv
 
 prefdata$reaction_erik <- 0.005*(prefdata$idxonsetErik-prefdata$idxtargetshow)
 prefdata$reaction_vthresh <- 0.005*(prefdata$vthres_onset-prefdata$idxtargetshow)
+prefdata$reaction_extrap <- 0.005*(prefdata$idxonset_extrap-prefdata$idxtargetshow)
+
 smalltdata$reaction_erik <- 0.005*(smalltdata$idxonsetErik-smalltdata$idxtargetshow)
 smalltdata$reaction_vthresh <- 0.005*(smalltdata$vthres_onset-smalltdata$idxtargetshow)
+smalltdata$reaction_extrap <- 0.005*(smalltdata$idxonset_extrap-smalltdata$idxtargetshow)
+
 pilotdata$reaction_erik <- 0.005*(pilotdata$idxonsetErik-pilotdata$idxtargetshow)
 pilotdata$reaction_vthresh <- 0.005*(pilotdata$vthres_onset-pilotdata$idxtargetshow)
+pilotdata$reaction_extrap <- 0.005*(pilotdata$idxonset_extrap-pilotdata$idxtargetshow)
 
 # ===================== Adding Eff_mass =======================
 # Adding Column for estimated eff_mass to preferred experiment.
@@ -214,6 +219,97 @@ pilotdata_factor$eff_mass <- as.factor(pilotdata_factor$eff_mass)
 pilotdata_factor$condition <- as.factor(pilotdata_factor$condition)
 pilotdata_factor$targetnum <- as.factor(pilotdata_factor$targetnum)
 
+met_orig_length = length(metdata$movedur)
+
+metdata = filter(metdata,odd_trial==1)
+met_length = length(metdata$movedur)
+metdata <- filter(metdata,miss_dist<.1,movedur>.2,movedur<2,maxex<.2,reaction_tanv<.5,abs(missangle)<50)
+
+index <- c(1,2,3,4)
+values <- c(2.47,4.730,6.990,11.50)
+metdata$eff_mass <- values[match(metdata$condition,index)]
+metdata = cbind(metdata,metdata$trial%%2==0)
+colnames(metdata) = append(colnames(metdata)[1:length(colnames(metdata))-1],'outward')
+#metdata2 = metdata
+metdata = filter(metdata,odd_trial==1)
+
+
+# ========================== Adding Metabolics things =========================================
+
+index <- c(2.47,4.730,6.990,11.50)
+values <- c(1,2,3,4)
+mpdata$condition <- values[match(mpdata$effmass,index)]
+
+# Adding Column for estimated eff_mass to preferred experiment.
+index <- c(1,2,3,4)
+values <- c(2.47,4.730,6.990,11.50)
+subjects = c(1,2,3,4,5,6,7,8)
+
+eff_mass = numeric(length(metdata$subj))
+for (i in 1:length(metdata$subj)){
+    eff_mass[i] = eff_masses_meta[match(metdata$condition[i],index),match(metdata$subj[i],subjects)]
+}
+
+metdata$eff_mass2 <- eff_mass
+metdata$effmass = metdata$eff_mass
+
+index <- c(2.47,4.730,6.990,11.50)
+eff_mass = numeric(length(mpdata$subj))
+for (i in 1:length(mpdata$subject)){
+  eff_mass[i] = eff_masses_meta[match(mpdata$effmass[i],index),match(mpdata$subj[i],subjects)]
+  # mpdata$metpowergross[i] = mpdata$metpowernet[i]+mpdata_rest[mpdata$subject[i],mpdata$condition[i]]
+  mpdata$metpowerrest[i] = mpdata_rest[mpdata$subject[i],mpdata$condition[i]]
+}
+
+mpdata$effmass2 <- eff_mass
+
+
+# ========================== Adding Variance Metrics =========================================
+
+variability_trial_plot <- function(data, variable, add_or_plot){
+  if (add_or_plot=='add'){
+    max_trial = max(data$trial)
+    
+    for (k in 11:(length(data$subj)-10)){
+      if (var(data[(k-10):(k+10),'eff_mass'])==0){
+        if ('speed' %in% colnames(data) && var(data[(k-10):(k+10),'speed'])==0){
+          data[k,paste(variable,'_variance',sep='')] = sd(data[(k-10):(k+10),variable])
+        } else {
+          data[k,paste(variable,'_variance',sep='')] = sd(data[(k-10):(k+10),variable])
+        }
+      } else {
+        data[k,paste(variable,'_variance',sep='')] = NaN
+      }
+    }
+    
+    return(data)
+  }
+  if (add_or_plot=='plot'){
+    eval(parse(text = paste('data$yvar = data$',variable,'_variance',sep='')))
+    g<-ggplot(data=data)+
+      geom_smooth(aes(x=trial,
+                      y=yvar,
+                      color = factor(subj)))+
+      theme_classic()+
+      labs(x = 'Trial Number', y = paste('Variance (',variable,')',sep=''),color = 'Subject')
+    
+    if ('speed' %in% colnames(data)){
+      g<-g+facet_grid(rows = vars(eff_mass),cols = vars(speed))
+    } else {
+      g<-g+facet_wrap(~eff_mass)
+    }
+    return(g)
+  }
+}
+
+for (variable in c('miss_dist','miss_rad','missangle')){
+  prefdata <- variability_trial_plot(prefdata,variable,'add')
+  smalltdata <- variability_trial_plot(smalltdata,variable,'add')
+  pilotdata <- variability_trial_plot(pilotdata,variable,'add')
+  metdata <- variability_trial_plot(metdata,variable,'add')
+}
+
+
 # =========================== Generate the df for 3 experiments ===================
 prefdata$exp <- 'pref'
 pilotdata$exp <- 'pilot'
@@ -262,7 +358,7 @@ prefpilot$subj <- as.numeric(prefpilot$subj)
 # prefpilot$peakvel_target<-as.numeric(as.character(prefpilot$peakvel_target))
 # prefpilot=filter(prefpilot,movedur<1.5,movedur>.25,reaction_tanv<.5,miss_rad>.08,miss_rad<.2)
 
-# ===================== Setting plots sizes
+# ===================== Setting plots sizes ===================
 # Pref stuff
 vplot_point_size = 0
 vplot_avg_point_size = 3
@@ -277,7 +373,14 @@ err_plot_line_size = 1
 
 react_plot_point_size = 1
 
-# ===================== Fucntions 
+# Met stuff
+met_point_size = 3
+met_costmin_size = met_point_size-2
+met_line_size = .5
+
+met_errorbar_size = 1
+
+# ===================== Fucntions ===================
 # Violin Plotting Function
 vplot <- function(variable,data,...){
   exp = list(...)
@@ -466,10 +569,16 @@ avg_plot2 <- function(variable,data,ylab,shape_labs,...){
     geom_point(data=c,
                aes(x=eff_mass,
                    y=dep_var,
+                   color = 'black',
+                   shape = factor(var_num)),
+               size=vplot_point_size+7.5)+
+    geom_point(data=c,
+               aes(x=eff_mass,
+                   y=dep_var,
                    color = factor(eff_mass),
                    shape = factor(var_num)),
                size=vplot_point_size+6)+
-    scale_color_manual(values=mass_colors)+
+    scale_color_manual(values=c(mass_colors,'black'))+
     theme_classic()+
     theme(text              = element_text(color='black'),
          axis.text         = element_text(color ='black'),
@@ -481,7 +590,7 @@ avg_plot2 <- function(variable,data,ylab,shape_labs,...){
     g <- g+labs(y = ylab)
   }
   if (!missing(shape_labs)){
-    g <- g+scale_shape_manual(values = c(16,17,15),labels = shape_labs)+labs(shape = 'Algorithm')
+    g <- g+scale_shape_manual(values = c(16,17,15,18),labels = shape_labs)+labs(shape = 'Algorithm')
   }
   return(g)
 }
@@ -532,10 +641,16 @@ all_exp_avg_plot <- function(variable,data1,data2,data3,ylab,...){
     geom_point(data=c,
                aes(x=eff_mass,
                    y=dep_var,
+                   color = 'black',
+                   shape = factor(exp)),
+               size=vplot_point_size+7.5)+
+    geom_point(data=c,
+               aes(x=eff_mass,
+                   y=dep_var,
                    color = factor(eff_mass),
                    shape = factor(exp)),
-               size=vplot_point_size+4)+
-    scale_color_manual(values=mass_colors)+
+               size=vplot_point_size+6)+
+    scale_color_manual(values=c(mass_colors,'black'))+
     scale_shape_manual(values=c(16,15,17))+
     theme_classic()+
     guides(color='none')+
@@ -640,7 +755,6 @@ gg_color_hue <- function(n) {
 
 number_ticks <- function(n) {function(limits) pretty(limits, n)}
 
-
 plots_to_fix = c('MPGross',
                  'MCGross',
                  'miss_dist_grouped_met',
@@ -659,7 +773,6 @@ fix_plot_theme <- function(plot_to_fix,font){
     eval(parse(text = string))
     return(plot_to_fix)
 }
-
 
 mass_exp_int_stringgen <- function(dataset, test_var, label){
   dataset$test_var = dataset[[test_var]]
@@ -761,9 +874,8 @@ mass_exp_int_stringgen <- function(dataset, test_var, label){
   return(combined_string)
 }
 
-
-table_func <- function(data, var){
-  eval(parse(text = paste('data$table_var = data$',var,sep='')))
+table_func <- function(data, variable){
+  eval(parse(text = paste('data$table_var = data$',variable,sep='')))
   tab = matrix(,nrow=4,ncol=7)
   for (s in c(1:7)){
     m_count = 0
@@ -778,6 +890,23 @@ table_func <- function(data, var){
   rownames(tab) = c('2.73 kg','4.73 kg','6.99 kg','11.50 kg')
   return(tab)
 }
+
+table_func_nosd <- function(data, variable){
+  eval(parse(text = paste('data$table_var = data$',variable,sep='')))
+  tab = matrix(,nrow=4,ncol=7)
+  for (s in c(1:7)){
+    m_count = 0
+    for (mass in c(2.47, 4.73, 6.99, 11.5)){
+      m_count = m_count + 1
+      avg = round(mean(filter(data,speed == s, effmass == mass)$table_var, na.rm = TRUE),4)
+      tab[m_count,s] = paste(avg,sep=' ')
+    }
+  }
+  colnames(tab) = c('Speed = 1','Speed = 2','Speed = 3','Speed = 4','Speed = 5','Speed = 6','Speed = 7')
+  rownames(tab) = c('2.73 kg','4.73 kg','6.99 kg','11.50 kg')
+  return(tab)
+}
+
 
 color1 = c(255,255,0)/255
 color2 = c(255,196,0)/255
@@ -1592,47 +1721,74 @@ These next plots are made to try and show the effect of reaciton time algorithms
 
 ```{r echo = FALSE, warning = FALSE, message = FALSE}
 reaction_tanv_algo = list()
-reaction_tanv_algo[['pref']] <- avg_plot2(c('reaction_tanv','reaction_erik','reaction_vthresh'),prefdata,ylab='Reaction Time (s)',shape_labs = c('Mine','Erik','V Thresh'))
+reaction_tanv_algo[['pref']] <- avg_plot2(c('reaction_tanv',
+                                            'reaction_erik',
+                                            'reaction_vthresh',
+                                            'reaction_extrap'),
+                                          prefdata,
+                                          ylab='Reaction Time (s)',
+                                          shape_labs = c('Mine','Erik','V Thresh','ExTrap'))
 
-reaction_tanv_algo[['smallt']] <- avg_plot2(c('reaction_tanv','reaction_erik','reaction_vthresh'),smalltdata,ylab='Reaction Time (s)',shape_labs = c('Mine','Erik','V Thresh'))
+reaction_tanv_algo[['smallt']] <- avg_plot2(c('reaction_tanv',
+                                              'reaction_erik',
+                                              'reaction_vthresh',
+                                              'reaction_extrap'),
+                                            smalltdata,
+                                            ylab='Reaction Time (s)',
+                                            shape_labs = c('Mine','Erik','V Thresh','ExTrap'))
 
-reaction_tanv_algo[['pilot']] <- avg_plot2(c('reaction_tanv','reaction_erik','reaction_vthresh'),pilotdata,ylab='Reaction Time (s)',shape_labs = c('Mine','Erik','V Thresh'))
+reaction_tanv_algo[['pilot']] <- avg_plot2(c('reaction_tanv',
+                                             'reaction_erik',
+                                             'reaction_vthresh',
+                                             'reaction_extrap'),
+                                           pilotdata,
+                                           ylab='Reaction Time (s)'
+                                           ,shape_labs = c('Mine','Erik','V Thresh','ExTrap'))
 
 ```
 
 ```{r reactiontanvalgoplot1, echo = FALSE, warning = FALSE, fig.width=12, fig.height=5, fig.cap = 'Reaction Time Algorithm method.'}
 
-plot_grid(reaction_tanv_algo[['pref']]+theme(legend.position = 'none')+scale_y_continuous(breaks = seq(.17,.29,.02), limits = c(.17,.29)),
-          reaction_tanv_algo[['smallt']]+theme(legend.position = 'none')+scale_y_continuous(breaks = seq(.17,.29,.02), limits = c(.17,.29)),
-          reaction_tanv_algo[['pilot']]+theme(legend.position = 'none')+scale_y_continuous(breaks = seq(.17,.29,.02), limits = c(.17,.29)),
+plot_grid(reaction_tanv_algo[['pref']]+theme(legend.position = 'none')+scale_y_continuous(breaks = seq(.17,.33,.02), limits = c(.17,.33)),
+          reaction_tanv_algo[['smallt']]+theme(legend.position = 'none')+scale_y_continuous(breaks = seq(.17,.33,.02), limits = c(.17,.33)),
+          reaction_tanv_algo[['pilot']]+theme(legend.position = 'none')+scale_y_continuous(breaks = seq(.17,.33,.02), limits = c(.17,.33)),
           get_legend(reaction_tanv_algo[['pref']]),
           nrow = 1,
           rel_widths = c(1,1,1,.2),
-          align = 'vh',
+          align = 'h',
           labels = c('2a','2b','2c',''))
 ```
 
 ```{r echo = FALSE, warning = FALSE, message = FALSE}
 reaction_tanvel_algo = list()
-reaction_tanvel_algo[['pref']] <- avg_plot2(c('reaction_tanvel','onsetErik_vel','onsetvthresh_vel'),
+reaction_tanvel_algo[['pref']] <- avg_plot2(c('reaction_tanvel',
+                                              'onsetErik_vel',
+                                              'onsetvthresh_vel',
+                                              'onsettrap_vel'),
                                             prefdata,ylab='Reaction Velocity (m/s)',
-                                            shape_labs = c('Mine','Erik','V Thresh'))
+                                            shape_labs = c('Mine','Erik','V Thresh','ExTrap'))
 
-reaction_tanvel_algo[['smallt']] <- avg_plot2(c('reaction_tanvel','onsetErik_vel','onsetvthresh_vel'),
+reaction_tanvel_algo[['smallt']] <- avg_plot2(c('reaction_tanvel',
+                                                'onsetErik_vel',
+                                                'onsetvthresh_vel',
+                                                'onsettrap_vel'),
                                               smalltdata,ylab='Reaction Velocity (m/s)',
-                                              shape_labs = c('Mine','Erik','V Thresh'))
+                                              shape_labs = c('Mine','Erik','V Thresh','ExTrap'))
 
-reaction_tanvel_algo[['pilot']] <- avg_plot2(c('reaction_tanvel','onsetErik_vel','onsetvthresh_vel'),
+reaction_tanvel_algo[['pilot']] <- avg_plot2(c('reaction_tanvel',
+                                               'onsetErik_vel',
+                                               'onsetvthresh_vel',
+                                               'onsettrap_vel'),
                                              pilotdata,ylab='Reaction Velocity (m/s)',
-                                             shape_labs = c('Mine','Erik','V Thresh'))
+                                             shape_labs = c('Mine','Erik','V Thresh','ExTrap'))
 
 ```
 
 ```{r reactiontanvelalgoplot1, echo = FALSE, warning = FALSE, fig.width=12, fig.height=5, fig.cap = 'Reaction Velocity Algorithm method.'}
 
-plot_grid(reaction_tanvel_algo[['pref']]+theme(legend.position = 'none')+scale_y_continuous(breaks = seq(0,.016,.004), limits = c(-.001,.016)),
-          reaction_tanvel_algo[['smallt']]+theme(legend.position = 'none')+scale_y_continuous(breaks = seq(0,.016,.004), limits = c(-.001,.016)),
-          reaction_tanvel_algo[['pilot']]+theme(legend.position = 'none')+scale_y_continuous(breaks = seq(0,.016,.004), limits = c(-.001,.016)),
+plot_grid(reaction_tanvel_algo[['pref']]+theme(legend.position = 'none')+scale_y_continuous(breaks = seq(0,.036,.004), limits = c(-.001,.036)),
+          reaction_tanvel_algo[['smallt']]+theme(legend.position = 'none')+scale_y_continuous(breaks = seq(0,.036,.004), limits = c(-.001,.036)),
+          reaction_tanvel_algo[['pilot']]+theme(legend.position = 'none')+scale_y_continuous(breaks = seq(0,.036,.004), limits = c(-.001,.036)),
           get_legend(reaction_tanvel_algo[['pref']]),
           nrow = 1,
           rel_widths = c(1,1,1,.2),
@@ -1747,7 +1903,110 @@ plot_grid(miss_dist[['pref']],
           miss_dist_nv[['pilot']],
           nrow = 2,
           align = 'vh',
-          labels = c('Preferred','Smallt','2c','','',''))
+          labels = c('2a','2b','2c','','',''))
+```
+
+### Miss Variance over trials
+```{r, echo = FALSE, warning = FALSE, message = FALSE}
+miss_dist_vart = list()
+miss_dist_vart[['pref']] <- variability_trial_plot(prefdata,'miss_dist','plot')
+miss_dist_vart[['smallt']] <- variability_trial_plot(smalltdata,'miss_dist','plot')
+miss_dist_vart[['pilot']] <- variability_trial_plot(pilotdata,'miss_dist','plot')
+miss_dist_vart[['metabolic']] <- variability_trial_plot(metdata,'miss_dist','plot')
+```
+
+Table \@ref{tab:missvartrialtab} shows the average variance values for experiment 2a, 2b, and 2c. These are calculated from a 20 trial window variance, then averaged over all points.
+
+```{r missvartrialtab, echo = FALSE, warning = FALSE, message = FALSE}
+tab = cbind(aggregate(miss_dist_variance ~ eff_mass,prefdata,mean)$miss_dist_variance,
+            aggregate(miss_dist_variance ~ eff_mass,smalltdata,mean)$miss_dist_variance,
+            aggregate(miss_dist_variance ~ eff_mass,pilotdata,mean)$miss_dist_variance)
+# tab = formatC(tab,format = 'e', digits = 3)
+rownames(tab) = unique(prefdata$eff_mass)
+colnames(tab) = c('2a','2b','2c')
+kable(tab, caption = 'Average Variance by mass and experiment.')
+
+```
+
+Table \@ref{tab:missvartrialtabmet} shows the average variance values for experiment 1.
+
+```{r missvartrialtabmet, echo = FALSE, warning = FALSE, message = FALSE}
+
+miss_dist_tab = table_func_nosd(metdata, 'miss_dist_variance')
+kable(miss_dist_tab, caption = 'Average Endpoint Error Variance for the metabolic experiment')
+
+```
+
+This next plot (fig \@ref{fig:missdistvartplot}) shows the variance of miss distance over the trials for every subject and mass.
+
+```{r missdistvartplot, echo = FALSE, message = FALSE, warning = FALSE, fig.width=14, fig.height=6, fig.cap = 'Miss Dist Variance over trials.'}
+plot_grid(miss_dist_vart[['pref']]+theme(legend.position = 'none'),
+          miss_dist_vart[['smallt']]+theme(legend.position = 'none'),
+          miss_dist_vart[['pilot']]+theme(legend.position = 'none'),
+          nrow = 1,
+          align = 'vh',
+          labels = c('2a','2b','2c'))
+```
+
+Because this data looks relatively flat, here is the aggregated mean plots.
+
+```{r , echo = FALSE, warning = FALSE, message = FALSE}
+
+all_exp_avg_plot('miss_dist_variance',prefdata,smalltdata,pilotdata,ylab = 'Miss Dist Variance Average')
+
+```
+
+This next plot (fig \@ref{fig:missdistvartplotmet}) shows the variance of miss distance over the trials for every subject, mass, and Speed.
+
+```{r missdistvartplotmet, echo = FALSE, warning = FALSE, fig.width=14, fig.height=6, fig.cap = 'Miss Dist Variance over trials for metabolic experiment.'}
+miss_dist_vart[['metabolic']]
+```
+
+```{r, echo = FALSE, warning = FALSE, message = FALSE}
+
+variable = 'miss_dist_variance'
+string = paste('
+               pdata = cbind(aggregate(movedur ~ speed + eff_mass,metdata,mean),
+               aggregate(movedur ~ speed + eff_mass,metdata,sd)$movedur/sqrt(8),
+               aggregate(',variable,' ~ speed + eff_mass,metdata,mean)$',variable,',
+               aggregate(',variable,' ~ speed + eff_mass,metdata,sd)$',variable,'/sqrt(8))
+               colnames(pdata) = c(\'speed\',\'eff_mass\',\'movedur\',\'movedurse\',\'yvar\',\'yvarse\')',sep='')
+
+eval(parse(text = string))
+pdata$yvar = pdata$yvar
+pdata$yvarse = pdata$yvarse
+
+ggplot()+
+    geom_smooth(data = pdata,
+                aes(x=movedur,
+                    y=yvar,
+                    color = factor(eff_mass)),
+                se=FALSE,size=met_line_size,span=3, method = 'loess')+
+  geom_errorbar(data = pdata,
+                aes(x=movedur,
+                    ymin=yvar-yvarse,
+                    ymax=yvar+yvarse,
+                    color = factor(eff_mass)),
+                width = 0,
+                size = met_errorbar_size)+
+  geom_errorbarh(data=pdata,
+                 aes(xmin=movedur-movedurse,
+                     xmax=movedur+movedurse,
+                     y=yvar,
+                     color=factor(eff_mass)),
+                 height = 0,
+                 size = met_errorbar_size)+
+  scale_color_manual(values = mass_colors)+
+  theme(text              = element_text(color='black'),
+        axis.text         = element_text(color='black'),
+        axis.ticks        = element_line(color='black'),
+        plot.title        = element_text(hjust = 0.5),
+        axis.line         = element_line(color='black'))+
+  labs(x='Movement Duration (s)',
+       y='Endpoint Error Variance (cm)',
+       color='Effective\nMass (kg)')+
+  xlim(c(.45,1.5))
+
 ```
 
 ## Angular Variance
@@ -1877,9 +2136,111 @@ missangle_nv[['smallt']]<-avg_plot('missangle',filter(var_data,exp=='smallt'),yl
             missangle_nv[['pilot']],
             nrow = 2,
             align = 'vh',
-            labels = c('Preferred','Smallt','2c','','',''))
+            labels = c('2a','2b','2c','','',''))
 ```
 
+### Angular Miss Variance over trials
+```{r, echo = FALSE, warning = FALSE, message = FALSE}
+miss_ang_vart = list()
+miss_ang_vart[['pref']] <- variability_trial_plot(prefdata,'missangle','plot')
+miss_ang_vart[['smallt']] <- variability_trial_plot(smalltdata,'missangle','plot')
+miss_ang_vart[['pilot']] <- variability_trial_plot(pilotdata,'missangle','plot')
+miss_ang_vart[['metabolic']] <- variability_trial_plot(metdata,'missangle','plot')
+```
+
+Table \@ref{tab:missangvartrialtab} shows the average variance values for experiment 2a, 2b, and 2c. These are calculated from a 20 trial window variance, then averaged over all points.
+
+```{r missangvartrialtab, echo = FALSE, warning = FALSE, message = FALSE}
+tab = cbind(aggregate(missangle_variance ~ eff_mass,prefdata,mean)$missangle_variance,
+            aggregate(missangle_variance ~ eff_mass,smalltdata,mean)$missangle_variance,
+            aggregate(missangle_variance ~ eff_mass,pilotdata,mean)$missangle_variance)
+# tab = formatC(tab,format = 'e', digits = 3)
+rownames(tab) = unique(prefdata$eff_mass)
+colnames(tab) = c('2a','2b','2c')
+kable(tab, caption = 'Average Variance by mass and experiment.')
+
+```
+
+Table \@ref{tab:missangvartrialtabmet} shows the average variance values for experiment 1.
+
+```{r missangvartrialtabmet, echo = FALSE, warning = FALSE, message = FALSE}
+
+miss_dist_tab = table_func_nosd(metdata, 'missangle_variance')
+kable(miss_dist_tab, caption = 'Average Endpoint Error Variance for the metabolic experiment')
+
+```
+
+This next plot (fig \@ref{fig:missangvartplot}) shows the variance of angular over the trials for every subject and mass.
+
+```{r missangvartplot, echo = FALSE, message = FALSE, warning = FALSE, fig.width=14, fig.height=6, fig.cap = 'Miss Dist Variance over trials.'}
+plot_grid(miss_ang_vart[['pref']]+theme(legend.position = 'none'),
+          miss_ang_vart[['smallt']]+theme(legend.position = 'none'),
+          miss_ang_vart[['pilot']]+theme(legend.position = 'none'),
+          nrow = 1,
+          align = 'vh',
+          labels = c('2a','2b','2c'))
+```
+
+Because this data looks relatively flat, here is the aggregated mean plots.
+
+```{r , echo = FALSE, warning = FALSE, message = FALSE}
+
+all_exp_avg_plot('missangle_variance',prefdata,smalltdata,pilotdata,ylab = 'Miss Angle Variance Average')
+
+```
+
+This next plot (fig \@ref{fig:missangvartplotmet}) shows the variance of miss distance over the trials for every subject, mass, and Speed.
+
+```{r missangvartplotmet, echo = FALSE, warning = FALSE, fig.width=14, fig.height=6, fig.cap = 'Miss Dist Variance over trials for metabolic experiment.'}
+miss_dist_vart[['metabolic']]
+```
+
+```{r, echo = FALSE, warning = FALSE, message = FALSE}
+
+variable = 'missangle_variance'
+string = paste('
+               pdata = cbind(aggregate(movedur ~ speed + eff_mass,metdata,mean),
+               aggregate(movedur ~ speed + eff_mass,metdata,sd)$movedur/sqrt(8),
+               aggregate(',variable,' ~ speed + eff_mass,metdata,mean)$',variable,',
+               aggregate(',variable,' ~ speed + eff_mass,metdata,sd)$',variable,'/sqrt(8))
+               colnames(pdata) = c(\'speed\',\'eff_mass\',\'movedur\',\'movedurse\',\'yvar\',\'yvarse\')',sep='')
+
+eval(parse(text = string))
+pdata$yvar = pdata$yvar
+pdata$yvarse = pdata$yvarse
+
+ggplot()+
+    geom_smooth(data = pdata,
+                aes(x=movedur,
+                    y=yvar,
+                    color = factor(eff_mass)),
+                se=FALSE,size=met_line_size,span=3, method = 'loess')+
+  geom_errorbar(data = pdata,
+                aes(x=movedur,
+                    ymin=yvar-yvarse,
+                    ymax=yvar+yvarse,
+                    color = factor(eff_mass)),
+                width = 0,
+                size = met_errorbar_size)+
+  geom_errorbarh(data=pdata,
+                 aes(xmin=movedur-movedurse,
+                     xmax=movedur+movedurse,
+                     y=yvar,
+                     color=factor(eff_mass)),
+                 height = 0,
+                 size = met_errorbar_size)+
+  scale_color_manual(values = mass_colors)+
+  theme(text              = element_text(color='black'),
+        axis.text         = element_text(color='black'),
+        axis.ticks        = element_line(color='black'),
+        plot.title        = element_text(hjust = 0.5),
+        axis.line         = element_line(color='black'))+
+  labs(x='Movement Duration (s)',
+       y='Angular Error Variance (cm)',
+       color='Effective\nMass (kg)')+
+  xlim(c(.45,1.5))
+
+```
 
 ## Radial Variance
 ```{r, echo = FALSE}
@@ -2007,7 +2368,111 @@ miss_rad_nv[['smallt']]<-avg_plot('miss_rad',filter(var_data,exp=='smallt'),ylab
             miss_rad_nv[['pilot']],
             nrow = 2,
             align = 'vh',
-            labels = c('Preferred','Smallt','2c','','',''))
+            labels = c('2a','2b','2c','','',''))
+```
+
+### Radial Miss Variance over trials
+
+```{r, echo = FALSE, warning = FALSE, message = FALSE}
+miss_ang_vart = list()
+miss_ang_vart[['pref']] <- variability_trial_plot(prefdata,'miss_rad','plot')
+miss_ang_vart[['smallt']] <- variability_trial_plot(smalltdata,'miss_rad','plot')
+miss_ang_vart[['pilot']] <- variability_trial_plot(pilotdata,'miss_rad','plot')
+miss_ang_vart[['metabolic']] <- variability_trial_plot(metdata,'miss_rad','plot')
+```
+
+Table \@ref{tab:missradvartrialtab} shows the average variance values for experiment 2a, 2b, and 2c. These are calculated from a 20 trial window variance, then averaged over all points.
+
+```{r missradvartrialtab, echo = FALSE, warning = FALSE, message = FALSE}
+tab = cbind(aggregate(miss_rad_variance ~ eff_mass,prefdata,mean)$miss_rad_variance,
+            aggregate(miss_rad_variance ~ eff_mass,smalltdata,mean)$miss_rad_variance,
+            aggregate(miss_rad_variance ~ eff_mass,pilotdata,mean)$miss_rad_variance)
+# tab = formatC(tab,format = 'e', digits = 3)
+rownames(tab) = unique(prefdata$eff_mass)
+colnames(tab) = c('2a','2b','2c')
+kable(tab, caption = 'Average Variance by mass and experiment.')
+
+```
+
+Table \@ref{tab:missradvartrialtabmet} shows the average variance values for experiment 1.
+
+```{r missradvartrialtabmet, echo = FALSE, warning = FALSE, message = FALSE}
+
+miss_dist_tab = table_func_nosd(metdata, 'miss_rad_variance')
+kable(miss_dist_tab, caption = 'Average Endpoint Error Variance for the metabolic experiment')
+
+```
+
+This next plot (fig \@ref{fig:missradvartplot}) shows the variance of radial miss distance over the trials for every subject and mass.
+
+```{r missradvartplot, echo = FALSE, message = FALSE, warning = FALSE, fig.width=14, fig.height=6, fig.cap = 'Miss Dist Variance over trials.'}
+plot_grid(miss_ang_vart[['pref']]+theme(legend.position = 'none'),
+          miss_ang_vart[['smallt']]+theme(legend.position = 'none'),
+          miss_ang_vart[['pilot']]+theme(legend.position = 'none'),
+          nrow = 1,
+          align = 'vh',
+          labels = c('2a','2b','2c'))
+```
+
+Because this data looks relatively flat, here is the aggregated mean plots.
+
+```{r , echo = FALSE, warning = FALSE, message = FALSE}
+
+all_exp_avg_plot('miss_rad_variance',prefdata,smalltdata,pilotdata,ylab = 'Miss Angle Variance Average')
+
+```
+
+This next plot (fig \@ref{fig:missradvartplotmet}) shows the variance of miss distance over the trials for every subject, mass, and Speed.
+
+```{r missradvartplotmet, echo = FALSE, warning = FALSE, fig.width=14, fig.height=6, fig.cap = 'Miss Dist Variance over trials for metabolic experiment.'}
+miss_dist_vart[['metabolic']]
+```
+
+```{r, echo = FALSE, warning = FALSE, message = FALSE}
+
+variable = 'miss_rad_variance'
+string = paste('
+               pdata = cbind(aggregate(movedur ~ speed + eff_mass,metdata,mean),
+               aggregate(movedur ~ speed + eff_mass,metdata,sd)$movedur/sqrt(8),
+               aggregate(',variable,' ~ speed + eff_mass,metdata,mean)$',variable,',
+               aggregate(',variable,' ~ speed + eff_mass,metdata,sd)$',variable,'/sqrt(8))
+               colnames(pdata) = c(\'speed\',\'eff_mass\',\'movedur\',\'movedurse\',\'yvar\',\'yvarse\')',sep='')
+
+eval(parse(text = string))
+pdata$yvar = pdata$yvar
+pdata$yvarse = pdata$yvarse
+
+ggplot()+
+  geom_smooth(data = pdata,
+              aes(x=movedur,
+                  y=yvar,
+                  color = factor(eff_mass)),
+              se=FALSE,size=met_line_size,span=3, method = 'loess')+
+  geom_errorbar(data = pdata,
+                aes(x=movedur,
+                    ymin=yvar-yvarse,
+                    ymax=yvar+yvarse,
+                    color = factor(eff_mass)),
+                width = 0,
+                size = met_errorbar_size)+
+  geom_errorbarh(data=pdata,
+                 aes(xmin=movedur-movedurse,
+                     xmax=movedur+movedurse,
+                     y=yvar,
+                     color=factor(eff_mass)),
+                 height = 0,
+                 size = met_errorbar_size)+
+  scale_color_manual(values = mass_colors)+
+  theme(text              = element_text(color='black'),
+        axis.text         = element_text(color='black'),
+        axis.ticks        = element_line(color='black'),
+        plot.title        = element_text(hjust = 0.5),
+        axis.line         = element_line(color='black'))+
+  labs(x='Movement Duration (s)',
+       y='Radial Error Variance (cm)',
+       color='Effective\nMass (kg)')+
+  xlim(c(.45,1.5))
+
 ```
 
 ## Resample Plots
@@ -2089,7 +2554,7 @@ plot_grid(resamp_plots[['pref']],
           resamp_plots[['smallt']],
           resamp_plots[['pilot']],
           nrow = 1,
-          labels = c('Preferred','Smallt','2c'))
+          labels = c('2a','2b','2c'))
 ```
 
 ## Preferred Experiment Grouped Plots
@@ -2169,47 +2634,6 @@ if (save_plots){
 
 # Metabolics Experiment
 ```{r, include = FALSE, warning=FALSE}
-met_orig_length = length(metdata$movedur)
-
-metdata = filter(metdata,odd_trial==1)
-met_length = length(metdata$movedur)
-metdata <- filter(metdata,miss_dist<.1,movedur>.2,movedur<2,maxex<.2,reaction_tanv<.5,abs(missangle)<50)
-
-index <- c(1,2,3,4)
-values <- c(2.47,4.730,6.990,11.50)
-metdata$eff_mass <- values[match(metdata$condition,index)]
-metdata = cbind(metdata,metdata$trial%%2==0)
-colnames(metdata) = append(colnames(metdata)[1:length(colnames(metdata))-1],'outward')
-#metdata2 = metdata
-metdata = filter(metdata,odd_trial==1)
-
-
-# ========================================================================
-
-index <- c(2.47,4.730,6.990,11.50)
-values <- c(1,2,3,4)
-mpdata$condition <- values[match(mpdata$effmass,index)]
-
-# Adding Column for estimated eff_mass to preferred experiment.
-index <- c(1,2,3,4)
-values <- c(2.47,4.730,6.990,11.50)
-subjects = c(1,2,3,4,5,6,7,8)
-
-eff_mass = numeric(length(metdata$subj))
-for (i in 1:length(metdata$subj)){
-    eff_mass[i] = eff_masses_meta[match(metdata$condition[i],index),match(metdata$subj[i],subjects)]
-}
-
-metdata$eff_mass2 <- eff_mass
-index <- c(2.47,4.730,6.990,11.50)
-eff_mass = numeric(length(mpdata$subj))
-for (i in 1:length(mpdata$subject)){
-  eff_mass[i] = eff_masses_meta[match(mpdata$effmass[i],index),match(mpdata$subj[i],subjects)]
-  # mpdata$metpowergross[i] = mpdata$metpowernet[i]+mpdata_rest[mpdata$subject[i],mpdata$condition[i]]
-  mpdata$metpowerrest[i] = mpdata_rest[mpdata$subject[i],mpdata$condition[i]]
-}
-
-mpdata$effmass2 <- eff_mass
 
 # =========================================================================
 
@@ -2227,16 +2651,6 @@ mpdata$grosscost <- mpdata$movedur * mpdata$metpowergross
 mpdata <- filter(mpdata,metpowernet>0)
 mpdata_factor <- mpdata
 mpdata_factor$condition <- as.factor(mpdata_factor$condition)
-
-# ===================== Setting plots sizes
-# Met stuff
-met_point_size = 3
-met_costmin_size = met_point_size-2
-met_line_size = .5
-
-met_errorbar_size = 1
-
-metdata$effmass = metdata$eff_mass
 
 tab = matrix(,nrow=4,ncol=1)
 dcount = 0
@@ -2920,7 +3334,7 @@ miss_dist_grouped_met <- ggplot()+
         plot.title        = element_text(hjust = 0.5),
         axis.line         = element_line(color='black'))+
   labs(x='Movement Duration (s)',
-       y='Enpoint Error (cm)',
+       y='Endpoint Error (cm)',
        color='Effective\nMass (kg)')+
   xlim(c(.45,1.5))
 
