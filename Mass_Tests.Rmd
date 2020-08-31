@@ -266,32 +266,32 @@ mpdata$effmass2 <- eff_mass
 
 # ========================== Adding Variance Metrics =========================================
 
-variability_trial_plot <- function(data, variable, add_or_plot){
+stdev_trial_plot <- function(data, variable, add_or_plot){
   if (add_or_plot=='add'){
     max_trial = max(data$trial)
     
     for (k in 11:(length(data$subj)-10)){
       if (var(data[(k-10):(k+10),'eff_mass'])==0){
         if ('speed' %in% colnames(data) && var(data[(k-10):(k+10),'speed'])==0){
-          data[k,paste(variable,'_variance',sep='')] = sd(data[(k-10):(k+10),variable])
+          data[k,paste(variable,'_sd',sep='')] = sd(data[(k-10):(k+10),variable])
         } else {
-          data[k,paste(variable,'_variance',sep='')] = sd(data[(k-10):(k+10),variable])
+          data[k,paste(variable,'_sd',sep='')] = sd(data[(k-10):(k+10),variable])
         }
       } else {
-        data[k,paste(variable,'_variance',sep='')] = NaN
+        data[k,paste(variable,'_sd',sep='')] = NaN
       }
     }
     
     return(data)
   }
   if (add_or_plot=='plot'){
-    eval(parse(text = paste('data$yvar = data$',variable,'_variance',sep='')))
+    eval(parse(text = paste('data$yvar = data$',variable,'_sd',sep='')))
     g<-ggplot(data=data)+
       geom_smooth(aes(x=trial,
                       y=yvar,
                       color = factor(subj)))+
       theme_classic()+
-      labs(x = 'Trial Number', y = paste('Variance (',variable,')',sep=''),color = 'Subject')
+      labs(x = 'Trial Number', y = paste('StDev (',variable,')',sep=''),color = 'Subject')
     
     if ('speed' %in% colnames(data)){
       g<-g+facet_grid(rows = vars(eff_mass),cols = vars(speed))
@@ -302,11 +302,53 @@ variability_trial_plot <- function(data, variable, add_or_plot){
   }
 }
 
+average_trial_plot <- function(data, variable, add_or_plot){
+  if (add_or_plot=='add'){
+    max_trial = max(data$trial)
+    
+    for (k in 11:(length(data$subj)-10)){
+      if (var(data[(k-10):(k+10),'eff_mass'])==0){
+        if ('speed' %in% colnames(data) && var(data[(k-10):(k+10),'speed'])==0){
+          data[k,paste(variable,'_avg',sep='')] = mean(data[(k-10):(k+10),variable])
+        } else {
+          data[k,paste(variable,'_avg',sep='')] = mean(data[(k-10):(k+10),variable])
+        }
+      } else {
+        data[k,paste(variable,'_avg',sep='')] = NaN
+      }
+    }
+    
+    return(data)
+  }
+  if (add_or_plot=='plot'){
+    eval(parse(text = paste('data$yvar = data$',variable,'_avg',sep='')))
+    g<-ggplot(data=data)+
+      geom_smooth(aes(x=trial,
+                      y=yvar,
+                      color = factor(subj)))+
+      theme_classic()+
+      labs(x = 'Trial Number', y = paste('Average (',variable,')',sep=''),color = 'Subject')
+    
+    if ('speed' %in% colnames(data)){
+      g<-g+facet_grid(rows = vars(eff_mass),cols = vars(speed))
+    } else {
+      g<-g+facet_wrap(~eff_mass)
+    }
+    return(g)
+  }
+}
+
+
 for (variable in c('miss_dist','miss_rad','missangle')){
-  prefdata <- variability_trial_plot(prefdata,variable,'add')
-  smalltdata <- variability_trial_plot(smalltdata,variable,'add')
-  pilotdata <- variability_trial_plot(pilotdata,variable,'add')
-  metdata <- variability_trial_plot(metdata,variable,'add')
+  prefdata <- stdev_trial_plot(prefdata,variable,'add')
+  smalltdata <- stdev_trial_plot(smalltdata,variable,'add')
+  pilotdata <- stdev_trial_plot(pilotdata,variable,'add')
+  metdata <- stdev_trial_plot(metdata,variable,'add')
+  
+  prefdata <- average_trial_plot(prefdata,variable,'add')
+  smalltdata <- average_trial_plot(smalltdata,variable,'add')
+  pilotdata <- average_trial_plot(pilotdata,variable,'add')
+  metdata <- average_trial_plot(metdata,variable,'add')
 }
 
 
@@ -334,7 +376,10 @@ allexp_plot <- function(vars,data,...){
   return(a)
 }
 
-vars = c('targetnum','movedur','peakvel_target','miss_dist','reaction_tanv','pathltar','missangle','miss_rad','trial')
+vars = c('targetnum','movedur','peakvel_target','miss_dist','reaction_tanv','pathltar','missangle','miss_rad','trial',
+         'miss_dist_avg','miss_dist_sd',
+         'missangle_avg','missangle_sd',
+         'miss_rad_avg','miss_rad_sd')
 a=allexp_plot(vars,'prefdata')
 b=allexp_plot(vars,'pilotdata')
 c=allexp_plot(vars,'smalltdata')
@@ -1906,65 +1951,111 @@ plot_grid(miss_dist[['pref']],
           labels = c('2a','2b','2c','','',''))
 ```
 
-### Miss Variance over trials
+### Miss Average over trials
 ```{r, echo = FALSE, warning = FALSE, message = FALSE}
-miss_dist_vart = list()
-miss_dist_vart[['pref']] <- variability_trial_plot(prefdata,'miss_dist','plot')
-miss_dist_vart[['smallt']] <- variability_trial_plot(smalltdata,'miss_dist','plot')
-miss_dist_vart[['pilot']] <- variability_trial_plot(pilotdata,'miss_dist','plot')
-miss_dist_vart[['metabolic']] <- variability_trial_plot(metdata,'miss_dist','plot')
+miss_dist_avg = list()
+miss_dist_avg[['pref']] <- average_trial_plot(prefdata,'miss_dist','plot')
+miss_dist_avg[['smallt']] <- average_trial_plot(smalltdata,'miss_dist','plot')
+miss_dist_avg[['pilot']] <- average_trial_plot(pilotdata,'miss_dist','plot')
+miss_dist_avg[['metabolic']] <- average_trial_plot(metdata,'miss_dist','plot')
 ```
 
-Table \@ref{tab:missvartrialtab} shows the average variance values for experiment 2a, 2b, and 2c. These are calculated from a 20 trial window variance, then averaged over all points.
+Table \@ref{tab:missavgtrialtab} shows the average values for experiment 2a, 2b, and 2c. These are calculated from a 20 trial window standard deviation, then averaged over all points.
 
-```{r missvartrialtab, echo = FALSE, warning = FALSE, message = FALSE}
-tab = cbind(aggregate(miss_dist_variance ~ eff_mass,prefdata,mean)$miss_dist_variance,
-            aggregate(miss_dist_variance ~ eff_mass,smalltdata,mean)$miss_dist_variance,
-            aggregate(miss_dist_variance ~ eff_mass,pilotdata,mean)$miss_dist_variance)
-# tab = formatC(tab,format = 'e', digits = 3)
+```{r missavgtrialtab, echo = FALSE, warning = FALSE, message = FALSE}
+tab = cbind(aggregate(miss_dist_avg ~ eff_mass,prefdata,mean)$miss_dist_avg,
+            aggregate(miss_dist_avg ~ eff_mass,smalltdata,mean)$miss_dist_avg,
+            aggregate(miss_dist_avg ~ eff_mass,pilotdata,mean)$miss_dist_avg)
+
 rownames(tab) = unique(prefdata$eff_mass)
 colnames(tab) = c('2a','2b','2c')
-kable(tab, caption = 'Average Variance by mass and experiment.')
+kable(tab, caption = 'Average by mass and experiment.')
 
 ```
 
-Table \@ref{tab:missvartrialtabmet} shows the average variance values for experiment 1.
-
-```{r missvartrialtabmet, echo = FALSE, warning = FALSE, message = FALSE}
-
-miss_dist_tab = table_func_nosd(metdata, 'miss_dist_variance')
-kable(miss_dist_tab, caption = 'Average Endpoint Error Variance for the metabolic experiment')
-
-```
-
-This next plot (fig \@ref{fig:missdistvartplot}) shows the variance of miss distance over the trials for every subject and mass.
-
-```{r missdistvartplot, echo = FALSE, message = FALSE, warning = FALSE, fig.width=14, fig.height=6, fig.cap = 'Miss Dist Variance over trials.'}
-plot_grid(miss_dist_vart[['pref']]+theme(legend.position = 'none'),
-          miss_dist_vart[['smallt']]+theme(legend.position = 'none'),
-          miss_dist_vart[['pilot']]+theme(legend.position = 'none'),
+```{r, echo = FALSE, message = FALSE, warning = FALSE, fig.width=14, fig.height=6, fig.cap = 'Miss Dist Average over trials.'}
+plot_grid(miss_dist_avg[['pref']]+theme(legend.position = 'none'),
+          miss_dist_avg[['smallt']]+theme(legend.position = 'none'),
+          miss_dist_avg[['pilot']]+theme(legend.position = 'none'),
           nrow = 1,
           align = 'vh',
           labels = c('2a','2b','2c'))
 ```
 
-Because this data looks relatively flat, here is the aggregated mean plots.
-
-```{r , echo = FALSE, warning = FALSE, message = FALSE}
-
-all_exp_avg_plot('miss_dist_variance',prefdata,smalltdata,pilotdata,ylab = 'Miss Dist Variance Average')
+#### Stat Miss Average
+```{r, warning = FALSE, message = FALSE}
+cftest(lmer(miss_dist_avg ~ eff_mass + trial + factor(exp) + (1|subj),data=prefpilot))
 
 ```
 
-This next plot (fig \@ref{fig:missdistvartplotmet}) shows the variance of miss distance over the trials for every subject, mass, and Speed.
 
-```{r missdistvartplotmet, echo = FALSE, warning = FALSE, fig.width=14, fig.height=6, fig.cap = 'Miss Dist Variance over trials for metabolic experiment.'}
-miss_dist_vart[['metabolic']]
+### Miss SD over trials
+```{r, echo = FALSE, warning = FALSE, message = FALSE}
+miss_dist_sd = list()
+miss_dist_sd[['pref']] <- stdev_trial_plot(prefdata,'miss_dist','plot')
+miss_dist_sd[['smallt']] <- stdev_trial_plot(smalltdata,'miss_dist','plot')
+miss_dist_sd[['pilot']] <- stdev_trial_plot(pilotdata,'miss_dist','plot')
+miss_dist_sd[['metabolic']] <- stdev_trial_plot(metdata,'miss_dist','plot')
+```
+
+Table \@ref{tab:missvartrialtab} shows the average standard deviation values for experiment 2a, 2b, and 2c. These are calculated from a 20 trial window standard deviation, then averaged over all points.
+
+```{r missvartrialtab, echo = FALSE, warning = FALSE, message = FALSE}
+tab = cbind(aggregate(miss_dist_sd ~ eff_mass,prefdata,mean)$miss_dist_sd,
+            aggregate(miss_dist_sd ~ eff_mass,smalltdata,mean)$miss_dist_sd,
+            aggregate(miss_dist_sd ~ eff_mass,pilotdata,mean)$miss_dist_sd)
+
+rownames(tab) = unique(prefdata$eff_mass)
+colnames(tab) = c('2a','2b','2c')
+kable(tab, caption = 'Average SD by mass and experiment.')
+
+```
+
+Table \@ref{tab:missvartrialtabmet} shows the average standard deviation values for experiment 1.
+
+```{r missvartrialtabmet, echo = FALSE, warning = FALSE, message = FALSE}
+
+miss_dist_tab = table_func_nosd(metdata, 'miss_dist_sd')
+kable(miss_dist_tab, caption = 'Average Endpoint Error SD for the metabolic experiment')
+
+```
+
+This next plot (fig \@ref{fig:missdistvartplot}) shows the standard deviation of miss distance over the trials for every subject and mass.
+
+```{r missdistvartplot, echo = FALSE, message = FALSE, warning = FALSE, fig.width=14, fig.height=6, fig.cap = 'Miss Dist SD over trials.'}
+plot_grid(miss_dist_sd[['pref']]+theme(legend.position = 'none'),
+          miss_dist_sd[['smallt']]+theme(legend.position = 'none'),
+          miss_dist_sd[['pilot']]+theme(legend.position = 'none'),
+          nrow = 1,
+          align = 'vh',
+          labels = c('2a','2b','2c'))
+```
+
+#### Stat Miss Standard Deviation
+```{r, warning = FALSE, message = FALSE}
+cftest(lmer(miss_dist_sd ~ eff_mass + trial + factor(exp) + (1|subj),data=prefpilot))
+
+```
+
+<!-- Because this data looks relatively flat, here is the aggregated mean plots. -->
+
+<!-- ```{r , echo = FALSE, warning = FALSE, message = FALSE} -->
+
+<!-- all_exp_avg_plot('miss_dist_sd',prefdata,smalltdata,pilotdata,ylab = 'Miss Dist SD Average') -->
+
+<!-- ``` -->
+
+#### Metabolics
+
+This next plot (fig \@ref{fig:missdistvartplotmet}) shows the standard deviation of miss distance over the trials for every subject, mass, and Speed.
+
+```{r missdistvartplotmet, echo = FALSE, warning = FALSE, fig.width=14, fig.height=6, fig.cap = 'Miss Dist SD over trials for metabolic experiment.'}
+miss_dist_sd[['metabolic']]
 ```
 
 ```{r, echo = FALSE, warning = FALSE, message = FALSE}
 
-variable = 'miss_dist_variance'
+variable = 'miss_dist_sd'
 string = paste('
                pdata = cbind(aggregate(movedur ~ speed + eff_mass,metdata,mean),
                aggregate(movedur ~ speed + eff_mass,metdata,sd)$movedur/sqrt(8),
@@ -2003,7 +2094,7 @@ ggplot()+
         plot.title        = element_text(hjust = 0.5),
         axis.line         = element_line(color='black'))+
   labs(x='Movement Duration (s)',
-       y='Endpoint Error Variance (cm)',
+       y='Endpoint Error SD (cm)',
        color='Effective\nMass (kg)')+
   xlim(c(.45,1.5))
 
@@ -2139,65 +2230,110 @@ missangle_nv[['smallt']]<-avg_plot('missangle',filter(var_data,exp=='smallt'),yl
             labels = c('2a','2b','2c','','',''))
 ```
 
-### Angular Miss Variance over trials
+### Angular Miss Average over trials
 ```{r, echo = FALSE, warning = FALSE, message = FALSE}
-miss_ang_vart = list()
-miss_ang_vart[['pref']] <- variability_trial_plot(prefdata,'missangle','plot')
-miss_ang_vart[['smallt']] <- variability_trial_plot(smalltdata,'missangle','plot')
-miss_ang_vart[['pilot']] <- variability_trial_plot(pilotdata,'missangle','plot')
-miss_ang_vart[['metabolic']] <- variability_trial_plot(metdata,'missangle','plot')
+miss_ang_avg = list()
+miss_ang_avg[['pref']] <- average_trial_plot(prefdata,'missangle','plot')
+miss_ang_avg[['smallt']] <- average_trial_plot(smalltdata,'missangle','plot')
+miss_ang_avg[['pilot']] <- average_trial_plot(pilotdata,'missangle','plot')
+miss_ang_avg[['metabolic']] <- average_trial_plot(metdata,'missangle','plot')
 ```
 
-Table \@ref{tab:missangvartrialtab} shows the average variance values for experiment 2a, 2b, and 2c. These are calculated from a 20 trial window variance, then averaged over all points.
+Table \@ref{tab:missangavgtrialtab} shows the average values for experiment 2a, 2b, and 2c. These are calculated from a 20 trial window standard deviation, then averaged over all points.
 
-```{r missangvartrialtab, echo = FALSE, warning = FALSE, message = FALSE}
-tab = cbind(aggregate(missangle_variance ~ eff_mass,prefdata,mean)$missangle_variance,
-            aggregate(missangle_variance ~ eff_mass,smalltdata,mean)$missangle_variance,
-            aggregate(missangle_variance ~ eff_mass,pilotdata,mean)$missangle_variance)
-# tab = formatC(tab,format = 'e', digits = 3)
+```{r missangavgtrialtab, echo = FALSE, warning = FALSE, message = FALSE}
+tab = cbind(aggregate(missangle_avg ~ eff_mass,prefdata,mean)$missangle_avg,
+            aggregate(missangle_avg ~ eff_mass,smalltdata,mean)$missangle_avg,
+            aggregate(missangle_avg ~ eff_mass,pilotdata,mean)$missangle_avg)
+
 rownames(tab) = unique(prefdata$eff_mass)
 colnames(tab) = c('2a','2b','2c')
-kable(tab, caption = 'Average Variance by mass and experiment.')
+kable(tab, caption = 'Average by mass and experiment.')
 
 ```
 
-Table \@ref{tab:missangvartrialtabmet} shows the average variance values for experiment 1.
-
-```{r missangvartrialtabmet, echo = FALSE, warning = FALSE, message = FALSE}
-
-miss_dist_tab = table_func_nosd(metdata, 'missangle_variance')
-kable(miss_dist_tab, caption = 'Average Endpoint Error Variance for the metabolic experiment')
-
-```
-
-This next plot (fig \@ref{fig:missangvartplot}) shows the variance of angular over the trials for every subject and mass.
-
-```{r missangvartplot, echo = FALSE, message = FALSE, warning = FALSE, fig.width=14, fig.height=6, fig.cap = 'Miss Dist Variance over trials.'}
-plot_grid(miss_ang_vart[['pref']]+theme(legend.position = 'none'),
-          miss_ang_vart[['smallt']]+theme(legend.position = 'none'),
-          miss_ang_vart[['pilot']]+theme(legend.position = 'none'),
+```{r, echo = FALSE, message = FALSE, warning = FALSE, fig.width=14, fig.height=6, fig.cap = 'Miss Angle Average over trials.'}
+plot_grid(miss_ang_avg[['pref']]+theme(legend.position = 'none'),
+          miss_ang_avg[['smallt']]+theme(legend.position = 'none'),
+          miss_ang_avg[['pilot']]+theme(legend.position = 'none'),
           nrow = 1,
           align = 'vh',
           labels = c('2a','2b','2c'))
 ```
 
-Because this data looks relatively flat, here is the aggregated mean plots.
+#### Stat Miss Angle Average
+```{r, warning = FALSE, message = FALSE}
+cftest(lmer(missangle_avg ~ eff_mass + trial + factor(exp) + (1|subj),data=prefpilot))
+```
 
-```{r , echo = FALSE, warning = FALSE, message = FALSE}
+### Angular Miss standard deviation over trials
 
-all_exp_avg_plot('missangle_variance',prefdata,smalltdata,pilotdata,ylab = 'Miss Angle Variance Average')
+```{r, echo = FALSE, warning = FALSE, message = FALSE}
+miss_ang_sd = list()
+miss_ang_sd[['pref']] <- stdev_trial_plot(prefdata,'missangle','plot')
+miss_ang_sd[['smallt']] <- stdev_trial_plot(smalltdata,'missangle','plot')
+miss_ang_sd[['pilot']] <- stdev_trial_plot(pilotdata,'missangle','plot')
+miss_ang_sd[['metabolic']] <- stdev_trial_plot(metdata,'missangle','plot')
+```
+
+Table \@ref{tab:missangvartrialtab} shows the average standard deviation values for experiment 2a, 2b, and 2c. These are calculated from a 20 trial window standard deviation, then averaged over all points.
+
+```{r missangvartrialtab, echo = FALSE, warning = FALSE, message = FALSE}
+tab = cbind(aggregate(missangle_sd ~ eff_mass,prefdata,mean)$missangle_sd,
+            aggregate(missangle_sd ~ eff_mass,smalltdata,mean)$missangle_sd,
+            aggregate(missangle_sd ~ eff_mass,pilotdata,mean)$missangle_sd)
+# tab = formatC(tab,format = 'e', digits = 3)
+rownames(tab) = unique(prefdata$eff_mass)
+colnames(tab) = c('2a','2b','2c')
+kable(tab, caption = 'Average by mass and experiment.')
 
 ```
 
-This next plot (fig \@ref{fig:missangvartplotmet}) shows the variance of miss distance over the trials for every subject, mass, and Speed.
+Table \@ref{tab:missangvartrialtabmet} shows the average standard deviation values for experiment 1.
 
-```{r missangvartplotmet, echo = FALSE, warning = FALSE, fig.width=14, fig.height=6, fig.cap = 'Miss Dist Variance over trials for metabolic experiment.'}
-miss_dist_vart[['metabolic']]
+```{r missangvartrialtabmet, echo = FALSE, warning = FALSE, message = FALSE}
+
+miss_dist_tab = table_func_nosd(metdata, 'missangle_sd')
+kable(miss_dist_tab, caption = 'Average Endpoint Error standard deviation for the metabolic experiment')
+
+```
+
+This next plot (fig \@ref{fig:missangvartplot}) shows the standard deviation of angular over the trials for every subject and mass.
+
+```{r missangvartplot, echo = FALSE, message = FALSE, warning = FALSE, fig.width=14, fig.height=6, fig.cap = 'Miss Dist standard deviation over trials.'}
+plot_grid(miss_ang_sd[['pref']]+theme(legend.position = 'none'),
+          miss_ang_sd[['smallt']]+theme(legend.position = 'none'),
+          miss_ang_sd[['pilot']]+theme(legend.position = 'none'),
+          nrow = 1,
+          align = 'vh',
+          labels = c('2a','2b','2c'))
+```
+
+#### Stat Miss Angle Standard Deviation
+```{r, warning = FALSE, message = FALSE}
+cftest(lmer(missangle_sd ~ eff_mass + trial + factor(exp) + (1|subj),data=prefpilot))
+```
+
+<!-- Because this data looks relatively flat, here is the aggregated mean plots. -->
+
+<!-- ```{r , echo = FALSE, warning = FALSE, message = FALSE} -->
+
+<!-- all_exp_avg_plot('missangle_sd',prefdata,smalltdata,pilotdata,ylab = 'Miss Angle standard deviation Average') -->
+
+<!-- ``` -->
+
+
+#### Metabolics
+
+This next plot (fig \@ref{fig:missangvartplotmet}) shows the standard deviation of miss angle over the trials for every subject, mass, and Speed.
+
+```{r missangvartplotmet, echo = FALSE, warning = FALSE, fig.width=14, fig.height=6, fig.cap = 'Miss Dist standard deviation over trials for metabolic experiment.'}
+miss_dist_sd[['metabolic']]
 ```
 
 ```{r, echo = FALSE, warning = FALSE, message = FALSE}
 
-variable = 'missangle_variance'
+variable = 'missangle_sd'
 string = paste('
                pdata = cbind(aggregate(movedur ~ speed + eff_mass,metdata,mean),
                aggregate(movedur ~ speed + eff_mass,metdata,sd)$movedur/sqrt(8),
@@ -2236,7 +2372,7 @@ ggplot()+
         plot.title        = element_text(hjust = 0.5),
         axis.line         = element_line(color='black'))+
   labs(x='Movement Duration (s)',
-       y='Angular Error Variance (cm)',
+       y='Angular Error standard deviation (cm)',
        color='Effective\nMass (kg)')+
   xlim(c(.45,1.5))
 
@@ -2371,66 +2507,109 @@ miss_rad_nv[['smallt']]<-avg_plot('miss_rad',filter(var_data,exp=='smallt'),ylab
             labels = c('2a','2b','2c','','',''))
 ```
 
-### Radial Miss Variance over trials
-
+### Radial Miss Average over trials
 ```{r, echo = FALSE, warning = FALSE, message = FALSE}
-miss_ang_vart = list()
-miss_ang_vart[['pref']] <- variability_trial_plot(prefdata,'miss_rad','plot')
-miss_ang_vart[['smallt']] <- variability_trial_plot(smalltdata,'miss_rad','plot')
-miss_ang_vart[['pilot']] <- variability_trial_plot(pilotdata,'miss_rad','plot')
-miss_ang_vart[['metabolic']] <- variability_trial_plot(metdata,'miss_rad','plot')
+miss_rad_avg = list()
+miss_rad_avg[['pref']] <- average_trial_plot(prefdata,'miss_rad','plot')
+miss_rad_avg[['smallt']] <- average_trial_plot(smalltdata,'miss_rad','plot')
+miss_rad_avg[['pilot']] <- average_trial_plot(pilotdata,'miss_rad','plot')
+miss_rad_avg[['metabolic']] <- average_trial_plot(metdata,'miss_rad','plot')
 ```
 
-Table \@ref{tab:missradvartrialtab} shows the average variance values for experiment 2a, 2b, and 2c. These are calculated from a 20 trial window variance, then averaged over all points.
+Table \@ref{tab:missradavgtrialtab} shows the average values for experiment 2a, 2b, and 2c. These are calculated from a 20 trial window, then averaged over all points.
 
-```{r missradvartrialtab, echo = FALSE, warning = FALSE, message = FALSE}
-tab = cbind(aggregate(miss_rad_variance ~ eff_mass,prefdata,mean)$miss_rad_variance,
-            aggregate(miss_rad_variance ~ eff_mass,smalltdata,mean)$miss_rad_variance,
-            aggregate(miss_rad_variance ~ eff_mass,pilotdata,mean)$miss_rad_variance)
-# tab = formatC(tab,format = 'e', digits = 3)
+```{r missradavgtrialtab, echo = FALSE, warning = FALSE, message = FALSE}
+tab = cbind(aggregate(miss_rad_avg ~ eff_mass,prefdata,mean)$miss_rad_avg,
+            aggregate(miss_rad_avg ~ eff_mass,smalltdata,mean)$miss_rad_avg,
+            aggregate(miss_rad_avg ~ eff_mass,pilotdata,mean)$miss_rad_avg)
+
 rownames(tab) = unique(prefdata$eff_mass)
 colnames(tab) = c('2a','2b','2c')
-kable(tab, caption = 'Average Variance by mass and experiment.')
+kable(tab, caption = 'Average by mass and experiment.')
 
 ```
 
-Table \@ref{tab:missradvartrialtabmet} shows the average variance values for experiment 1.
-
-```{r missradvartrialtabmet, echo = FALSE, warning = FALSE, message = FALSE}
-
-miss_dist_tab = table_func_nosd(metdata, 'miss_rad_variance')
-kable(miss_dist_tab, caption = 'Average Endpoint Error Variance for the metabolic experiment')
-
-```
-
-This next plot (fig \@ref{fig:missradvartplot}) shows the variance of radial miss distance over the trials for every subject and mass.
-
-```{r missradvartplot, echo = FALSE, message = FALSE, warning = FALSE, fig.width=14, fig.height=6, fig.cap = 'Miss Dist Variance over trials.'}
-plot_grid(miss_ang_vart[['pref']]+theme(legend.position = 'none'),
-          miss_ang_vart[['smallt']]+theme(legend.position = 'none'),
-          miss_ang_vart[['pilot']]+theme(legend.position = 'none'),
+```{r, echo = FALSE, message = FALSE, warning = FALSE, fig.width=14, fig.height=6, fig.cap = 'Miss Rad Average over trials.'}
+plot_grid(miss_rad_avg[['pref']]+theme(legend.position = 'none'),
+          miss_rad_avg[['smallt']]+theme(legend.position = 'none'),
+          miss_rad_avg[['pilot']]+theme(legend.position = 'none'),
           nrow = 1,
           align = 'vh',
           labels = c('2a','2b','2c'))
 ```
 
-Because this data looks relatively flat, here is the aggregated mean plots.
+#### Stat Rad Angle Average
+```{r, warning = FALSE, message = FALSE}
+cftest(lmer(miss_rad_avg ~ eff_mass + trial + factor(exp) + (1|subj),data=prefpilot))
+```
 
-```{r , echo = FALSE, warning = FALSE, message = FALSE}
+### Radial Miss standard deviation over trials
 
-all_exp_avg_plot('miss_rad_variance',prefdata,smalltdata,pilotdata,ylab = 'Miss Angle Variance Average')
+```{r, echo = FALSE, warning = FALSE, message = FALSE}
+miss_ang_sd = list()
+miss_ang_sd[['pref']] <- stdev_trial_plot(prefdata,'miss_rad','plot')
+miss_ang_sd[['smallt']] <- stdev_trial_plot(smalltdata,'miss_rad','plot')
+miss_ang_sd[['pilot']] <- stdev_trial_plot(pilotdata,'miss_rad','plot')
+miss_ang_sd[['metabolic']] <- stdev_trial_plot(metdata,'miss_rad','plot')
+```
+
+Table \@ref{tab:missradvartrialtab} shows the average standard deviation values for experiment 2a, 2b, and 2c. These are calculated from a 20 trial window standard deviation, then averaged over all points.
+
+```{r missradvartrialtab, echo = FALSE, warning = FALSE, message = FALSE}
+tab = cbind(aggregate(miss_rad_sd ~ eff_mass,prefdata,mean)$miss_rad_sd,
+            aggregate(miss_rad_sd ~ eff_mass,smalltdata,mean)$miss_rad_sd,
+            aggregate(miss_rad_sd ~ eff_mass,pilotdata,mean)$miss_rad_sd)
+# tab = formatC(tab,format = 'e', digits = 3)
+rownames(tab) = unique(prefdata$eff_mass)
+colnames(tab) = c('2a','2b','2c')
+kable(tab, caption = 'Average standard deviation by mass and experiment.')
 
 ```
 
-This next plot (fig \@ref{fig:missradvartplotmet}) shows the variance of miss distance over the trials for every subject, mass, and Speed.
+Table \@ref{tab:missradvartrialtabmet} shows the average standard deviation values for experiment 1.
 
-```{r missradvartplotmet, echo = FALSE, warning = FALSE, fig.width=14, fig.height=6, fig.cap = 'Miss Dist Variance over trials for metabolic experiment.'}
-miss_dist_vart[['metabolic']]
+```{r missradvartrialtabmet, echo = FALSE, warning = FALSE, message = FALSE}
+
+miss_dist_tab = table_func_nosd(metdata, 'miss_rad_sd')
+kable(miss_dist_tab, caption = 'Average Endpoint Error standard deviation for the metabolic experiment')
+
+```
+
+This next plot (fig \@ref{fig:missradvartplot}) shows the standard deviation of radial miss distance over the trials for every subject and mass.
+
+```{r missradvartplot, echo = FALSE, message = FALSE, warning = FALSE, fig.width=14, fig.height=6, fig.cap = 'Miss Dist standard deviation over trials.'}
+plot_grid(miss_ang_sd[['pref']]+theme(legend.position = 'none'),
+          miss_ang_sd[['smallt']]+theme(legend.position = 'none'),
+          miss_ang_sd[['pilot']]+theme(legend.position = 'none'),
+          nrow = 1,
+          align = 'vh',
+          labels = c('2a','2b','2c'))
+```
+
+#### Stat Rad Angle Standard Deviation
+```{r, warning = FALSE, message = FALSE}
+cftest(lmer(miss_rad_sd ~ eff_mass + trial + factor(exp) + (1|subj),data=prefpilot))
+```
+
+<!-- Because this data looks relatively flat, here is the aggregated mean plots. -->
+
+<!-- ```{r , echo = FALSE, warning = FALSE, message = FALSE} -->
+
+<!-- all_exp_avg_plot('miss_rad_sd',prefdata,smalltdata,pilotdata,ylab = 'Miss Angle standard deviation Average') -->
+
+<!-- ``` -->
+
+#### Metabolics
+
+This next plot (fig \@ref{fig:missradvartplotmet}) shows the standard deviation of miss distance over the trials for every subject, mass, and Speed.
+
+```{r missradvartplotmet, echo = FALSE, warning = FALSE, fig.width=14, fig.height=6, fig.cap = 'Miss Dist standard deviation over trials for metabolic experiment.'}
+miss_dist_sd[['metabolic']]
 ```
 
 ```{r, echo = FALSE, warning = FALSE, message = FALSE}
 
-variable = 'miss_rad_variance'
+variable = 'miss_rad_sd'
 string = paste('
                pdata = cbind(aggregate(movedur ~ speed + eff_mass,metdata,mean),
                aggregate(movedur ~ speed + eff_mass,metdata,sd)$movedur/sqrt(8),
@@ -2469,7 +2648,7 @@ ggplot()+
         plot.title        = element_text(hjust = 0.5),
         axis.line         = element_line(color='black'))+
   labs(x='Movement Duration (s)',
-       y='Radial Error Variance (cm)',
+       y='Radial Error standard deviation (cm)',
        color='Effective\nMass (kg)')+
   xlim(c(.45,1.5))
 
@@ -4022,6 +4201,40 @@ p_alpha_2a_2b_glm
 
 ```
 
+### Success variability over the experiment
+```{r, echo = FALSE, warning = FALSE}
+prefdata <- stdev_trial_plot(prefdata,'success','add')
+smalltdata <- stdev_trial_plot(smalltdata,'success','add')
+
+prefdata <- average_trial_plot(prefdata,'success','add')
+smalltdata <- average_trial_plot(smalltdata,'success','add')
+
+```
+#### 2a
+The following plot shows the average success (20 trials) of over the trial for experiment 2a.
+
+```{r, echo = FALSE, warning = FALSE, message = FALSE}
+average_trial_plot(prefdata,'success','plot')+labs(title = 'Experiment 2a')+theme(plot.title = element_text(hjust = 0.5))
+```
+
+The following plot shows the variability (20 trials) of over the trial for experiment 2a.
+
+```{r, echo = FALSE, warning = FALSE, message = FALSE}
+stdev_trial_plot(prefdata,'success','plot')+labs(title = 'Experiment 2a')+theme(plot.title = element_text(hjust = 0.5))
+```
+
+#### 2b
+The following plot shows the average success (20 trials) of over the trial for experiment 2b.
+
+```{r, echo = FALSE, warning = FALSE, message = FALSE}
+average_trial_plot(smalltdata,'success','plot')+labs(title = 'Experiment 2b')+theme(plot.title = element_text(hjust = 0.5))
+```
+
+The following plot shows the variability (20 trials) of over the trial for experiment 2b.
+
+```{r, echo = FALSE, warning = FALSE, message = FALSE}
+stdev_trial_plot(smalltdata,'success','plot')+labs(title = 'Experiment 2b')+theme(plot.title = element_text(hjust = 0.5))
+```
 
 ### Statistics on probability of success 2a
 
