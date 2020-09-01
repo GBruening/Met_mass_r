@@ -376,7 +376,8 @@ allexp_plot <- function(vars,data,...){
   return(a)
 }
 
-vars = c('targetnum','movedur','peakvel_target','miss_dist','reaction_tanv','pathltar','missangle','miss_rad','trial',
+vars = c('targetnum','movedur','peakvel_target','miss_dist','reaction_tanv','reaction_tanvel',
+         'pathltar','missangle','miss_rad','trial',
          'miss_dist_avg','miss_dist_sd',
          'missangle_avg','missangle_sd',
          'miss_rad_avg','miss_rad_sd')
@@ -1258,6 +1259,7 @@ Peakvel_by_experiment <- all_exp_avg_plot('peakvel_target',prefdata,smalltdata,p
 
 
 Reacttime_by_experiment <- all_exp_avg_plot('reaction_tanv',prefdata,smalltdata,pilotdata,ylab = 'Reaction Time (s)')
+Reactvel_by_experiment <- all_exp_avg_plot('reaction_tanvel',prefdata,smalltdata,pilotdata,ylab = 'Reaction Velocity (s)')
 
 # setwd(pref_plots_dir)
 # if (save_plots){ggsave('Reacttime_by_experiment.pdf', plot = Reacttime_by_experiment, width=6, height=4, useDingbats = FALSE)}
@@ -1748,7 +1750,7 @@ reaction_tanv_nv[['pilot']]<-avg_plot('reaction_tanv',pilotdata,ylab = 'Reaction
 reaction_tanv_nv[['smallt']]<-avg_plot('reaction_tanv',smalltdata,ylab = 'Reaction Time (s)')+theme(legend.position = 'none')
 ```
 
-```{r reactiontanvel1, echo = FALSE, warning = FALSE, fig.width=12, fig.height=8, fig.cap = 'Reaction Time broken by experiment.'}
+```{r reactiontanv1, echo = FALSE, warning = FALSE, fig.width=12, fig.height=8, fig.cap = 'Reaction Time broken by experiment.'}
   plot_grid(reaction_tanv[['pref']],
             reaction_tanv[['smallt']],
             reaction_tanv[['pilot']],
@@ -1759,6 +1761,110 @@ reaction_tanv_nv[['smallt']]<-avg_plot('reaction_tanv',smalltdata,ylab = 'Reacti
             align = 'vh',
             labels = c('Preferred','Smallt','2c','','',''))
 ```
+
+### Reaction Velocity
+```{r, echo = FALSE}
+reactvel_lm_all = cftest(lmer(reaction_tanvel ~ factor(targetnum) + eff_mass +  (1|subj) + (1|exp),data=prefpilot))
+reactvel_lm_pref = cftest(lmer(reaction_tanvel ~ factor(targetnum) + eff_mass +  (1|subj),data=filter(prefpilot,exp=='pref')))
+reactvel_lm_pilot = cftest(lmer(reaction_tanvel ~ factor(targetnum) + eff_mass +  (1|subj),data=filter(prefpilot,exp=='pilot')))
+reactvel_lm_smallt = cftest(lmer(reaction_tanvel ~ factor(targetnum) + eff_mass +  (1|subj),data=filter(prefpilot,exp=='smallt')))
+
+reactvelp_table = rbind(c('Circle',formatC(reactvel_lm_pref$test$coefficients[5],format = 'e', digits = 3),
+                        formatC(reactvel_lm_pref$test$pvalues[5],format = 'e', digits = 3),
+                        formatC(reactvel_lm_pref$test$sigma[5],format = 'e', digits = 3)),
+                      c('Pilot',formatC(reactvel_lm_pilot$test$coefficients[5],format = 'e', digits = 3),
+                        formatC(reactvel_lm_pilot$test$pvalues[5],format = 'e', digits = 3),
+                        formatC(reactvel_lm_pilot$test$sigma[5],format = 'e', digits = 3)),
+                      c('Arc',formatC(reactvel_lm_smallt$test$coefficients[5],format = 'e', digits = 3),
+                        formatC(reactvel_lm_smallt$test$pvalues[5],format = 'e', digits = 3),
+                        formatC(reactvel_lm_smallt$test$sigma[5],format = 'e', digits = 3)),
+                      c('All',formatC(reactvel_lm_all$test$coefficients[5],format = 'e', digits = 3),
+                        formatC(reactvel_lm_all$test$pvalues[5],format = 'e', digits = 3),
+                        formatC(reactvel_lm_all$test$sigma[5],format = 'e', digits = 3)))
+colnames(reactvelp_table) = c('Reaction Velocity','Linear Estimate','P-Value','Std Error')
+kable(reactvelp_table, caption = 'Reaction Velocity linear models.')
+
+reactvel_pref <- aggregate(reaction_tanvel ~ eff_mass,prefdata,mean)$reaction_tanvel
+reactvel_arct <- aggregate(reaction_tanvel ~ eff_mass,smalltdata,mean)$reaction_tanvel
+reactvel_pilo <- aggregate(reaction_tanvel ~ eff_mass,pilotdata,mean)$reaction_tanvel
+
+reactvel_pref_se <- aggregate(reaction_tanvel ~ eff_mass,prefdata,sd)$reaction_tanvel/sqrt(12)
+reactvel_arct_se <- aggregate(reaction_tanvel ~ eff_mass,smalltdata,sd)$reaction_tanvel/sqrt(12)
+reactvel_pilo_se <- aggregate(reaction_tanvel ~ eff_mass,pilotdata,sd)$reaction_tanvel/sqrt(18)
+
+reactvel_avg <- formatC(cbind(reactvel_pref,reactvel_arct,reactvel_pilo),format = 'e', digits = 3)
+reactvel_se <- formatC(cbind(reactvel_pref_se,reactvel_arct_se,reactvel_pilo_se),format = 'e', digits = 3)
+reactvel_df = matrix(,nrow = 4, ncol = 3)
+for (rows in c(1:4)){
+  for (cols in c(1:3)){
+    reactvel_df[rows,cols] = paste(reactvel_avg[rows,cols],'±',reactvel_se[rows,cols],sep='')
+  }
+}
+
+reactvel <- cbind(c(2.5,3.8,4.7,6.1),reactvel_df)
+colnames(reactvel) <- c('Effective Mass (kg)','2a','2b','2c')
+kable(reactvel, caption = 'Reaction velocity average values (m/s)')
+
+```
+
+This next stat output shows the a LME with movedur ~ target + eff_mass*exp + (1|subj).
+```{r reactiontanvelexpstat, echo = FALSE, warning = FALSE}
+# ```{r movedur2, echo = FALSE, warning = FALSE, fig.width=12, fig.height=8, fig.cap = 'Movement duration by experiment.'}
+cftest(lmer(reaction_tanvel ~ factor(targetnum) + eff_mass + eff_mass*factor(exp) +  (1|subj),data=prefpilot))
+```
+
+`r mass_exp_int_stringgen(prefpilot,'reaction_tanvel','reaction_')`
+
+
+
+```{r Reactvelbyexperiment, echo = FALSE, warning = FALSE, fig.width=12, fig.height=8, fig.cap = 'Reaction  by experiment.'}
+Reactvel_by_experiment+theme(text = element_text(size = 18))
+```
+
+```{r, echo = FALSE, warning = FALSE}
+reaction_tanvel = list()
+reaction_tanvel[['pref']]<-vplot('reaction_tanvel',prefdata)+
+  labs(x='Effective Mass (kg)',y='Reaction Velocity (m/s)')+
+  guides(fill=guide_legend(title="Effective\nMass (kg)"))+
+  theme_classic()+
+  theme(legend.position='none')+
+  geom_hline(yintercept=mean(filter(prefdata,condition==0)$reaction_tanvel),linetype='dashed',size=.5)
+
+reaction_tanvel[['pilot']]<-vplot('reaction_tanvel',pilotdata)+
+  labs(x='Effective Mass (kg)',y='Reaction Velocity (m/s)')+
+  guides(fill=guide_legend(title="Effective\nMass (kg)"))+
+  theme_classic()+
+  theme(legend.position='none')+
+  geom_hline(yintercept=mean(filter(pilotdata,condition==0)$reaction_tanvel),linetype='dashed',size=.5)
+
+reaction_tanvel[['smallt']]<-vplot('reaction_tanvel',smalltdata)+
+  labs(x='Effective Mass (kg)',y='Reaction Velocity (m/s)')+
+  guides(fill=guide_legend(title="Effective\nMass (kg)"))+
+  theme_classic()+
+  theme(legend.position='none')+
+  geom_hline(yintercept=mean(filter(smalltdata,condition==0)$reaction_tanvel),linetype='dashed',size=.5)
+
+
+reaction_tanvel_nv = list()
+reaction_tanvel_nv[['pref']]<-avg_plot('reaction_tanvel',prefdata,ylab = 'Reaction Velocity (m/s)')+theme(legend.position = 'none')
+
+reaction_tanvel_nv[['pilot']]<-avg_plot('reaction_tanvel',pilotdata,ylab = 'Reaction Velocity (m/s)')+theme(legend.position = 'none')
+
+reaction_tanvel_nv[['smallt']]<-avg_plot('reaction_tanvel',smalltdata,ylab = 'Reaction Velocity (m/s)')+theme(legend.position = 'none')
+```
+
+```{r reactiontanvel1, echo = FALSE, warning = FALSE, fig.width=12, fig.height=8, fig.cap = 'Reaction  broken by experiment.'}
+plot_grid(reaction_tanvel[['pref']],
+          reaction_tanvel[['smallt']],
+          reaction_tanvel[['pilot']],
+          reaction_tanvel_nv[['pref']],
+          reaction_tanvel_nv[['smallt']],
+          reaction_tanvel_nv[['pilot']],
+          nrow = 2,
+          align = 'vh',
+          labels = c('Preferred','Smallt','2c','','',''))
+```
+
 
 ### Reaction Time Algorithm 
 
