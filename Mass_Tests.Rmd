@@ -1442,10 +1442,10 @@ miss_rad_by_experiement <- all_exp_avg_plot('miss_rad',miss_var_pref,miss_var_sm
 
 ## Movement Duration
 ```{r, echo = FALSE}
-  dur_lm_all = cftest(lmer(movedur ~ factor(targetnum) + eff_mass +  (1|subj) + (1|exp),data=prefpilot))
-  dur_lm_pref = cftest(lmer(movedur ~ factor(targetnum) + eff_mass +  (1|subj),data=filter(prefpilot,exp=='pref')))
-  dur_lm_pilot = cftest(lmer(movedur ~ factor(targetnum) + eff_mass +  (1|subj),data=filter(prefpilot,exp=='pilot')))
-  dur_lm_smallt = cftest(lmer(movedur ~ factor(targetnum) + eff_mass +  (1|subj),data=filter(prefpilot,exp=='smallt')))
+  dur_lm_all = cftest(lmer(movedur ~ factor(targetnum) + eff_mass + (1|subj) + (1|exp),data=prefpilot))
+  dur_lm_pref = cftest(lmer(movedur ~ factor(targetnum) + eff_mass + (1|subj),data=filter(prefpilot,exp=='pref')))
+  dur_lm_pilot = cftest(lmer(movedur ~ factor(targetnum) + eff_mass + (1|subj),data=filter(prefpilot,exp=='pilot')))
+  dur_lm_smallt = cftest(lmer(movedur ~ factor(targetnum) + eff_mass + (1|subj),data=filter(prefpilot,exp=='smallt')))
   
   dur_p_table = rbind(c('Circle',formatC(dur_lm_pref$test$coefficients[5],format = 'e', digits = 3),
                         formatC(dur_lm_pref$test$pvalues[5],format = 'e', digits = 3),
@@ -4215,12 +4215,16 @@ The following plot shows the average success (20 trials) of over the trial for e
 
 ```{r, echo = FALSE, warning = FALSE, message = FALSE}
 average_trial_plot(prefdata,'success','plot')+labs(title = 'Experiment 2a')+theme(plot.title = element_text(hjust = 0.5))
+
+cftest(lmer(success_avg ~ eff_mass + trial + (1|subj),data=prefdata))
 ```
 
 The following plot shows the variability (20 trials) of over the trial for experiment 2a.
 
 ```{r, echo = FALSE, warning = FALSE, message = FALSE}
 stdev_trial_plot(prefdata,'success','plot')+labs(title = 'Experiment 2a')+theme(plot.title = element_text(hjust = 0.5))
+
+cftest(lmer(success_sd ~ eff_mass + trial + (1|subj),data=prefdata))
 ```
 
 #### 2b
@@ -4228,12 +4232,14 @@ The following plot shows the average success (20 trials) of over the trial for e
 
 ```{r, echo = FALSE, warning = FALSE, message = FALSE}
 average_trial_plot(smalltdata,'success','plot')+labs(title = 'Experiment 2b')+theme(plot.title = element_text(hjust = 0.5))
+cftest(lmer(success_avg ~ eff_mass + trial + (1|subj),data=smalltdata))
 ```
 
 The following plot shows the variability (20 trials) of over the trial for experiment 2b.
 
 ```{r, echo = FALSE, warning = FALSE, message = FALSE}
 stdev_trial_plot(smalltdata,'success','plot')+labs(title = 'Experiment 2b')+theme(plot.title = element_text(hjust = 0.5))
+cftest(lmer(success_sd ~ eff_mass + trial + (1|subj),data=smalltdata))
 ```
 
 ### Statistics on probability of success 2a
@@ -4597,6 +4603,30 @@ colnames(movedur_probs) = c('2a Movedur','2a Exp Prob','2a Pred Prob','2b Movedu
 
 ```{r movement_duration_probs1, echo = FALSE, warning = FALSE, tab.cap = 'Probability of success for 2a/2b fitted from data in experiment 1.'}
 kable(movedur_probs)
+```
+
+### Success Over trials
+```{r , echo= FALSE, warning = FALSE, message = FALSE}
+
+metdata <- stdev_trial_plot(metdata,'success_2a','add')
+metdata <- average_trial_plot(metdata,'success_2a','add')
+
+```
+
+#### Average Reward over trials
+
+```{r , echo= FALSE, warning = FALSE, message = FALSE, fig.width=16, fig.height=8, fig.cap = 'Reward average over trials for metabolic experiment.'}
+average_trial_plot(metdata,'success_2a','plot')+labs(title = 'Experiment 1')+theme(plot.title = element_text(hjust = 0.5))
+
+cftest(lmer(success_2a_avg ~ eff_mass2 + trial + speed + (1|subj),data=metdata))
+
+```
+
+#### Reward Variance over trials
+
+```{r , echo= FALSE, warning = FALSE, message = FALSE, fig.width=16, fig.height=8, fig.cap = 'Reward standard deviation over trials for metabolic experiment.'}
+stdev_trial_plot(metdata,'success_2a','plot')+labs(title = 'Experiment 1')+theme(plot.title = element_text(hjust = 0.5))
+cftest(lmer(success_2a_sd ~ eff_mass2 + trial + speed + (1|subj),data=metdata))
 ```
 
 ## Predicting movedur off of probability
