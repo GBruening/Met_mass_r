@@ -502,7 +502,7 @@ vplot <- function(variable,data,...){
   return(g)
 }
 
-avg_plot <- function(variable,data,ylab,...){
+avg_plot <- function(variable,data,ylab,shape=21,...){
   exp = list(...)
   tempdf = eval(parse(text = paste('aggregate(',variable,' ~ subj + eff_mass,data,mean)',sep='')))
   nsubj = max(tempdf$subj)
@@ -533,16 +533,18 @@ avg_plot <- function(variable,data,ylab,...){
     geom_point(data=c,
                aes(x=eff_mass,
                    y=dep_var,
-                   color = factor(eff_mass)),
+                   fill = factor(eff_mass)),
+               color = 'black',
+               shape = shape,
                size=vplot_point_size+4)+
-    scale_color_manual(values=mass_colors)+
+    scale_fill_manual(values=mass_colors)+
     theme_classic()+
     theme(text              = element_text(color='black'),
          axis.text         = element_text(color ='black'),
          axis.ticks        = element_line(color ='black'),
          plot.title        = element_text(hjust = 0.5),
          axis.line         = element_line(color ='black'))+
-    labs(x = 'Effective Mass (kg)', color = 'Effective\nMass (kg)')
+    labs(x = 'Effective Mass (kg)', fill = 'Effective\nMass (kg)')
   if (!missing(ylab)){
     g <- g+labs(y = ylab)
   }
@@ -687,27 +689,21 @@ all_exp_avg_plot <- function(variable,data1,data2,data3,ylab,...){
     geom_point(data=c,
                aes(x=eff_mass,
                    y=dep_var,
-                   color = 'black',
+                   fill = factor(eff_mass),
                    shape = factor(exp)),
-               size=vplot_point_size+7.5)+
-    geom_point(data=c,
-               aes(x=eff_mass,
-                   y=dep_var,
-                   color = factor(eff_mass),
-                   shape = factor(exp)),
-               size=vplot_point_size+6)+
-    scale_color_manual(values=c(mass_colors,'black'))+
-    scale_shape_manual(values=c(16,15,17))+
+               size=vplot_point_size+6,
+               color = 'black')+
+    scale_fill_manual(values=c(mass_colors,'black'))+
+    scale_shape_manual(values=c(21,22,24))+
     theme_classic()+
-    guides(color='none')+
     theme(text              = element_text(color='black'),
-         axis.text         = element_text(color ='black'),
-         axis.ticks        = element_line(color ='black'),
-         plot.title        = element_text(hjust = 0.5),
-         axis.line         = element_line(color ='black'))+
+          axis.text         = element_text(color ='black'),
+          axis.ticks        = element_line(color ='black'),
+          plot.title        = element_text(hjust = 0.5),
+          axis.line         = element_line(color ='black'))+
     labs(x = 'Effective Mass (kg)',
-         color = 'Effective\nMass (kg)',
-         shape = 'Experiment')
+         shape = 'Experiment')+
+    guides(fill='none')
   if (!missing(ylab)){
     g <- g+labs(y = ylab)
   }
@@ -1537,11 +1533,11 @@ movedur[['smallt']]<-vplot('movedur',smalltdata)+
   geom_hline(yintercept=mean(filter(smalltdata,condition==0)$movedur),linetype='dashed',size=.5)
 
 movedur_nv = list()
-movedur_nv[['pref']]<-avg_plot('movedur',prefdata,ylab = 'Movement duration (s)')+theme(legend.position = 'none')
+movedur_nv[['pref']]<-avg_plot('movedur',prefdata,ylab = 'Movement duration (s)',shape = 21)+theme(legend.position = 'none')
 
-movedur_nv[['pilot']]<-avg_plot('movedur',pilotdata,ylab = 'Movement duration (s)')+theme(legend.position = 'none')
+movedur_nv[['pilot']]<-avg_plot('movedur',pilotdata,ylab = 'Movement duration (s)',shape = 22)+theme(legend.position = 'none')
 
-movedur_nv[['smallt']]<-avg_plot('movedur',smalltdata,ylab = 'Movement duration (s)')+theme(legend.position = 'none')
+movedur_nv[['smallt']]<-avg_plot('movedur',smalltdata,ylab = 'Movement duration (s)',shape = 24)+theme(legend.position = 'none')
 
 ```
 
@@ -1639,11 +1635,11 @@ peakvel_target[['smallt']]<-vplot('peakvel_target',smalltdata)+
 
 
 peakvel_target_nv = list()
-peakvel_target_nv[['pref']]<-avg_plot('peakvel_target',prefdata,ylab = 'Peak Velocity (m/s)')+theme(legend.position = 'none')
+peakvel_target_nv[['pref']]<-avg_plot('peakvel_target',prefdata,ylab = 'Peak Velocity (m/s)',shape = 21)+theme(legend.position = 'none')
 
-peakvel_target_nv[['pilot']]<-avg_plot('peakvel_target',pilotdata,ylab = 'Peak Radial Velocity (m/s)')+theme(legend.position = 'none')
+peakvel_target_nv[['pilot']]<-avg_plot('peakvel_target',pilotdata,ylab = 'Peak Radial Velocity (m/s)',shape = 22)+theme(legend.position = 'none')
 
-peakvel_target_nv[['smallt']]<-avg_plot('peakvel_target',smalltdata,ylab = 'Peak Velocity (m/s)')+theme(legend.position = 'none')
+peakvel_target_nv[['smallt']]<-avg_plot('peakvel_target',smalltdata,ylab = 'Peak Velocity (m/s)',shape = 24)+theme(legend.position = 'none')
 
 ```
 
@@ -1743,11 +1739,11 @@ reaction_tanv[['smallt']]<-vplot('reaction_tanv',smalltdata)+
 
 
 reaction_tanv_nv = list()
-reaction_tanv_nv[['pref']]<-avg_plot('reaction_tanv',prefdata,ylab = 'Reaction Time (s)')+theme(legend.position = 'none')
+reaction_tanv_nv[['pref']]<-avg_plot('reaction_tanv',prefdata,ylab = 'Reaction Time (s)',shape = 21)+theme(legend.position = 'none')
 
-reaction_tanv_nv[['pilot']]<-avg_plot('reaction_tanv',pilotdata,ylab = 'Reaction Time (s)')+theme(legend.position = 'none')
+reaction_tanv_nv[['pilot']]<-avg_plot('reaction_tanv',pilotdata,ylab = 'Reaction Time (s)',shape = 22)+theme(legend.position = 'none')
 
-reaction_tanv_nv[['smallt']]<-avg_plot('reaction_tanv',smalltdata,ylab = 'Reaction Time (s)')+theme(legend.position = 'none')
+reaction_tanv_nv[['smallt']]<-avg_plot('reaction_tanv',smalltdata,ylab = 'Reaction Time (s)',shape = 24)+theme(legend.position = 'none')
 ```
 
 ```{r reactiontanv1, echo = FALSE, warning = FALSE, fig.width=12, fig.height=8, fig.cap = 'Reaction Time broken by experiment.'}
@@ -1846,11 +1842,11 @@ reaction_tanvel[['smallt']]<-vplot('reaction_tanvel',smalltdata)+
 
 
 reaction_tanvel_nv = list()
-reaction_tanvel_nv[['pref']]<-avg_plot('reaction_tanvel',prefdata,ylab = 'Reaction Velocity (m/s)')+theme(legend.position = 'none')
+reaction_tanvel_nv[['pref']]<-avg_plot('reaction_tanvel',prefdata,ylab = 'Reaction Velocity (m/s)',shape = 21)+theme(legend.position = 'none')
 
-reaction_tanvel_nv[['pilot']]<-avg_plot('reaction_tanvel',pilotdata,ylab = 'Reaction Velocity (m/s)')+theme(legend.position = 'none')
+reaction_tanvel_nv[['pilot']]<-avg_plot('reaction_tanvel',pilotdata,ylab = 'Reaction Velocity (m/s)',shape = 22)+theme(legend.position = 'none')
 
-reaction_tanvel_nv[['smallt']]<-avg_plot('reaction_tanvel',smalltdata,ylab = 'Reaction Velocity (m/s)')+theme(legend.position = 'none')
+reaction_tanvel_nv[['smallt']]<-avg_plot('reaction_tanvel',smalltdata,ylab = 'Reaction Velocity (m/s)',shape = 24)+theme(legend.position = 'none')
 ```
 
 ```{r reactiontanvel1, echo = FALSE, warning = FALSE, fig.width=12, fig.height=8, fig.cap = 'Reaction  broken by experiment.'}
@@ -2033,11 +2029,11 @@ miss_dist[['smallt']]<-vplot('miss_dist',smalltdata)+
   
 
 miss_dist_nv = list()
-miss_dist_nv[['pref']]<-avg_plot('miss_dist',prefdata,ylab = 'Miss Distance (cm)')+theme(legend.position = 'none')
+miss_dist_nv[['pref']]<-avg_plot('miss_dist',prefdata,ylab = 'Miss Distance (cm)',shape = 21)+theme(legend.position = 'none')
 
-miss_dist_nv[['pilot']]<-avg_plot('miss_dist',pilotdata,ylab = 'Maximum Excursion (cm)')+theme(legend.position = 'none')
+miss_dist_nv[['pilot']]<-avg_plot('miss_dist',pilotdata,ylab = 'Maximum Excursion (cm)',shape = 22)+theme(legend.position = 'none')
 
-miss_dist_nv[['smallt']]<-avg_plot('miss_dist',smalltdata,ylab = 'Miss Distance (cm)')+theme(legend.position = 'none')
+miss_dist_nv[['smallt']]<-avg_plot('miss_dist',smalltdata,ylab = 'Miss Distance (cm)',shape = 24)+theme(legend.position = 'none')
 
 
 prefdata$miss_dist = prefdata$miss_dist/100
@@ -2317,11 +2313,11 @@ missangle[['smallt']]<-vplot('missangle',filter(var_data,exp=='smallt'))+
 
 
 missangle_nv = list()
-missangle_nv[['pref']]<-avg_plot('missangle',filter(var_data,exp=='pref'),ylab = 'Miss Angle Variance (deg^2)')+theme(legend.position = 'none')
+missangle_nv[['pref']]<-avg_plot('missangle',filter(var_data,exp=='pref'),ylab = 'Miss Angle Variance (deg^2)',shape = 21)+theme(legend.position = 'none')
 
-missangle_nv[['pilot']]<-avg_plot('missangle',filter(var_data,exp=='pilot'),ylab = 'Miss Angle Variance (deg^2)')+theme(legend.position = 'none')
+missangle_nv[['pilot']]<-avg_plot('missangle',filter(var_data,exp=='pilot'),ylab = 'Miss Angle Variance (deg^2)',shape = 22)+theme(legend.position = 'none')
 
-missangle_nv[['smallt']]<-avg_plot('missangle',filter(var_data,exp=='smallt'),ylab = 'Miss Angle Variance (deg^2)')+theme(legend.position = 'none')
+missangle_nv[['smallt']]<-avg_plot('missangle',filter(var_data,exp=='smallt'),ylab = 'Miss Angle Variance (deg^2)',shape = 24)+theme(legend.position = 'none')
 ```
 
 ```{r missangle11, echo = FALSE, warning = FALSE, fig.width=12, fig.height=8, fig.cap = 'Miss Angle Variance (deg^2) broken by experiment.'}
@@ -2593,11 +2589,11 @@ miss_rad[['smallt']]<-vplot('miss_rad',filter(var_data,exp=='smallt'))+
 
 
 miss_rad_nv = list()
-miss_rad_nv[['pref']]<-avg_plot('miss_rad',filter(var_data,exp=='pref'),ylab = 'Miss Radial Variance (cm^2)')+theme(legend.position = 'none')
+miss_rad_nv[['pref']]<-avg_plot('miss_rad',filter(var_data,exp=='pref'),ylab = 'Miss Radial Variance (cm^2)',shape = 21)+theme(legend.position = 'none')
 
-miss_rad_nv[['pilot']]<-avg_plot('miss_rad',filter(var_data,exp=='pilot'),ylab = 'Miss Radial Variance (cm^2)')+theme(legend.position = 'none')
+miss_rad_nv[['pilot']]<-avg_plot('miss_rad',filter(var_data,exp=='pilot'),ylab = 'Miss Radial Variance (cm^2)',shape = 22)+theme(legend.position = 'none')
 
-miss_rad_nv[['smallt']]<-avg_plot('miss_rad',filter(var_data,exp=='smallt'),ylab = 'Miss Radial Variance (cm^2)')+theme(legend.position = 'none')
+miss_rad_nv[['smallt']]<-avg_plot('miss_rad',filter(var_data,exp=='smallt'),ylab = 'Miss Radial Variance (cm^2)',shape = 24)+theme(legend.position = 'none')
 
 ```
 
@@ -6319,6 +6315,14 @@ utilfits_by_exp <- ggplot()+
             aes(x=eff_mass,
                 y=movedur),
             linetype = 'dashed',
+            color = 'black',
+            size=3)+
+  geom_line(data=data.frame(cbind(unique(control_times$eff_mass),
+                                  met_gross_dur) %>% `colnames<-`(c('eff_mass','movedur'))),
+            aes(x=eff_mass,
+                y=movedur),
+            linetype = 'dashed',
+            color    = 'red',
             size=3)+
   scale_linetype_manual(values=c('solid','dashed'),
                         labels=c('Data (Solid)','Model (Dashed)'))+
@@ -6329,9 +6333,16 @@ utilfits_by_exp <- ggplot()+
        title = paste('Util fits by Experiment\n2a,2b \U1D6FC = ',
                      round(alpha_pref_comb_gross$minimum,3),
                      ', 2c \U1D6FC = ',
-                     round(alpha_pilot_gross$minimum,3),sep=''))+
-  scale_color_manual(labels = c('Circle\n(Normal)','None\n(Large)','Arc\n(Small)'),
-                     values = gg_color_hue(3))+
+                     round(alpha_pilot_gross$minimum,3),
+                     '\nBlack = prob equal 1, red = metgross min',sep=''))+
+  scale_color_manual(labels = c('Circle\n(Normal)',
+                                'None\n(Large)',
+                                'Arc\n(Small)',
+                                paste('\U1D6FC = ',round(alpha_pref_comb_gross$minimum,3),sep=''),
+                                'Gross Met Min'),
+                     values = c(gg_color_hue(3),
+                                'black',
+                                'red'))+
   scale_x_continuous(breaks = c(unique(control_times$eff_mass)))+
   theme_classic()+
   theme(text              = element_text(size=20,color='black'),
