@@ -4219,7 +4219,7 @@ We can also estimate the probability on the standard deviation of the miss dista
 pref_mean_err = aggregate(miss_dist ~ eff_mass,prefdata,mean)$miss_dist
 pref_sd_err = aggregate(miss_dist ~ eff_mass,prefdata,sd)$miss_dist
 
-pnorm(0.014, mean= pref_mean_err, s = pref_sd_err,lower.tail=TRUE)
+# pnorm(0.014, mean= pref_mean_err, s = pref_sd_err,lower.tail=TRUE)
 
 smallt_mean_err_ang = aggregate(missangle ~ eff_mass,smalltdata,mean)$missangle
 smallt_sd_err_ang = aggregate(missangle ~ eff_mass,smalltdata,sd)$missangle
@@ -4229,9 +4229,9 @@ smallt_sd_err_rad = aggregate(maxex ~ eff_mass,smalltdata,sd)$missangle
 
 
 success_tab = cbind(aggregate(success ~ eff_mass, prefdata,mean)$success,
-                    pnorm(0.014, mean= pref_mean_err, s = pref_mean_sd,lower.tail=TRUE),
+                    pnorm(0.014, mean= pref_mean_err, s = pref_sd_err,lower.tail=TRUE),
                     aggregate(success ~ eff_mass, smalltdata,mean)$success,
-                    pnorm(0.014, mean= pref_mean_err, s = pref_mean_sd,lower.tail=TRUE))
+                    pnorm(0.014, mean= pref_mean_err, s = pref_sd_err,lower.tail=TRUE))
 colnames(success_tab) = c('2a','Predicted 2a','2b','Predicted 2b')
 rownames(success_tab) = unique(prefdata$eff_mass)
 success_tab = round(success_tab,4)
