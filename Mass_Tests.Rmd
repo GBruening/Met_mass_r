@@ -4734,6 +4734,33 @@ colnames(movedur_probs) = c('2a Movedur','2a Exp Prob','2a Pred Prob','2b Movedu
 kable(movedur_probs)
 ```
 
+### Success at metabolically optimal
+The table (\@ref{tab:optdurprob}) shows the metabolically optimal (gross) durations with the predicted probabilites from the glm using experiment 1 and 2a.
+
+```{r optdurprob, echo = FALSE, warning = FALSE, message = FALSE}
+a=coef(MPGross_model)[1]
+b=coef(MPGross_model)[2]*100
+c=coef(MPGross_model)[3]
+d=coef(MPGross_model)[4]
+
+fun.1 <- function(t) a*t+b*(2.47^c)/(t^(d-1))
+fun.2 <- function(t) a*t+b*(3.8^c)/(t^(d-1))
+fun.3 <- function(t) a*t+b*(4.7^c)/(t^(d-1))
+fun.4 <- function(t) a*t+b*(6.1^c)/(t^(d-1))
+
+met_gross_dur = c(optimize(fun.1,interval=c(0,2))$minimum,
+                  optimize(fun.2,interval=c(0,2))$minimum,
+                  optimize(fun.3,interval=c(0,2))$minimum,
+                  optimize(fun.4,interval=c(0,4))$minimum)
+
+
+kable(data.frame('Effective Mass' = unique(metdata$eff_mass),
+                 'Duration' = met_gross_dur,
+                 'Success Prob' = inv.logit(predict(met_p_glm,data.frame(movedur= met_gross_dur,eff_mass=unique(metdata$eff_mass))))),
+      caption = 'Success probabilites from experiment 2a/1 at the metabolically optimal duraitons.')
+```
+
+
 ### Success Over trials
 ```{r , echo= FALSE, warning = FALSE, message = FALSE}
 
