@@ -2792,7 +2792,7 @@ resample_plot <- function(resamp_data, n_timepoint){
 }
 
 resamp_plots = list()
-resamp_plots[['pref']] <- resample_plot(resample_data_pref_abs,250)+
+resamp_plots[['pref']] <- resample_plot(resample_data_pref_abs,200)+
   theme(legend.position='none')+
   theme(text              = element_text(color='black'),
         axis.text         = element_text(color='black'),
@@ -2810,7 +2810,7 @@ resamp_plots[['pilot']] <- resample_plot(resample_data_pilot_abs,150)+
         plot.title        = element_text(hjust = 0.5),
         axis.line         = element_line(color='black'))
 
-resamp_plots[['smallt']] <- resample_plot(resample_data_smallt_abs,250)+
+resamp_plots[['smallt']] <- resample_plot(resample_data_smallt_abs,200)+
   theme(legend.position='none')+
   theme(text              = element_text(color='black'),
         axis.text         = element_text(color='black'),
