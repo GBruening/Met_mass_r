@@ -1,4 +1,16 @@
 
+library(ggplot2)
+library(ggthemes)
+library(lmtest)
+library(tidyr)
+library(multcomp)
+library(lme4)
+library(nlstools)
+library(cowplot)
+library(dplyr)
+library(moments)
+library(boot)
+
 # Some test code
 # Using logit function
 alpha_utility_gross_rx = optimize(fun_optim_prx_logit,
@@ -256,10 +268,87 @@ for (prob in c(0,.05,.1,.2,.3)){
 
 
 ggplot(data = filter(aggregate(opt_dur ~ alph + prob, dataf, mean),alph<5000))+
-  geom_point(aes(x = opt_dur, 
+  geom_line(aes(x = opt_dur, 
                  y = alph,
                  color = factor(prob)))+
   labs(x =  'Optimal Duration (s)', y = 'Alpha Value', color = 'Added probability.')
 # ggplot(data = filter(dataf,alph<1000,alph>100))+geom_line(aes(x = times, y = util,color = factor(alph)))+
 #   labs(x =  'Movement Duration (s)', y = 'Utility Value', color = 'Alpha Value')
 
+# Dur Asymptote Constant reward
+
+dataf = data.frame(times = double(),
+                   opt_dur = double(),
+                   util = double(),
+                   alph = double(),
+                   prob = double())
+
+for (prob in c(.3, .5, .7, 1)){
+  mvttimes = mvttimes_smallt
+  p_alpha  = met_smallt_p_glm
+  rxtimes  = rxtimes_smallt
+  
+  alphas = exp(seq(1,9,.2))
+  
+  dur = rep(0,length(alphas))
+  p = rep(0,length(alphas))
+  rew = rep(0,length(alphas))
+  eff = rep(0,length(alphas))
+  
+  m = masses[1]
+  rt = rxtimes[1]
+  count = 1
+  times = seq(0.4,1,0.001)
+  probs = inv.logit(predict(p_alpha,data.frame(movedur=times,eff_mass=m)))+prob
+  probs = rep(prob,length(probs))
+  
+  alph_c = 1
+  ut = matrix(,nrow = length(times), ncol = length(alphas))
+  for (alpha100 in alphas){
+    count = 1
+    for (t in times){
+      ut[count,alph_c] = (alpha100*probs[count]-a0*rt-(a*t+b*(m^c)/(t^(d-1))))/(rt+t)
+      count = count+1
+    }
+    dur[alph_c] = times[which.max(ut[,alph_c])]
+    p[alph_c] =  inv.logit(predict(p_alpha,data.frame(movedur=dur[alph_c],eff_mass=m)))
+    rew[alph_c] = (alpha100*p[alph_c])#/(rt+dur[alph_c])
+    eff[alph_c] = a0*rt-(a*times[which.max(ut[,alph_c])]+b*(m^c)/(times[which.max(ut[,alph_c])]^(d-1)))
+    alph_c = alph_c + 1
+  }
+  ut[ut<0] = 0
+  
+  ut_col = c()
+  eff_col = c()
+  alph_col = c()
+  times_col = c()
+  dur_col = c()
+  for (k in c(1:length(alphas))){
+    times_col = c(times_col,times)
+    dur_col = c(dur_col,rep(dur[k],length(times)))
+    ut_col = c(ut_col,ut[,k])
+    alph_col = c(alph_col,rep(alphas[k],length(times)))
+    eff_col = c(eff_col,rep(alphas[k],length(times)))
+  }
+  
+  
+  dataf = rbind(dataf,
+                data.frame(times = times_col,
+                           opt_dur = dur_col,
+                           util = ut_col,
+                           alph = alph_col,
+                           prob = rep(prob, length(alph_col))))
+  
+  
+  dataf = filter(dataf,alph<5000)
+  
+}
+
+
+ggplot(data = filter(aggregate(opt_dur ~ alph + prob, dataf, mean),alph<5000))+
+  geom_line(aes(x = opt_dur, 
+                 y = alph,
+                 color = factor(prob)))+
+  labs(x =  'Optimal Duration (s)', y = 'Alpha Value', color = 'Added probability.')
+# ggplot(data = filter(dataf,alph<1000,alph>100))+geom_line(aes(x = times, y = util,color = factor(alph)))+
+#   labs(x =  'Movement Duration (s)', y = 'Utility Value', color = 'Alpha Value')
