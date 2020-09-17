@@ -196,7 +196,7 @@ prefdata <- filtering_func(c('movedur','reaction_tanv','reaction_tanvel','miss_d
 prefdata <- filter(prefdata,maxex<.14,odd_trial==1)
 
 # pilotdata <- filter(pilotdata,reacttoback<3.0,reacttoback>.25,idxonset1<100)
-pilotdata <- filter(pilotdata,trialtot>200)
+# pilotdata <- filter(pilotdata,trialtot>200)
 pilotdata$miss_dist <- pilotdata$maxex
 pilotdata <-filtering_func(c('movedur','reaction_tanv','reaction_tanvel','miss_dist'),pilotdata,'pilotdata')
 pilotdata <- filter(pilotdata,maxex<.20)
@@ -995,7 +995,7 @@ temp_pref <- prefdata %>% group_by(subj,eff_mass) %>% summarise_each(funs(mean))
 prefdata[prefdata$trialtot<401,'condition'] = 'fml'
 smalltdata[smalltdata$trialtot<401,'condition'] = 'fml'
 pilotdata = filter(pilotdata, subj != 39)
-pilotdata[pilotdata$trialtot<301,'condition'] = 'fml'
+pilotdata[pilotdata$trialtot<101,'condition'] = 'fml'
 
 
 ```
