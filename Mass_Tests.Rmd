@@ -1,5 +1,5 @@
 ---
-title: "Mass Tests Exp1 GLM"
+title: "Mass Tests"
 author: "Garrick Bruening"
 output:
   bookdown::html_document2:

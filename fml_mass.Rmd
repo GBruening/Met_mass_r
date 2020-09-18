@@ -55,6 +55,10 @@ theme_set(theme_cowplot())
 
 save_plots = 0
 
+opts <- options()  # save old options
+options(ggplot2.continuous.colour="viridis")
+options(ggplot2.continuous.fill = "viridis")
+
 # #====================== LOAD DATA - Neuromech ==============================
 # met_plots_dir  <- 'D:/Users/Gary/Google Drive/Muscle modeling/Metabolics/Graphs/'
 # pref_plots_dir <- 'D:/Users/Gary/Google Drive/Preferred Mass/Graphs/'
@@ -1004,27 +1008,40 @@ pilotdata[pilotdata$trialtot<101,'condition'] = 'fml'
 
 ## Split by subj
 
-```{r}
+```{r, fig.width=9, fig.height=6}
 ggplot()+geom_smooth(data=prefdata,
                      aes(x = trial,
                          y = movedur,
-                         color = factor(subj)))+
+                         color = factor(subj)),
+                     method = 'loess')+
     facet_wrap(~factor(condition))+
   labs(title = 'Preferred')
+
+```
+
+```{r, fig.width=9, fig.height=6}
+
 
 
 ggplot()+geom_smooth(data=smalltdata,
                      aes(x = trial,
                          y = movedur,
-                         color = factor(subj)))+
+                         color = factor(subj)),
+                     method = 'loess')+
     facet_wrap(~factor(condition))+
   labs(title = 'Smallt Data')
+
+```
+
+```{r, fig.width=9, fig.height=6}
+
 
 
 ggplot()+geom_smooth(data=pilotdata,
                      aes(x = trial,
                          y = movedur,
-                         color = factor(subj)))+
+                         color = factor(subj)),
+                     method = 'loess')+
     facet_wrap(~factor(condition))+
   labs(title = 'No Target')
 
@@ -1032,25 +1049,38 @@ ggplot()+geom_smooth(data=pilotdata,
 
 ## Grouped 
 
-```{r}
+```{r, fig.width=9, fig.height=6}
 ggplot()+geom_smooth(data=prefdata,
                      aes(x = trial,
-                         y = movedur))+
-    facet_wrap(~factor(condition))+
+                         y = movedur,
+                         color = factor(condition)),
+                     method = 'loess')+
   labs(title = 'Preferred')
+
+```
+
+```{r, fig.width=9, fig.height=6}
+
 
 
 ggplot()+geom_smooth(data=smalltdata,
                      aes(x = trial,
-                         y = movedur))+
-    facet_wrap(~factor(condition))+
+                         y = movedur,
+                         color = factor(condition)),
+                     method = 'loess')+
   labs(title = 'Smallt Data')
+
+```
+
+```{r, fig.width=9, fig.height=6}
+
 
 
 ggplot()+geom_smooth(data=pilotdata,
                      aes(x = trial,
-                         y = movedur))+
-    facet_wrap(~factor(condition))+
+                         y = movedur,
+                         color = factor(condition)),
+                     method = 'loess')+
   labs(title = 'No Target')
 
 ```
@@ -1059,27 +1089,40 @@ ggplot()+geom_smooth(data=pilotdata,
 
 ## Split by subj
 
-```{r}
+```{r, fig.width=9, fig.height=6}
 ggplot()+geom_smooth(data=prefdata,
                      aes(x = trial,
                          y = peakvel_target,
-                         color = factor(subj)))+
+                         color = factor(subj)),
+                     method = 'loess')+
     facet_wrap(~factor(condition))+
   labs(title = 'Preferred')
+
+```
+
+```{r, fig.width=9, fig.height=6}
+
 
 
 ggplot()+geom_smooth(data=smalltdata,
                      aes(x = trial,
                          y = peakvel_target,
-                         color = factor(subj)))+
+                         color = factor(subj)),
+                     method = 'loess')+
     facet_wrap(~factor(condition))+
   labs(title = 'Smallt Data')
+
+```
+
+```{r, fig.width=9, fig.height=6}
+
 
 
 ggplot()+geom_smooth(data=pilotdata,
                      aes(x = trial,
                          y = peakvel_target,
-                         color = factor(subj)))+
+                         color = factor(subj)),
+                     method = 'loess')+
     facet_wrap(~factor(condition))+
   labs(title = 'No Target')
 
@@ -1087,25 +1130,124 @@ ggplot()+geom_smooth(data=pilotdata,
 
 ## Grouped 
 
-```{r}
+```{r, fig.width=9, fig.height=6}
 ggplot()+geom_smooth(data=prefdata,
                      aes(x = trial,
-                         y = peakvel_target))+
-    facet_wrap(~factor(condition))+
+                         y = peakvel_target,
+                         color = factor(condition)),
+                     method = 'loess')+
   labs(title = 'Preferred')
+
+```
+
+```{r, fig.width=9, fig.height=6}
+
 
 
 ggplot()+geom_smooth(data=smalltdata,
                      aes(x = trial,
-                         y = peakvel_target))+
-    facet_wrap(~factor(condition))+
+                         y = peakvel_target,
+                         color = factor(condition)),
+                     method = 'loess')+
   labs(title = 'Smallt Data')
+
+```
+
+```{r, fig.width=9, fig.height=6}
+
 
 
 ggplot()+geom_smooth(data=pilotdata,
                      aes(x = trial,
-                         y = peakvel_target))+
-    facet_wrap(~factor(condition))+
+                         y = peakvel_target,
+                         color = factor(condition)),
+                     method = 'loess')+
+  labs(title = 'No Target')
+
+```
+
+
+
+
+
+# Movement Duration DelCond
+
+## Split by subj
+
+```{r, fig.width=9, fig.height=6}
+ggplot()+geom_smooth(data=prefdata,
+                     aes(x = trial,
+                         y = movedur,
+                         color = factor(subj)),
+                     method = 'loess')+
+    facet_wrap(~factor(delcond))+
+  labs(title = 'Preferred')
+
+```
+
+```{r, fig.width=9, fig.height=6}
+
+
+
+ggplot()+geom_smooth(data=filter(smalltdata,trial<200),
+                     aes(x = trial,
+                         y = movedur,
+                         color = factor(subj)),
+                     method = 'loess')+
+    facet_wrap(~factor(delcond))+
+  labs(title = 'Smallt Data')
+
+```
+
+```{r, fig.width=9, fig.height=6}
+
+
+
+ggplot()+geom_smooth(data=pilotdata,
+                     aes(x = trial,
+                         y = movedur,
+                         color = factor(subj)),
+                     method = 'loess')+
+    facet_wrap(~factor(delcond))+
+  labs(title = 'No Target')
+
+```
+
+## Grouped 
+
+```{r, fig.width=9, fig.height=6}
+ggplot()+geom_smooth(data=prefdata,
+                     aes(x = trial,
+                         y = movedur,
+                         color = factor(delcond)),
+                     method = 'loess')+
+    scale_color_manual(values = viridis(9))+
+  labs(title = 'Preferred')
+
+```
+
+```{r, fig.width=9, fig.height=6}
+
+ggplot()+geom_smooth(data=filter(smalltdata,trial<200),
+                     aes(x = trial,
+                         y = movedur,
+                         color = factor(delcond)),
+                     method = 'loess')+
+    scale_color_manual(values = viridis(9))+
+  labs(title = 'Smallt Data')
+
+```
+
+```{r, fig.width=9, fig.height=6}
+
+
+
+ggplot()+geom_smooth(data=pilotdata,
+                     aes(x = trial,
+                         y = movedur,
+                         color = factor(delcond)),
+                     method = 'loess')+
+    scale_color_manual(values = viridis(9))+
   labs(title = 'No Target')
 
 ```
