@@ -2792,7 +2792,7 @@ resample_plot <- function(resamp_data, n_timepoint){
 }
 
 resamp_plots = list()
-resamp_plots[['pref']] <- resample_plot(resample_data_pref_abs,250)+
+resamp_plots[['pref']] <- resample_plot(resample_data_pref_abs,200)+
   theme(legend.position='none')+
   theme(text              = element_text(color='black'),
         axis.text         = element_text(color='black'),
@@ -2810,7 +2810,7 @@ resamp_plots[['pilot']] <- resample_plot(resample_data_pilot_abs,150)+
         plot.title        = element_text(hjust = 0.5),
         axis.line         = element_line(color='black'))
 
-resamp_plots[['smallt']] <- resample_plot(resample_data_smallt_abs,250)+
+resamp_plots[['smallt']] <- resample_plot(resample_data_smallt_abs,200)+
   theme(legend.position='none')+
   theme(text              = element_text(color='black'),
         axis.text         = element_text(color='black'),
@@ -4734,6 +4734,33 @@ colnames(movedur_probs) = c('2a Movedur','2a Exp Prob','2a Pred Prob','2b Movedu
 kable(movedur_probs)
 ```
 
+### Success at metabolically optimal
+The table (\@ref{tab:optdurprob}) shows the metabolically optimal (gross) durations with the predicted probabilites from the glm using experiment 1 and 2a.
+
+```{r optdurprob, echo = FALSE, warning = FALSE, message = FALSE}
+a=coef(MPGross_model)[1]
+b=coef(MPGross_model)[2]*100
+c=coef(MPGross_model)[3]
+d=coef(MPGross_model)[4]
+
+fun.1 <- function(t) a*t+b*(2.47^c)/(t^(d-1))
+fun.2 <- function(t) a*t+b*(3.8^c)/(t^(d-1))
+fun.3 <- function(t) a*t+b*(4.7^c)/(t^(d-1))
+fun.4 <- function(t) a*t+b*(6.1^c)/(t^(d-1))
+
+met_gross_dur = c(optimize(fun.1,interval=c(0,2))$minimum,
+                  optimize(fun.2,interval=c(0,2))$minimum,
+                  optimize(fun.3,interval=c(0,2))$minimum,
+                  optimize(fun.4,interval=c(0,4))$minimum)
+
+
+kable(data.frame('Effective Mass' = unique(metdata$eff_mass),
+                 'Duration' = met_gross_dur,
+                 'Success Prob' = inv.logit(predict(met_p_glm,data.frame(movedur= met_gross_dur,eff_mass=unique(metdata$eff_mass))))),
+      caption = 'Success probabilites from experiment 2a/1 at the metabolically optimal duraitons.')
+```
+
+
 ### Success Over trials
 ```{r , echo= FALSE, warning = FALSE, message = FALSE}
 
@@ -4963,9 +4990,58 @@ The average fitted $\alpha$ value was `r round(mean(alphas),4)`.
   utility_ind
 ```
 
+
 ## Utility Code
 ```{r, echo = FALSE}
+
+pref_glm_use = pref_p_glm
+# pref_glm_use = met_p_glm
+
+smallt_glm_use = smallt_p_glm
+# smallt_glm_use = met_smallt_p_glm
+
 ############ Modeling All the different Models
+
+fun_optim_prx <- function(alpha,masses,mvttimes,p_alpha,rxtimes){
+  err=0
+  dur = rep(0,length(mvttimes))
+  for (k in 1:length(mvttimes)){
+    t = mvttimes[k]
+    m = masses[k]
+    p = p_alpha[k]
+    rt = rxtimes[k]
+    count = 1
+    times = seq(0.1,5,0.01)
+    ut = rep(0,length(times))
+    for (t in times){
+      ut[count] = (alpha*p-a0*rt-(a*t+b*(m^c)/(t^(d-1))))/(rt+t)
+      count = count+1
+    }
+    dur[k] = times[which.max(ut)]
+  }
+  err = (mvttimes-dur)^2
+  return(sum(err))
+}
+
+fun_dur_prx <- function(alpha,masses,mvttimes,p_alpha,rxtimes){
+  err=0
+  dur = rep(0,length(mvttimes))
+  for (k in 1:length(mvttimes)){
+    t = mvttimes[k]
+    m = masses[k]
+    p = p_alpha[k]
+    rt = rxtimes[k]
+    count = 1
+    times = seq(0.2,5,0.01)
+    ut = rep(0,length(times))
+    for (t in times){
+      ut[count] = (alpha*p-a0*rt-(a*t+b*(m^c)/(t^(d-1))))/(rt+t)
+      count = count+1
+    }
+    dur[k] = times[which.max(ut)]
+  }
+  return(dur)
+}
 
 #================  Net Metabolics ==========================
 
@@ -5006,11 +5082,11 @@ met_gross_dur = c(optimize(fun.1,interval=c(0,2))$minimum,
 masses = c(2.47,3.8,4.7,6.1)
 mvttimes_pref = aggregate(movedur~condition,prefdata,mean)$movedur
 rxtimes_pref = aggregate(reaction_tanv~condition,prefdata,mean)$reaction_tanv
-p_alpha_pref = inv.logit(predict(met_p_glm,data.frame(movedur=mvttimes_pref,eff_mass=masses)))
+p_alpha_pref = inv.logit(predict(pref_glm_use,data.frame(movedur=mvttimes_pref,eff_mass=masses)))
 
 mvttimes_smallt = aggregate(movedur~condition,smalltdata,mean)$movedur
 rxtimes_smallt = aggregate(reaction_tanv~eff_mass,smalltdata,mean)$reaction_tanv
-p_alpha_smallt_gross = inv.logit(predict(met_smallt_p_glm,data.frame(movedur=mvttimes_smallt,eff_mass=masses)))
+p_alpha_smallt_gross = inv.logit(predict(smallt_glm_use,data.frame(movedur=mvttimes_smallt,eff_mass=masses)))
 
 mvttimes_pilot = aggregate(movedur~condition,pilotdata,mean)$movedur
 mvttimes_pilot_se = aggregate(movedur~condition,pilotdata,sd)$movedur/sqrt(8)
@@ -5137,7 +5213,7 @@ util_dur_gross_rx = as.numeric(fun_optim_prx(alpha_utility_gross_rx$minimum,
 alpha_utility_gross_rx = optimize(fun_optim_prx_logit,
                                   masses     = masses,
                                   mvttimes   = mvttimes_pref,
-                                  p_alpha    = pref_p_glm,
+                                  p_alpha    = pref_glm_use,
                                   rxtimes    = rxtimes_pref,
                                   opt_or_dur = 'optimize',
                                   interval   = c(-100,300))
@@ -5146,7 +5222,7 @@ util_dur_gross_rx = as.numeric(fun_optim_prx_logit(
                                        alpha      = alpha_utility_gross_rx$minimum,
                                        masses     = masses,
                                        mvttimes   = mvttimes_pref,
-                                       p_alpha    = pref_p_glm,
+                                       p_alpha    = pref_glm_use,
                                        opt_or_dur = 'duration',
                                        rxtimes    = rxtimes_pref))
 
@@ -5177,14 +5253,14 @@ util_dur_net_rx = as.numeric(fun_optim_prx(alpha_utility_net_rx$minimum,
 alpha_utility_net_rx = optimize(fun_optim_prx_logit,
                                 masses = masses,
                                 mvttimes = mvttimes_pref,
-                                p_alpha  = pref_p_glm,
+                                p_alpha  = pref_glm_use,
                                 opt_or_dur = 'optimize',
                                 rxtimes = rxtimes_pref,
                                 interval=c(-100,300))
 util_dur_net_rx = as.numeric(fun_optim_prx_logit(alpha_utility_net_rx$minimum,
                                         masses = masses,
                                         mvttimes = mvttimes_pref,
-                                        p_alpha  = pref_p_glm,
+                                        p_alpha  = pref_glm_use,
                                         opt_or_dur = 'duration',
                                         rxtimes = rxtimes_pref))
 
@@ -5320,27 +5396,27 @@ a=coef(MPGross_model)[1]
 alpha_torque_2a=optimize(fun_optim_torque_prx,
                                 masses = masses,
                                 mvttimes = mvttimes_pref,
-                                p_alpha  = pref_p_glm,
+                                p_alpha  = pref_glm_use,
                                 rxtimes = rxtimes_pref,
                                 interval=c(-100,300))$minimum
 
 torque_dur_2a = as.numeric(fun_dur_torque_prx(alpha_torque_2a,
                                         masses = masses,
                                         mvttimes = mvttimes_pref,
-                                        p_alpha  = pref_p_glm,
+                                        p_alpha  = pref_glm_use,
                                         rxtimes = rxtimes_pref))
 
 alpha_torque_2b=optimize(fun_optim_torque_prx,
                                 masses = masses,
                                 mvttimes = mvttimes_smallt,
-                                p_alpha  = smallt_p_glm,
+                                p_alpha  = smallt_glm_use,
                                 rxtimes = rxtimes_smallt,
                                 interval=c(-100,300))$minimum
 
 torque_dur_2b = as.numeric(fun_dur_torque_prx(alpha_torque_2b,
                                         masses = masses,
                                         mvttimes = mvttimes_smallt,
-                                        p_alpha  = smallt_p_glm,
+                                        p_alpha  = smallt_glm_use,
                                         rxtimes = rxtimes_smallt))
 
 alpha_torque_2c=optimize(fun_optim_torque_prx2,
@@ -5461,27 +5537,27 @@ a=coef(MPGross_model)[1]
 alpha_torque_2a_mj=optimize(fun_optim_torque_prx_mj,
                                 masses = masses,
                                 mvttimes = mvttimes_pref,
-                                p_alpha  = pref_p_glm,
+                                p_alpha  = pref_glm_use,
                                 rxtimes = rxtimes_pref,
                                 interval=c(-100,300))$minimum
 
 torque_mj_dur_2a = as.numeric(fun_dur_torque_prx_mj(alpha_torque_2a_mj,
                                         masses = masses,
                                         mvttimes = mvttimes_pref,
-                                        p_alpha  = pref_p_glm,
+                                        p_alpha  = pref_glm_use,
                                         rxtimes = rxtimes_pref))
 
 alpha_torque_2b_mj=optimize(fun_optim_torque_prx_mj,
                                 masses = masses,
                                 mvttimes = mvttimes_smallt,
-                                p_alpha  = smallt_p_glm,
+                                p_alpha  = smallt_glm_use,
                                 rxtimes = rxtimes_smallt,
                                 interval=c(-100,300))$minimum
 
 torque_mj_dur_2b = as.numeric(fun_dur_torque_prx_mj(alpha_torque_2b_mj,
                                         masses = masses,
                                         mvttimes = mvttimes_smallt,
-                                        p_alpha  = smallt_p_glm,
+                                        p_alpha  = smallt_glm_use,
                                         rxtimes = rxtimes_smallt))
 
 alpha_torque_2c_mj=optimize(fun_optim_torque_prx_mj2,
@@ -5499,7 +5575,6 @@ torque_mj_dur_2c = as.numeric(fun_dur_torque_prx_mj2(alpha_torque_2c_mj,
 
 
 #================ 2b and 2c utility modeling =========================
-
 
 fun_p_alpha <- function(miss_dist, min_dist){
   p_alpha = c(0,0,0,0)
@@ -5522,7 +5597,7 @@ d=coef(MPGross_model)[4]
 alpha_smallt_gross = optimize(fun_optim_prx_logit,
                       masses     = masses,
                       mvttimes   = mvttimes_smallt,
-                      p_alpha    = smallt_p_glm,
+                      p_alpha    = smallt_glm_use,
                       rxtimes    = rxtimes_smallt,
                       opt_or_dur = 'optimize',
                       interval   = c(-100,1000))
@@ -5530,7 +5605,7 @@ alpha_smallt_gross = optimize(fun_optim_prx_logit,
 util_dur_smallt_gross = as.numeric(fun_optim_prx_logit(alpha_smallt_gross$minimum, #changing between alpha_pref and alpha_smallt_gross
                                      masses   = masses,
                                      mvttimes = mvttimes_smallt,
-                                     p_alpha  = smallt_p_glm,
+                                     p_alpha  = smallt_glm_use,
                                      rxtimes  = rxtimes_smallt,
                                      opt_or_dur = 'duration'))
 
@@ -5544,7 +5619,7 @@ d=coef(MPNet_model)[4]
 alpha_smallt_net = optimize(fun_optim_prx_logit,
                       masses     = masses,
                       mvttimes   = mvttimes_smallt,
-                      p_alpha    = smallt_p_glm,
+                      p_alpha    = smallt_glm_use,
                       rxtimes    = rxtimes_smallt,
                       opt_or_dur = 'optimize',
                       interval   = c(-100,1000))
@@ -5552,191 +5627,9 @@ alpha_smallt_net = optimize(fun_optim_prx_logit,
 util_dur_smallt_net = as.numeric(fun_optim_prx_logit(alpha_smallt_net$minimum, #changing between alpha_pref and alpha_smallt_gross
                                      masses   = masses,
                                      mvttimes = mvttimes_smallt,
-                                     p_alpha  = smallt_p_glm,
+                                     p_alpha  = smallt_glm_use,
                                      rxtimes  = rxtimes_smallt,
                                      opt_or_dur = 'duration'))
-
-# ## Some test code
-# # Using logit function
-# alpha_utility_gross_rx = optimize(fun_optim_prx_logit,
-#                                   masses     = masses,
-#                                   mvttimes   = mvttimes,
-#                                   p_alpha    = met_p_glm,
-#                                   rxtimes    = rxtimes,
-#                                   opt_or_dur = 'optimize',
-#                                   interval   = c(-100,300))
-# 
-# util_dur_gross_rx = as.numeric(fun_optim_prx_logit(
-#                                        alpha      = alpha_utility_gross_rx$minimum,
-#                                        masses     = masses,
-#                                        mvttimes   = mvttimes,
-#                                        p_alpha    = met_p_glm,
-#                                        opt_or_dur = 'duration',
-#                                        rxtimes    = rxtimes))
-# 
-# masses   = masses
-# 
-# masses = c(2.47,3.8,4.7,6.1)
-# mvttimes = aggregate(movedur~condition,prefdata,mean)$movedur
-# rxtimes = aggregate(reaction_tanv~condition,prefdata,mean)$reaction_tanv
-# p_alpha_pref = inv.logit(predict(met_p_glm,data.frame(movedur=mvttimes,eff_mass=masses)))
-# 
-# mvttimes_smallt = aggregate(movedur~condition,smalltdata,mean)$movedur
-# rxtimes_smallt = aggregate(reaction_tanv~eff_mass,smalltdata,mean)$reaction_tanv
-# p_alpha_smallt_gross = inv.logit(predict(met_smallt_p_glm,data.frame(movedur=mvttimes_smallt,eff_mass=masses)))
-# 
-# mvttimes = mvttimes_smallt
-# p_alpha  = smallt_p_glm
-# rxtimes  = rxtimes_smallt
-# 
-# # mvttimes   = mvttimes
-# # p_alpha    = met_p_glm
-# # rxtimes    = rxtimes
-# 
-# dur = rep(0,length(mvttimes))
-# dur2 = rep(0,length(mvttimes))
-# dur100 = rep(0,length(mvttimes))
-# k=1
-# 
-# # pref_p_glm smallt_p_glm
-# 
-# m = masses[k]
-# rt = rxtimes[k]
-# count = 1
-# times = seq(0.25,2,0.001)
-# probs = inv.logit(predict(p_alpha,data.frame(movedur=times,eff_mass=m)))
-# 
-# alpha100  = 100
-# ut100 = rep(0,length(times))
-# count = 1
-# for (t in times){
-#   ut100[count] = (alpha100*probs[count]-a0*rt-(a*t+b*(m^c)/(t^(d-1))))/(rt+t)
-#   count = count+1
-# }
-# dur100 = times[which.max(ut100)]
-# p100 =  inv.logit(predict(p_alpha,data.frame(movedur=dur100,eff_mass=m)))
-# 
-# alpha1000    = 1000
-# ut1000 = rep(0,length(times))
-# count = 1
-# for (t in times){
-#   ut1000[count] = (alpha1000*probs[count]-a0*rt-(a*t+b*(m^c)/(t^(d-1))))/(rt+t)
-#   count = count+1
-# }
-# dur1000 = times[which.max(ut1000)]
-# p1000 =  inv.logit(predict(p_alpha,data.frame(movedur=dur1000,eff_mass=m)))
-# 
-# alpha5000    = 5000
-# ut5000 = rep(0,length(times))
-# count = 1
-# for (t in times){
-#   ut5000[count] = (alpha5000*probs[count]-a0*rt-(a*t+b*(m^c)/(t^(d-1))))/(rt+t)
-#   count = count+1
-# }
-# dur5000 = times[which.max(ut5000)]
-# p5000 =  inv.logit(predict(p_alpha,data.frame(movedur=dur5000,eff_mass=m)))
-# 
-# test_data = data.frame(cbind(c(rep(alpha100,length(times)),
-#                                rep(alpha1000,length(times)),
-#                                rep(alpha5000,length(times))),
-#                              c(times,times,times),
-#                              c((ut100+100)/max(ut100+100),
-#                                (ut1000+100)/(max(ut1000+100)),
-#                                (ut5000+100)/(max(ut5000+100)))))
-# 
-# colnames(test_data) = c('alpha','movedur','utility')
-# ggplot()+
-#   geom_line(data=filter(test_data),
-#             aes(x=movedur,
-#                 y=utility,
-#                 color=factor(alpha)),
-#             size = 2)+
-#   geom_segment(aes(x = times[which.max(ut100)],
-#                    y = 0,
-#                    xend = times[which.max(ut100)],
-#                    yend = 1))+
-#   annotate(geom = 'text',
-#            x = times[which.max(ut100)],
-#            y = 1.05,
-#            label = round(p100,4))+
-#   geom_segment(aes(x = times[which.max(ut1000)],
-#                    y = 0,
-#                    xend = times[which.max(ut1000)],
-#                    yend = 1))+
-#   annotate(geom = 'text',
-#            x = times[which.max(ut1000)],
-#            y = 1.1,
-#            label = round(p1000,4))+
-#   geom_segment(aes(x = times[which.max(ut5000)],
-#                    y = 0,
-#                    xend = times[which.max(ut5000)],
-#                    yend = 1))+
-#   annotate(geom = 'text',
-#            x = times[which.max(ut5000)],
-#            y = 1.15,
-#            label = round(p5000,4))+
-#   scale_y_continuous(expand = c(0, 0), limits = c(0, 1.20))+
-#   scale_x_continuous(expand = c(0, 0), limits = c(.3, 1.20))+
-#   labs(x='Movement Duration (s)',y='Utility',color='alpha',title='Experiment 2a')
-#   
-# 
-# inv.logit(predict(p_alpha,data.frame(movedur=util_dur_smallt_gross,eff_mass=masses)))
-
-# # More Test code
-# mvttimes = mvttimes_smallt
-# p_alpha  = met_smallt_p_glm
-# rxtimes  = rxtimes_smallt
-# 
-# alphas = exp(seq(1,20,.2))
-# 
-# dur = rep(0,length(alphas))
-# p = rep(0,length(alphas))
-# rew = rep(0,length(alphas))
-# eff = rep(0,length(alphas))
-# 
-# m = masses[1]
-# rt = rxtimes[1]
-# count = 1
-# times = seq(0.4,2,0.001)
-# probs = inv.logit(predict(p_alpha,data.frame(movedur=times,eff_mass=m)))
-# 
-# alph_c = 1
-# ut = matrix(,nrow = length(times), ncol = length(alphas))
-# for (alpha100 in alphas){
-#   count = 1
-#   for (t in times){
-#     ut[count,alph_c] = (alpha100*probs[count]-a0*rt-(a*t+b*(m^c)/(t^(d-1))))/(rt+t)
-#     count = count+1
-#   }
-#   dur[alph_c] = times[which.max(ut[,alph_c])]
-#   p[alph_c] =  inv.logit(predict(p_alpha,data.frame(movedur=dur[alph_c],eff_mass=m)))
-#   rew[alph_c] = (alpha100*p[alph_c])#/(rt+dur[alph_c])
-#   eff[alph_c] = a0*rt-(a*times[which.max(ut[,alph_c])]+b*(m^c)/(times[which.max(ut[,alph_c])]^(d-1)))
-#   alph_c = alph_c + 1
-# }
-# ut[ut<0] = 0
-# 
-# ut_col = c()
-# alph_col = c()
-# times_col = c()
-# dur_col = c()
-# for (k in c(1:length(alphas))){
-#   times_col = c(times_col,times)
-#   dur_col = c(dur_col,rep(dur[k],length(times)))
-#   ut_col = c(ut_col,ut[,k])
-#   alph_col = c(alph_col,rep(alphas[k],length(times)))
-#   eff_col = c(eff_col,rep(alphas[k],length(times)))
-# }
-# dataf = data.frame(times = times_col,
-#                    opt_dur = dur_col,
-#                    util = ut_col,
-#                    alph = alph_col)
-# dataf = filter(dataf,alph<5000)
-# 
-# ggplot(data = filter(aggregate(opt_dur ~ alph, dataf, mean),alph<5000))+geom_point(aes(x = opt_dur, y = alph))
-# 
-# ggplot(data = filter(dataf,alph<1000,alph>100))+geom_line(aes(x = times, y = util,color = factor(alph)))
-
 
 # Pilot stuff
 
@@ -5877,7 +5770,7 @@ rxtimes_smallt = aggregate(reaction_tanv~eff_mass,smalltdata,mean)$reaction_tanv
 #                       rxtimes    = c(rxtimes_pref,rxtimes_smallt),
 #                       opt_or_dur = 'optimize',
 #                       interval   = c(-100,200))
-# pref_p_glm smallt_p_glm
+# pref_glm_use smallt_glm_use
 
 # COMBINED UTILITY Gross
 # USING logit function
@@ -5888,8 +5781,8 @@ d=coef(MPGross_model)[4]
 alpha_pref_comb_gross=optimize(fun_optim_prx_logit_comb,
                       masses     = c(masses,masses),
                       mvttimes   = c(mvttimes_pref,mvttimes_smallt),
-                      glm1       = pref_p_glm,
-                      glm2       = smallt_p_glm,
+                      glm1       = pref_glm_use,
+                      glm2       = smallt_glm_use,
                       rxtimes    = c(rxtimes_pref,rxtimes_smallt),
                       opt_or_dur = 'optimize',
                       interval   = c(-100,200))
@@ -5901,8 +5794,8 @@ d=coef(MPGross_model)[4]
 util_dur_pref_alpha_comb_gross = as.numeric(fun_optim_prx_logit_comb(alpha_pref_comb_gross$minimum,
                                        masses     = c(masses,masses),
                                        mvttimes   = c(mvttimes_pref,mvttimes_smallt),
-                                       glm1       = pref_p_glm,
-                                       glm2       = smallt_p_glm,
+                                       glm1       = pref_glm_use,
+                                       glm2       = smallt_glm_use,
                                        opt_or_dur = 'duration',
                                        rxtimes    = c(rxtimes_pref,rxtimes_smallt)))
 
@@ -5916,8 +5809,8 @@ d=coef(MPNet_model)[4]
 alpha_pref_comb_net=optimize(fun_optim_prx_logit_comb,
                       masses     = c(masses,masses),
                       mvttimes   = c(mvttimes_pref,mvttimes_smallt),
-                      glm1       = pref_p_glm,
-                      glm2       = smallt_p_glm,
+                      glm1       = pref_glm_use,
+                      glm2       = smallt_glm_use,
                       rxtimes    = c(rxtimes_pref,rxtimes_smallt),
                       opt_or_dur = 'optimize',
                       interval   = c(-100,200))
@@ -5925,8 +5818,8 @@ alpha_pref_comb_net=optimize(fun_optim_prx_logit_comb,
 util_dur_pref_alpha_comb_net = as.numeric(fun_optim_prx_logit_comb(alpha_pref_comb_net$minimum,
                                        masses     = c(masses,masses),
                                        mvttimes   = c(mvttimes_pref,mvttimes_smallt),
-                                       glm1       = pref_p_glm,
-                                       glm2       = smallt_p_glm,
+                                       glm1       = pref_glm_use,
+                                       glm2       = smallt_glm_use,
                                        opt_or_dur = 'duration',
                                        rxtimes    = c(rxtimes_pref,rxtimes_smallt)))
 
@@ -5975,6 +5868,7 @@ p_alpha_plot <- ggplot()+
 
 ```
 
+
 ## Table for the coefficients in Utility Modeling
 We next fitted a utility model by altering $\alpha$ to try and predict the movement durations seen in 2a,b,c.
 
@@ -6021,9 +5915,9 @@ kable(reacttimes, caption = 'Reaction times by experiement and effective mass us
 ## Experimental Utility Fits
 ### 2a Alpha
 
-Table (\@ref(tab:utildurs2a)) shows the fitted values for alpha given the specific utility model and the parameters fit previously. These are only for experiment 2a.
+This table (\@ref(tab:utildurs2a)) shows the $\alpha$ value, predicted durations for the models, and the SSE between that and the experimental data. The SSE for all these models is shown in detail later (section \@ref{SSE2a}).
 
-```{r , echo = FALSE, warning = FALSE, message = FALSE}
+```{r utildurs2a, echo = FALSE, warning = FALSE, message = FALSE}
 tab1 = cbind(c(round(alpha_utility_net_rx$minimum,4)),
              c(round(alpha_utility_gross_rx$minimum,4)),
              c(round(alpha_torque_2a,4)),
@@ -6062,9 +5956,8 @@ colnames(tab2) = c('2a Experiment','Net Metabolic Power','Gross Metabolic power'
 <!--   kable(tab1, caption = 'Parameters used in the Utility modeling') -->
 <!-- ``` -->
 
-This table (\@ref(tab:utildurs2a)) shows the $\alpha$ value, predicted durations for the models, and the SSE between that and the experimental data. The SSE for all these models is shown in detail later (section \@ref{SSE2a}).
 
-```{r utildurs2a, echo = FALSE, warning = FALSE, message = FALSE}
+```{r , echo = FALSE, warning = FALSE, message = FALSE}
   kable(tab2, caption = 'Preferred duration and predicted durations for each model.')
 ```
 
@@ -6072,10 +5965,10 @@ The probability of success for utility in experiement 2a using the optimized alp
 
 ```{r optprobstab2a, echo = FALSE, warning = FALSE, message = FALSE}
   
-opt_probs = cbind(inv.logit(predict(pref_p_glm,data.frame(movedur=util_dur_net_rx,eff_mass=masses))),
-                  inv.logit(predict(pref_p_glm,data.frame(movedur=util_dur_gross_rx,eff_mass=masses))),
-                  inv.logit(predict(pref_p_glm,data.frame(movedur=torque_dur_2a,eff_mass=masses))),
-                  inv.logit(predict(pref_p_glm,data.frame(movedur=torque_mj_dur_2a,eff_mass=masses))))
+opt_probs = cbind(inv.logit(predict(pref_glm_use,data.frame(movedur=util_dur_net_rx,eff_mass=masses))),
+                  inv.logit(predict(pref_glm_use,data.frame(movedur=util_dur_gross_rx,eff_mass=masses))),
+                  inv.logit(predict(pref_glm_use,data.frame(movedur=torque_dur_2a,eff_mass=masses))),
+                  inv.logit(predict(pref_glm_use,data.frame(movedur=torque_mj_dur_2a,eff_mass=masses))))
 
 rownames(opt_probs) = masses
 colnames(opt_probs) = c('Utility Net','Utility Gross','Utility Torque','Utility Torque Mj')
@@ -6086,7 +5979,7 @@ kable(opt_probs, caption = 'Probability of success used in utility modeling when
 
 ### 2b Alpha
 
-Table (\@ref(tab:utildurs2b)) shows the fitted values for alpha given the specific utility model and the parameters fit previously. These are only for experiment 2b.
+This table (\@ref(tab:utildurs2b)) shows the $\alpha$ value, predicted durations for the models, and the SSE between that and the experimental data. The SSE for all these models is shown in detail later (section \@ref{SSE2b}).
 
 ```{r , echo = FALSE, warning = FALSE, message = FALSE}
 tab1 = cbind(c(round(alpha_smallt_net$minimum,4)),
@@ -6123,7 +6016,6 @@ colnames(tab2) = c('2b Experiment','Net Metabolic Power','Gross Metabolic power'
 
 ```
 
-This table (\@ref(tab:utildurs2a)) shows the $\alpha$ value, predicted durations for the models, and the SSE between that and the experimental data. The SSE for all these models is shown in detail later (section \@ref{SSE2b}).
 
 ```{r utildurs2b, echo = FALSE, warning = FALSE, message = FALSE}
   kable(tab2, caption = 'Preferred duration and predicted durations for each model.')
@@ -6133,10 +6025,10 @@ The probability of success for utility in experiement 2b using the optimized alp
 
 ```{r optprobstab2b, echo = FALSE, warning = FALSE, message = FALSE}
   
-opt_probs = cbind(inv.logit(predict(smallt_p_glm,data.frame(movedur=util_dur_smallt_net,eff_mass=masses))),
-                  inv.logit(predict(smallt_p_glm,data.frame(movedur=util_dur_smallt_gross,eff_mass=masses))),
-                  inv.logit(predict(smallt_p_glm,data.frame(movedur=torque_dur_2b,eff_mass=masses))),
-                  inv.logit(predict(smallt_p_glm,data.frame(movedur=torque_mj_dur_2b,eff_mass=masses))))
+opt_probs = cbind(inv.logit(predict(smallt_glm_use,data.frame(movedur=util_dur_smallt_net,eff_mass=masses))),
+                  inv.logit(predict(smallt_glm_use,data.frame(movedur=util_dur_smallt_gross,eff_mass=masses))),
+                  inv.logit(predict(smallt_glm_use,data.frame(movedur=torque_dur_2b,eff_mass=masses))),
+                  inv.logit(predict(smallt_glm_use,data.frame(movedur=torque_mj_dur_2b,eff_mass=masses))))
 
 rownames(opt_probs) = masses
 colnames(opt_probs) = c('Utility Net','Utility Gross','Utility Torque','Utility Torque Mj')
@@ -6147,7 +6039,7 @@ kable(opt_probs, caption = 'Probability of success used in utility modeling when
 
 ### 2c Alpha
 
-Table (\@ref(tab:utildurs2c)) shows the fitted values for alpha given the specific utility model and the parameters fit previously. These are only for experiment 2c.
+This table (\@ref(tab:utildurs2c)) shows the $\alpha$ value, predicted durations for the models, and the SSE between that and the experimental data. The SSE for all these models is shown in detail later (section \@ref{SSE2b}).
 
 ```{r , echo = FALSE, warning = FALSE, message = FALSE}
 tab1 = cbind(c(round(alpha_pilot_net$minimum,4)),
@@ -6191,8 +6083,6 @@ colnames(tab2) = c('2c Experiment','Net Metabolic Power','Gross Metabolic power'
 ```
 
 
-This table (\@ref(tab:utildurs2c)) shows the $\alpha$ value, predicted durations for the models, and the SSE between that and the experimental data. The SSE for all these models is shown in detail later (section \@ref{SSE2b}).
-
 ```{r utildurs2c, echo = FALSE, warning = FALSE, message = FALSE}
   kable(tab2, caption = 'Preferred duration and predicted durations for each model.')
 ```
@@ -6233,7 +6123,7 @@ kable(opt_probs, caption = 'Probability of success used in utility modeling when
 <!-- util_2b_from_2a = optimize(fun_optim_prx_logit, -->
 <!--                            masses = masses, -->
 <!--                            mvttimes = mvttimes, -->
-<!--                            p_alpha  = met_p_glm, -->
+<!--                            p_alpha  = pref_glm_use, -->
 <!--                            rxtimes = rxtimes, -->
 <!--                            opt_or_dur = 'optimize', -->
 <!--                            interval=c(-100,300)) -->
@@ -6241,7 +6131,7 @@ kable(opt_probs, caption = 'Probability of success used in utility modeling when
 <!-- util_dur_2b_from_2a = as.numeric(fun_optim_prx_logit(util_2b_from_2a$minimum, -->
 <!--                                        masses = masses, -->
 <!--                                        mvttimes = mvttimes_smallt, -->
-<!--                                        p_alpha  = met_smallt_p_glm, -->
+<!--                                        p_alpha  = smallt_glm_use, -->
 <!--                                        opt_or_dur = 'duration', -->
 <!--                                        rxtimes = rxtimes_smallt)) -->
 
@@ -6268,9 +6158,9 @@ The total SSE for all 3 is `r formatC(sum((mvttimes_pref -util_dur_pref_alpha_co
 
 ```{r, echo = FALSE, warning = FALSE}
 
-comb_ut_probtab = cbind(round(inv.logit(predict(pref_p_glm,
+comb_ut_probtab = cbind(round(inv.logit(predict(pref_glm_use,
                                                 data.frame(movedur=util_dur_pref_alpha_comb_gross[1:4],eff_mass=masses))),4),
-                        round(inv.logit(predict(smallt_p_glm,
+                        round(inv.logit(predict(smallt_glm_use,
                                                 data.frame(movedur=util_dur_pref_alpha_comb_gross[5:8],eff_mass=masses))),4),
                         c(1,1,1,1))
 colnames(comb_ut_probtab) = c('2a','2b','2c')
@@ -6899,7 +6789,7 @@ kable(Model_SSE, caption = 'Exp 2a - Sum squared errors for movement duration an
 
 #### Normalized
 ```{r, echo = FALSE, warning = FALSE}
-# Noramlzied version
+# Normalzied version
 Model_SSE_movedur_norm = c()
 Model_AIC_movedur_norm = c()
 Model_BIC_movedur_norm = c()
@@ -9483,7 +9373,7 @@ Model_SSE_norm = filter(Model_SSE_norm,
                         model!='m1',
                         model!='Util_gross',
                         model!='Util_net')
-
+  
 Model_SSE_norm$model = c('Accuracy Prob',
                     'Met Cost Gross',
                     'Met Cost Net',
