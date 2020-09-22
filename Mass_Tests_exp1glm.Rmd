@@ -6347,7 +6347,7 @@ model_plotting <- function(variable,label,temp_durs,errbar,cs,normalized){
     shapes = c(0,2,5,19,6,9,11,12)
   }
   if (normalized == 0){
-    
+
     if (cs=='shape'){
       string = paste('g <- ggplot()+
         geom_line(data=filter(temp_durs,model!=\'Pref\'),
@@ -6385,9 +6385,9 @@ model_plotting <- function(variable,label,temp_durs,errbar,cs,normalized){
               axis.text.x = element_text(size = 15),
               axis.text.y = element_text(size = 15),
               legend.text.align = 0)',sep = '')
-      
+
     }
-  
+
     if (cs == 'color'){
       string = paste('g <- ggplot()+
         geom_line(data=temp_durs,aes(x=eff_mass,
@@ -6420,9 +6420,9 @@ model_plotting <- function(variable,label,temp_durs,errbar,cs,normalized){
               axis.text.y = element_text(size = 15),
               legend.text.align = 0)',sep = '')
     }
-    
+
   } else {
-    
+
     if (cs=='shape'){
       string = paste('g <- ggplot()+
         geom_line(data=filter(temp_durs,model!=\'Pref\'),aes(x=eff_mass,
@@ -6460,9 +6460,9 @@ model_plotting <- function(variable,label,temp_durs,errbar,cs,normalized){
               legend.text.align = 0)+
         coord_cartesian(ylim=c(min(filter(temp_durs,model!=\'torque2\')$',variable,')*.99,
                         max(filter(temp_durs,model!=\'torque2\')$',variable,')*1.01))',sep = '')
-      
+
     }
-  
+
     if (cs == 'color'){
       string = paste('g <- ggplot()+
         geom_line(data=temp_durs,aes(x=eff_mass,
@@ -6491,7 +6491,7 @@ model_plotting <- function(variable,label,temp_durs,errbar,cs,normalized){
         coord_cartesian(ylim=c(min(filter(temp_durs,model!=\'torque2\')$',variable,')*.99,
                         max(filter(temp_durs,model!=\'torque2\')$',variable,')*1.01))',sep = '')
     }
-    
+
   }
   eval(parse(text = string))
   return(g)
@@ -6583,18 +6583,18 @@ min_jerk_vel <- function(tm){
   ro = 0
   rf = 0.1
   dt=0.001
-  
+
   tme=seq(0,tm,dt)
   ts=tme/tm
-  
+
   t2=ts*ts
   t3=t2*ts
   t4=t3*ts
   t5=t4*ts
-  
+
   v=((60*t3-30*t4-30*t2)/tm)*(ro-rf)
   return(max(v))
-} 
+}
 
 t <- seq(0, 0.66, 0.01)
 
@@ -6711,24 +6711,24 @@ for (model1 in models_SSE){
   } else {
     n_params = 0
   }
-  
+
   model_movedur_temp1 = filter(model_durs,model==model1)$movedur
   model_movedur_temp2 = filter(model_durs,model=='Pref')$movedur
   SSE = sum((model_movedur_temp1-model_movedur_temp2)^2)
   Model_SSE_movedur = rbind(Model_SSE_movedur,SSE)
-  
+
   Model_AIC_movedur = c(Model_AIC_movedur, 4*log(SSE)-4*log(4)+2*(n_params+1))
   Model_BIC_movedur = c(Model_BIC_movedur, 4*log(SSE)-4*log(4)+log(4)*(n_params+1))
-  
+
   model_peakvel_temp1 = filter(model_vels,model==model1)$peakvel
   model_peakvel_temp2 = filter(model_vels,model=='Pref')$peakvel
   SSE = sum((model_peakvel_temp1-model_peakvel_temp2)^2)
   Model_SSE_peakvel = rbind(Model_SSE_peakvel,SSE)
   # Model_SSE_colnames = rbind(Model_SSE_colnames,model1)
-  
+
   Model_AIC_peakvel = c(Model_AIC_peakvel, 4*log(SSE)-4*log(4)+2*(n_params+1))
   Model_BIC_peakvel = c(Model_BIC_peakvel, 4*log(SSE)-4*log(4)+log(4)*(n_params+1))
-  
+
 }
 
 Model_SSE_movedur = formatC(Model_SSE_movedur,format = 'e', digits = 3)
@@ -6805,24 +6805,24 @@ for (model1 in models_SSE){
   } else {
     n_params = 0
   }
-  
+
   model_movedur_temp1_norm = filter(model_durs,model==model1)$norm_durs
   model_movedur_temp2_norm = filter(model_durs,model=='Pref')$norm_durs
   SSE = sum((model_movedur_temp1_norm-model_movedur_temp2_norm)^2)
   Model_SSE_movedur_norm = rbind(Model_SSE_movedur_norm,SSE)
-  
+
   Model_AIC_movedur_norm = c(Model_AIC_movedur_norm, 4*log(SSE)-4*log(4)+2*(n_params+1))
   Model_BIC_movedur_norm = c(Model_BIC_movedur_norm, 4*log(SSE)-4*log(4)+log(4)*(n_params+1))
-  
+
   model_peakvel_temp1_norm = filter(model_vels,model==model1)$norm_vels
   model_peakvel_temp2_norm = filter(model_vels,model=='Pref')$norm_vels
   SSE = sum((model_peakvel_temp1_norm-model_peakvel_temp2_norm)^2)
   Model_SSE_peakvel_norm = rbind(Model_SSE_peakvel_norm,SSE)
   # Model_SSE_colnames = rbind(Model_SSE_colnames,model1)
-  
+
   Model_AIC_peakvel_norm = c(Model_AIC_peakvel_norm, 4*log(SSE)-4*log(4)+2*(n_params+1))
   Model_BIC_peakvel_norm = c(Model_BIC_peakvel_norm, 4*log(SSE)-4*log(4)+log(4)*(n_params+1))
-  
+
 }
 Model_SSE_movedur_norm = formatC(Model_SSE_movedur_norm,format = 'e', digits = 3)
 Model_SSE_peakvel_norm = formatC(Model_SSE_peakvel_norm,format = 'e', digits = 3)
@@ -7096,24 +7096,24 @@ for (model1 in models_SSE){
   } else {
     n_params = 0
   }
-  
+
   model_movedur_temp1 = filter(model_durs,model==model1)$movedur
   model_movedur_temp2 = aggregate(movedur~eff_mass,smalltdata,mean)$movedur
   SSE = sum((model_movedur_temp1-model_movedur_temp2)^2)
   Model_SSE_movedur = rbind(Model_SSE_movedur,SSE)
-  
+
   Model_AIC_movedur = c(Model_AIC_movedur, 4*log(SSE)-4*log(4)+2*(n_params+1))
   Model_BIC_movedur = c(Model_BIC_movedur, 4*log(SSE)-4*log(4)+log(4)*(n_params+1))
-  
+
   model_peakvel_temp1 = filter(model_vels,model==model1)$peakvel
   model_peakvel_temp2 = aggregate(peakvel_target~eff_mass,smalltdata,mean)$peakvel_target
   SSE = sum((model_peakvel_temp1-model_peakvel_temp2)^2)
   Model_SSE_peakvel = rbind(Model_SSE_peakvel,SSE)
   # Model_SSE_colnames = rbind(Model_SSE_colnames,model1)
-  
+
   Model_AIC_peakvel = c(Model_AIC_peakvel, 4*log(SSE)-4*log(4)+2*(n_params+1))
   Model_BIC_peakvel = c(Model_BIC_peakvel, 4*log(SSE)-4*log(4)+log(4)*(n_params+1))
-  
+
 }
 
 Model_SSE_movedur = formatC(Model_SSE_movedur,format = 'e', digits = 3)
@@ -7190,24 +7190,24 @@ for (model1 in models_SSE){
   } else {
     n_params = 0
   }
-  
+
   model_movedur_temp1_norm = filter(model_durs,model==model1)$norm_durs
   model_movedur_temp2_norm = aggregate(movedur~eff_mass,smalltdata,mean)$movedur/aggregate(movedur~eff_mass,smalltdata,mean)$movedur[1]
   SSE = sum((model_movedur_temp1_norm-model_movedur_temp2_norm)^2)
   Model_SSE_movedur_norm = rbind(Model_SSE_movedur_norm,SSE)
-  
+
   Model_AIC_movedur_norm = c(Model_AIC_movedur_norm, 4*log(SSE)-4*log(4)+2*(n_params+1))
   Model_BIC_movedur_norm = c(Model_BIC_movedur_norm, 4*log(SSE)-4*log(4)+log(4)*(n_params+1))
-  
+
   model_peakvel_temp1_norm = filter(model_vels,model==model1)$norm_vels
   model_peakvel_temp2_norm = aggregate(peakvel_target~eff_mass,smalltdata,mean)$movedur/aggregate(peakvel_target~eff_mass,smalltdata,mean)$peakvel_target[1]
   SSE = sum((model_peakvel_temp1_norm-model_peakvel_temp2_norm)^2)
   Model_SSE_peakvel_norm = rbind(Model_SSE_peakvel_norm,SSE)
   # Model_SSE_colnames = rbind(Model_SSE_colnames,model1)
-  
+
   Model_AIC_peakvel_norm = c(Model_AIC_peakvel_norm, 4*log(SSE)-4*log(4)+2*(n_params+1))
   Model_BIC_peakvel_norm = c(Model_BIC_peakvel_norm, 4*log(SSE)-4*log(4)+log(4)*(n_params+1))
-  
+
 }
 Model_SSE_movedur_norm = formatC(Model_SSE_movedur_norm,format = 'e', digits = 3)
 Model_SSE_peakvel_norm = formatC(Model_SSE_peakvel_norm,format = 'e', digits = 3)
@@ -7285,24 +7285,24 @@ for (model1 in models_SSE){
   } else {
     n_params = 0
   }
-  
+
   model_movedur_temp1 = filter(model_durs,model==model1)$movedur
   model_movedur_temp2 = aggregate(movedur~eff_mass,pilotdata,mean)$movedur
   SSE = sum((model_movedur_temp1-model_movedur_temp2)^2)
   Model_SSE_movedur = rbind(Model_SSE_movedur,SSE)
-  
+
   Model_AIC_movedur = c(Model_AIC_movedur, 4*log(SSE)-4*log(4)+2*(n_params+1))
   Model_BIC_movedur = c(Model_BIC_movedur, 4*log(SSE)-4*log(4)+log(4)*(n_params+1))
-  
+
   model_peakvel_temp1 = filter(model_vels,model==model1)$peakvel
   model_peakvel_temp2 = aggregate(peakvel_target~eff_mass,pilotdata,mean)$peakvel_target
   SSE = sum((model_peakvel_temp1-model_peakvel_temp2)^2)
   Model_SSE_peakvel = rbind(Model_SSE_peakvel,SSE)
   # Model_SSE_colnames = rbind(Model_SSE_colnames,model1)
-  
+
   Model_AIC_peakvel = c(Model_AIC_peakvel, 4*log(SSE)-4*log(4)+2*(n_params+1))
   Model_BIC_peakvel = c(Model_BIC_peakvel, 4*log(SSE)-4*log(4)+log(4)*(n_params+1))
-  
+
 }
 
 Model_SSE_movedur = formatC(Model_SSE_movedur,format = 'e', digits = 3)
@@ -7380,24 +7380,24 @@ for (model1 in models_SSE){
   } else {
     n_params = 0
   }
-  
+
   model_movedur_temp1_norm = filter(model_durs,model==model1)$norm_durs
   model_movedur_temp2_norm = aggregate(movedur~eff_mass,pilotdata,mean)$movedur/aggregate(movedur~eff_mass,pilotdata,mean)$movedur[1]
   SSE = sum((model_movedur_temp1_norm-model_movedur_temp2_norm)^2)
   Model_SSE_movedur_norm = rbind(Model_SSE_movedur_norm,SSE)
-  
+
   Model_AIC_movedur_norm = c(Model_AIC_movedur_norm, 4*log(SSE)-4*log(4)+2*(n_params+1))
   Model_BIC_movedur_norm = c(Model_BIC_movedur_norm, 4*log(SSE)-4*log(4)+log(4)*(n_params+1))
-  
+
   model_peakvel_temp1_norm = filter(model_vels,model==model1)$norm_vels
   model_peakvel_temp2_norm = aggregate(peakvel_target~eff_mass,pilotdata,mean)$movedur/aggregate(peakvel_target~eff_mass,pilotdata,mean)$peakvel_target[1]
   SSE = sum((model_peakvel_temp1_norm-model_peakvel_temp2_norm)^2)
   Model_SSE_peakvel_norm = rbind(Model_SSE_peakvel_norm,SSE)
   # Model_SSE_colnames = rbind(Model_SSE_colnames,model1)
-  
+
   Model_AIC_peakvel_norm = c(Model_AIC_peakvel_norm, 4*log(SSE)-4*log(4)+2*(n_params+1))
   Model_BIC_peakvel_norm = c(Model_BIC_peakvel_norm, 4*log(SSE)-4*log(4)+log(4)*(n_params+1))
-  
+
 }
 Model_SSE_movedur_norm = formatC(Model_SSE_movedur_norm,format = 'e', digits = 3)
 Model_SSE_peakvel_norm = formatC(Model_SSE_peakvel_norm,format = 'e', digits = 3)
@@ -7472,7 +7472,7 @@ model_durs = data.frame('eff_mass' = cbind(rep(masses,13)),
                                     # Change here for 2a/b/c
                                     rep('util_dur_smallt_gross',4),
                                     rep('util_dur_smallt_net',4),
-  
+
                                     rep('Util_comb_alpha_gross',4),
                                     rep('Util_comb_alpha_net',4),
                                     rep('m1',4),
@@ -7487,7 +7487,7 @@ model_durs = data.frame('eff_mass' = cbind(rep(masses,13)),
                                      # Change here for 2a/b/c
                                      util_dur_smallt_gross,
                                      util_dur_smallt_net,
-  
+
                                      util_dur_pref_alpha_comb_gross[1:4],
                                      util_dur_pref_alpha_comb_net[1:4],
                                      m1_dur,
@@ -7543,18 +7543,18 @@ min_jerk_vel <- function(tm){
   ro = 0
   rf = 0.1
   dt=0.001
-  
+
   tme=seq(0,tm,dt)
   ts=tme/tm
-  
+
   t2=ts*ts
   t3=t2*ts
   t4=t3*ts
   t5=t4*ts
-  
+
   v=((60*t3-30*t4-30*t2)/tm)*(ro-rf)
   return(max(v))
-} 
+}
 
 t <- seq(0, 0.66, 0.01)
 
@@ -7578,7 +7578,7 @@ for (c in 1:4){
   # Change here for 2a/b/c
   util_peakvel_gross_rx[c] = min_jerk_vel(util_dur_smallt_gross[c])
   util_peakvel_net_rx[c] = min_jerk_vel(util_dur_smallt_net[c])
-  
+
   util_peakvel_comb_alpha_gross[c] = min_jerk_vel(util_dur_pref_alpha_comb_gross[c])
   util_peakvel_comb_alpha_net[c] = min_jerk_vel(util_dur_pref_alpha_comb_net[c])
   m1_peakvel[c] = min_jerk_vel(m1_dur[c])
@@ -7597,7 +7597,7 @@ model_vels = data.frame('eff_mass' = cbind(rep(masses,13)),
                                     # Change here for 2a/b/c
                                     rep('util_dur_smallt_gross',4),
                                     rep('util_dur_smallt_net',4),
-                                    
+
                                     rep('Util_comb_alpha_gross',4),
                                     rep('Util_comb_alpha_net',4),
                                     rep('m1',4),
@@ -7611,7 +7611,7 @@ model_vels = data.frame('eff_mass' = cbind(rep(masses,13)),
                                       util_peakvel_net,
                                       util_peakvel_gross_rx,
                                       util_peakvel_net_rx,
-                                      
+
                                       util_peakvel_comb_alpha_gross,
                                       util_peakvel_comb_alpha_net,
                                       m1_peakvel,
@@ -7678,26 +7678,26 @@ for (model1 in models_SSE){
   } else {
     n_params = 0
   }
-  
+
   model_movedur_temp1 = filter(model_durs,model==model1)$movedur
   # Change here for 2a/b/c
   model_movedur_temp2 = filter(model_durs,model=='Smallt')$movedur
   SSE = sum((model_movedur_temp1-model_movedur_temp2)^2)
   Model_SSE_movedur = rbind(Model_SSE_movedur,SSE)
-  
+
   Model_AIC_movedur = c(Model_AIC_movedur, 4*log(SSE)-4*log(4)+2*(n_params+1))
   Model_BIC_movedur = c(Model_BIC_movedur, 4*log(SSE)-4*log(4)+log(4)*(n_params+1))
-  
+
   model_peakvel_temp1 = filter(model_vels,model==model1)$peakvel
   # Change here for 2a/b/c
   model_peakvel_temp2 = filter(model_vels,model=='Smallt')$peakvel
   SSE = sum((model_peakvel_temp1-model_peakvel_temp2)^2)
   Model_SSE_peakvel = rbind(Model_SSE_peakvel,SSE)
   # Model_SSE_colnames = rbind(Model_SSE_colnames,model1)
-  
+
   Model_AIC_peakvel = c(Model_AIC_peakvel, 4*log(SSE)-4*log(4)+2*(n_params+1))
   Model_BIC_peakvel = c(Model_BIC_peakvel, 4*log(SSE)-4*log(4)+log(4)*(n_params+1))
-  
+
 }
 
 Model_SSE_movedur = formatC(Model_SSE_movedur,format = 'e', digits = 3)
@@ -7778,26 +7778,26 @@ for (model1 in models_SSE){
   } else {
     n_params = 0
   }
-  
+
   model_movedur_temp1_norm = filter(model_durs,model==model1)$norm_durs
   # Change here for 2a/b/c
   model_movedur_temp2_norm = filter(model_durs,model=='Smallt')$norm_durs
   SSE = sum((model_movedur_temp1_norm-model_movedur_temp2_norm)^2)
   Model_SSE_movedur_norm = rbind(Model_SSE_movedur_norm,SSE)
-  
+
   Model_AIC_movedur_norm = c(Model_AIC_movedur_norm, 4*log(SSE)-4*log(4)+2*(n_params+1))
   Model_BIC_movedur_norm = c(Model_BIC_movedur_norm, 4*log(SSE)-4*log(4)+log(4)*(n_params+1))
-  
+
   model_peakvel_temp1_norm = filter(model_vels,model==model1)$norm_vels
   # Change here for 2a/b/c
   model_peakvel_temp2_norm = filter(model_vels,model=='Smallt')$norm_vels
   SSE = sum((model_peakvel_temp1_norm-model_peakvel_temp2_norm)^2)
   Model_SSE_peakvel_norm = rbind(Model_SSE_peakvel_norm,SSE)
   # Model_SSE_colnames = rbind(Model_SSE_colnames,model1)
-  
+
   Model_AIC_peakvel_norm = c(Model_AIC_peakvel_norm, 4*log(SSE)-4*log(4)+2*(n_params+1))
   Model_BIC_peakvel_norm = c(Model_BIC_peakvel_norm, 4*log(SSE)-4*log(4)+log(4)*(n_params+1))
-  
+
 }
 Model_SSE_movedur_norm = formatC(Model_SSE_movedur_norm,format = 'e', digits = 3)
 Model_SSE_peakvel_norm = formatC(Model_SSE_peakvel_norm,format = 'e', digits = 3)
@@ -8057,25 +8057,25 @@ for (model1 in models_SSE){
   } else {
     n_params = 0
   }
-  
+
   model_movedur_temp1 = filter(model_durs,model==model1)$movedur
   # Change here for 2a/b/c
   model_movedur_temp2 = aggregate(movedur~eff_mass,prefdata,mean)$movedur
   SSE = sum((model_movedur_temp1-model_movedur_temp2)^2)
   Model_SSE_movedur = rbind(Model_SSE_movedur,SSE)
-  
+
   Model_AIC_movedur = c(Model_AIC_movedur, 4*log(SSE)-4*log(4)+2*(n_params+1))
   Model_BIC_movedur = c(Model_BIC_movedur, 4*log(SSE)-4*log(4)+log(4)*(n_params+1))
-  
+
   model_peakvel_temp1 = filter(model_vels,model==model1)$peakvel
   # Change here for 2a/b/c
   model_peakvel_temp2 = aggregate(peakvel_target~eff_mass,prefdata,mean)$peakvel_target
   SSE = sum((model_peakvel_temp1-model_peakvel_temp2)^2)
   Model_SSE_peakvel = rbind(Model_SSE_peakvel,SSE)
-  
+
   Model_AIC_peakvel = c(Model_AIC_peakvel, 4*log(SSE)-4*log(4)+2*(n_params+1))
   Model_BIC_peakvel = c(Model_BIC_peakvel, 4*log(SSE)-4*log(4)+log(4)*(n_params+1))
-  
+
 }
 
 Model_SSE_movedur = formatC(Model_SSE_movedur,format = 'e', digits = 3)
@@ -8154,26 +8154,26 @@ for (model1 in models_SSE){
   } else {
     n_params = 0
   }
-  
+
   model_movedur_temp1_norm = filter(model_durs,model==model1)$norm_durs
   # Change here for 2a/b/c
   model_movedur_temp2_norm = aggregate(movedur~eff_mass,prefdata,mean)$movedur/aggregate(movedur~eff_mass,prefdata,mean)$movedur[1]
   SSE = sum((model_movedur_temp1_norm-model_movedur_temp2_norm)^2)
   Model_SSE_movedur_norm = rbind(Model_SSE_movedur_norm,SSE)
-  
+
   Model_AIC_movedur_norm = c(Model_AIC_movedur_norm, 4*log(SSE)-4*log(4)+2*(n_params+1))
   Model_BIC_movedur_norm = c(Model_BIC_movedur_norm, 4*log(SSE)-4*log(4)+log(4)*(n_params+1))
-  
+
   model_peakvel_temp1_norm = filter(model_vels,model==model1)$norm_vels
   # Change here for 2a/b/c
   model_peakvel_temp2_norm = aggregate(peakvel_target~eff_mass,prefdata,mean)$peakvel_target/aggregate(peakvel_target~eff_mass,prefdata,mean)$peakvel_target[1]
   SSE = sum((model_peakvel_temp1_norm-model_peakvel_temp2_norm)^2)
   Model_SSE_peakvel_norm = rbind(Model_SSE_peakvel_norm,SSE)
   # Model_SSE_colnames = rbind(Model_SSE_colnames,model1)
-  
+
   Model_AIC_peakvel_norm = c(Model_AIC_peakvel_norm, 4*log(SSE)-4*log(4)+2*(n_params+1))
   Model_BIC_peakvel_norm = c(Model_BIC_peakvel_norm, 4*log(SSE)-4*log(4)+log(4)*(n_params+1))
-  
+
 }
 Model_SSE_movedur_norm = formatC(Model_SSE_movedur_norm,format = 'e', digits = 3)
 Model_SSE_peakvel_norm = formatC(Model_SSE_peakvel_norm,format = 'e', digits = 3)
@@ -8251,26 +8251,26 @@ for (model1 in models_SSE){
   } else {
     n_params = 0
   }
-  
+
   model_movedur_temp1 = filter(model_durs,model==model1)$movedur
   # Change here for 2a/b/c
   model_movedur_temp2 = aggregate(movedur~eff_mass,pilotdata,mean)$movedur
   SSE = sum((model_movedur_temp1-model_movedur_temp2)^2)
   Model_SSE_movedur = rbind(Model_SSE_movedur,SSE)
-  
+
   Model_AIC_movedur = c(Model_AIC_movedur, 4*log(SSE)-4*log(4)+2*(n_params+1))
   Model_BIC_movedur = c(Model_BIC_movedur, 4*log(SSE)-4*log(4)+log(4)*(n_params+1))
-  
+
   model_peakvel_temp1 = filter(model_vels,model==model1)$peakvel
   # Change here for 2a/b/c
   model_peakvel_temp2 = aggregate(peakvel_target~eff_mass,pilotdata,mean)$peakvel_target
   SSE = sum((model_peakvel_temp1-model_peakvel_temp2)^2)
   Model_SSE_peakvel = rbind(Model_SSE_peakvel,SSE)
   # Model_SSE_colnames = rbind(Model_SSE_colnames,model1)
-  
+
   Model_AIC_peakvel = c(Model_AIC_peakvel, 4*log(SSE)-4*log(4)+2*(n_params+1))
   Model_BIC_peakvel = c(Model_BIC_peakvel, 4*log(SSE)-4*log(4)+log(4)*(n_params+1))
-  
+
 }
 
 Model_SSE_movedur = formatC(Model_SSE_movedur,format = 'e', digits = 3)
@@ -8349,26 +8349,26 @@ for (model1 in models_SSE){
   } else {
     n_params = 0
   }
-  
+
   model_movedur_temp1_norm = filter(model_durs,model==model1)$norm_durs
   # Change here for 2a/b/c
   model_movedur_temp2_norm = aggregate(movedur~eff_mass,pilotdata,mean)$movedur/aggregate(movedur~eff_mass,pilotdata,mean)$movedur[1]
   SSE = sum((model_movedur_temp1_norm-model_movedur_temp2_norm)^2)
   Model_SSE_movedur_norm = rbind(Model_SSE_movedur_norm,SSE)
-  
+
   Model_AIC_movedur_norm = c(Model_AIC_movedur_norm, 4*log(SSE)-4*log(4)+2*(n_params+1))
   Model_BIC_movedur_norm = c(Model_BIC_movedur_norm, 4*log(SSE)-4*log(4)+log(4)*(n_params+1))
-  
+
   model_peakvel_temp1_norm = filter(model_vels,model==model1)$norm_vels
   # Change here for 2a/b/c
   model_peakvel_temp2_norm = aggregate(peakvel_target~eff_mass,pilotdata,mean)$peakvel_target/aggregate(peakvel_target~eff_mass,pilotdata,mean)$peakvel_target[1]
   SSE = sum((model_peakvel_temp1_norm-model_peakvel_temp2_norm)^2)
   Model_SSE_peakvel_norm = rbind(Model_SSE_peakvel_norm,SSE)
   # Model_SSE_colnames = rbind(Model_SSE_colnames,model1)
-  
+
   Model_AIC_peakvel_norm = c(Model_AIC_peakvel_norm, 4*log(SSE)-4*log(4)+2*(n_params+1))
   Model_BIC_peakvel_norm = c(Model_BIC_peakvel_norm, 4*log(SSE)-4*log(4)+log(4)*(n_params+1))
-  
+
 }
 Model_SSE_movedur_norm = formatC(Model_SSE_movedur_norm,format = 'e', digits = 3)
 Model_SSE_peakvel_norm = formatC(Model_SSE_peakvel_norm,format = 'e', digits = 3)
@@ -8444,7 +8444,7 @@ model_durs = data.frame('eff_mass' = cbind(rep(masses,13)),
                                     # Change here for 2a/b/c
                                     rep('util_dur_pilot_gross',4),
                                     rep('util_dur_pilot_net',4),
-  
+
                                     rep('Util_comb_alpha_gross',4),
                                     rep('Util_comb_alpha_net',4),
                                     rep('m1',4),
@@ -8459,7 +8459,7 @@ model_durs = data.frame('eff_mass' = cbind(rep(masses,13)),
                                      # Change here for 2a/b/c
                                      util_dur_pilot_gross,
                                      util_dur_pilot_net,
-  
+
                                      util_dur_pref_alpha_comb_gross[1:4],
                                      util_dur_pref_alpha_comb_net[1:4],
                                      m1_dur,
@@ -8515,18 +8515,18 @@ min_jerk_vel <- function(tm){
   ro = 0
   rf = 0.1
   dt=0.001
-  
+
   tme=seq(0,tm,dt)
   ts=tme/tm
-  
+
   t2=ts*ts
   t3=t2*ts
   t4=t3*ts
   t5=t4*ts
-  
+
   v=((60*t3-30*t4-30*t2)/tm)*(ro-rf)
   return(max(v))
-} 
+}
 
 t <- seq(0, 0.66, 0.01)
 
@@ -8550,7 +8550,7 @@ for (c in 1:4){
   # Change here for 2a/b/c
   util_peakvel_gross_rx[c] = min_jerk_vel(util_dur_pilot_gross[c])
   util_peakvel_net_rx[c] = min_jerk_vel(util_dur_pilot_net[c])
-  
+
   util_peakvel_comb_alpha_gross[c] = min_jerk_vel(util_dur_pref_alpha_comb_gross[c])
   util_peakvel_comb_alpha_net[c] = min_jerk_vel(util_dur_pref_alpha_comb_net[c])
   m1_peakvel[c] = min_jerk_vel(m1_dur[c])
@@ -8648,26 +8648,26 @@ for (model1 in models_SSE){
   } else {
     n_params = 0
   }
-  
+
   model_movedur_temp1 = filter(model_durs,model==model1)$movedur
   # Change here for 2a/b/c
   model_movedur_temp2 = filter(model_durs,model=='Pilot')$movedur
   SSE = sum((model_movedur_temp1-model_movedur_temp2)^2)
   Model_SSE_movedur = rbind(Model_SSE_movedur,SSE)
-  
+
   Model_AIC_movedur = c(Model_AIC_movedur, 4*log(SSE)-4*log(4)+2*(n_params+1))
   Model_BIC_movedur = c(Model_BIC_movedur, 4*log(SSE)-4*log(4)+log(4)*(n_params+1))
-  
+
   model_peakvel_temp1 = filter(model_vels,model==model1)$peakvel
   # Change here for 2a/b/c
   model_peakvel_temp2 = filter(model_vels,model=='Pilot')$peakvel
   SSE = sum((model_peakvel_temp1-model_peakvel_temp2)^2)
   Model_SSE_peakvel = rbind(Model_SSE_peakvel,SSE)
   # Model_SSE_colnames = rbind(Model_SSE_colnames,model1)
-  
+
   Model_AIC_peakvel = c(Model_AIC_peakvel, 4*log(SSE)-4*log(4)+2*(n_params+1))
   Model_BIC_peakvel = c(Model_BIC_peakvel, 4*log(SSE)-4*log(4)+log(4)*(n_params+1))
-  
+
 }
 
 Model_SSE_movedur = formatC(Model_SSE_movedur,format = 'e', digits = 3)
@@ -8748,26 +8748,26 @@ for (model1 in models_SSE){
   } else {
     n_params = 0
   }
-  
+
   model_movedur_temp1_norm = filter(model_durs,model==model1)$norm_durs
   # Change here for 2a/b/c
   model_movedur_temp2_norm = filter(model_durs,model=='Pilot')$norm_durs
   SSE = sum((model_movedur_temp1_norm-model_movedur_temp2_norm)^2)
   Model_SSE_movedur_norm = rbind(Model_SSE_movedur_norm,SSE)
-  
+
   Model_AIC_movedur_norm = c(Model_AIC_movedur_norm, 4*log(SSE)-4*log(4)+2*(n_params+1))
   Model_BIC_movedur_norm = c(Model_BIC_movedur_norm, 4*log(SSE)-4*log(4)+log(4)*(n_params+1))
-  
+
   model_peakvel_temp1_norm = filter(model_vels,model==model1)$norm_vels
   # Change here for 2a/b/c
   model_peakvel_temp2_norm = filter(model_vels,model=='Pilot')$norm_vels
   SSE = sum((model_peakvel_temp1_norm-model_peakvel_temp2_norm)^2)
   Model_SSE_peakvel_norm = rbind(Model_SSE_peakvel_norm,SSE)
   # Model_SSE_colnames = rbind(Model_SSE_colnames,model1)
-  
+
   Model_AIC_peakvel_norm = c(Model_AIC_peakvel_norm, 4*log(SSE)-4*log(4)+2*(n_params+1))
   Model_BIC_peakvel_norm = c(Model_BIC_peakvel_norm, 4*log(SSE)-4*log(4)+log(4)*(n_params+1))
-  
+
 }
 Model_SSE_movedur_norm = formatC(Model_SSE_movedur_norm,format = 'e', digits = 3)
 Model_SSE_peakvel_norm = formatC(Model_SSE_peakvel_norm,format = 'e', digits = 3)
@@ -9029,25 +9029,25 @@ for (model1 in models_SSE){
   } else {
     n_params = 0
   }
-  
+
   model_movedur_temp1 = filter(model_durs,model==model1)$movedur
   # Change here for 2a/b/c
   model_movedur_temp2 = aggregate(movedur~eff_mass,prefdata,mean)$movedur
   SSE = sum((model_movedur_temp1-model_movedur_temp2)^2)
   Model_SSE_movedur = rbind(Model_SSE_movedur,SSE)
-  
+
   Model_AIC_movedur = c(Model_AIC_movedur, 4*log(SSE)-4*log(4)+2*(n_params+1))
   Model_BIC_movedur = c(Model_BIC_movedur, 4*log(SSE)-4*log(4)+log(4)*(n_params+1))
-  
+
   model_peakvel_temp1 = filter(model_vels,model==model1)$peakvel
   # Change here for 2a/b/c
   model_peakvel_temp2 = aggregate(peakvel_target~eff_mass,prefdata,mean)$peakvel_target
   SSE = sum((model_peakvel_temp1-model_peakvel_temp2)^2)
   Model_SSE_peakvel = rbind(Model_SSE_peakvel,SSE)
-  
+
   Model_AIC_peakvel = c(Model_AIC_peakvel, 4*log(SSE)-4*log(4)+2*(n_params+1))
   Model_BIC_peakvel = c(Model_BIC_peakvel, 4*log(SSE)-4*log(4)+log(4)*(n_params+1))
-  
+
 }
 
 Model_SSE_movedur = formatC(Model_SSE_movedur,format = 'e', digits = 3)
@@ -9126,26 +9126,26 @@ for (model1 in models_SSE){
   } else {
     n_params = 0
   }
-  
+
   model_movedur_temp1_norm = filter(model_durs,model==model1)$norm_durs
   # Change here for 2a/b/c
   model_movedur_temp2_norm = aggregate(movedur~eff_mass,prefdata,mean)$movedur/aggregate(movedur~eff_mass,prefdata,mean)$movedur[1]
   SSE = sum((model_movedur_temp1_norm-model_movedur_temp2_norm)^2)
   Model_SSE_movedur_norm = rbind(Model_SSE_movedur_norm,SSE)
-  
+
   Model_AIC_movedur_norm = c(Model_AIC_movedur_norm, 4*log(SSE)-4*log(4)+2*(n_params+1))
   Model_BIC_movedur_norm = c(Model_BIC_movedur_norm, 4*log(SSE)-4*log(4)+log(4)*(n_params+1))
-  
+
   model_peakvel_temp1_norm = filter(model_vels,model==model1)$norm_vels
   # Change here for 2a/b/c
   model_peakvel_temp2_norm = aggregate(peakvel_target~eff_mass,prefdata,mean)$peakvel_target/aggregate(peakvel_target~eff_mass,prefdata,mean)$peakvel_target[1]
   SSE = sum((model_peakvel_temp1_norm-model_peakvel_temp2_norm)^2)
   Model_SSE_peakvel_norm = rbind(Model_SSE_peakvel_norm,SSE)
   # Model_SSE_colnames = rbind(Model_SSE_colnames,model1)
-  
+
   Model_AIC_peakvel_norm = c(Model_AIC_peakvel_norm, 4*log(SSE)-4*log(4)+2*(n_params+1))
   Model_BIC_peakvel_norm = c(Model_BIC_peakvel_norm, 4*log(SSE)-4*log(4)+log(4)*(n_params+1))
-  
+
 }
 Model_SSE_movedur_norm = formatC(Model_SSE_movedur_norm,format = 'e', digits = 3)
 Model_SSE_peakvel_norm = formatC(Model_SSE_peakvel_norm,format = 'e', digits = 3)
@@ -9223,26 +9223,26 @@ for (model1 in models_SSE){
   } else {
     n_params = 0
   }
-  
+
   model_movedur_temp1 = filter(model_durs,model==model1)$movedur
   # Change here for 2a/b/c
   model_movedur_temp2 = aggregate(movedur~eff_mass,pilotdata,mean)$movedur
   SSE = sum((model_movedur_temp1-model_movedur_temp2)^2)
   Model_SSE_movedur = rbind(Model_SSE_movedur,SSE)
-  
+
   Model_AIC_movedur = c(Model_AIC_movedur, 4*log(SSE)-4*log(4)+2*(n_params+1))
   Model_BIC_movedur = c(Model_BIC_movedur, 4*log(SSE)-4*log(4)+log(4)*(n_params+1))
-  
+
   model_peakvel_temp1 = filter(model_vels,model==model1)$peakvel
   # Change here for 2a/b/c
   model_peakvel_temp2 = aggregate(peakvel_target~eff_mass,pilotdata,mean)$peakvel_target
   SSE = sum((model_peakvel_temp1-model_peakvel_temp2)^2)
   Model_SSE_peakvel = rbind(Model_SSE_peakvel,SSE)
   # Model_SSE_colnames = rbind(Model_SSE_colnames,model1)
-  
+
   Model_AIC_peakvel = c(Model_AIC_peakvel, 4*log(SSE)-4*log(4)+2*(n_params+1))
   Model_BIC_peakvel = c(Model_BIC_peakvel, 4*log(SSE)-4*log(4)+log(4)*(n_params+1))
-  
+
 }
 
 Model_SSE_movedur = formatC(Model_SSE_movedur,format = 'e', digits = 3)
@@ -9321,26 +9321,26 @@ for (model1 in models_SSE){
   } else {
     n_params = 0
   }
-  
+
   model_movedur_temp1_norm = filter(model_durs,model==model1)$norm_durs
   # Change here for 2a/b/c
   model_movedur_temp2_norm = aggregate(movedur~eff_mass,pilotdata,mean)$movedur/aggregate(movedur~eff_mass,pilotdata,mean)$movedur[1]
   SSE = sum((model_movedur_temp1_norm-model_movedur_temp2_norm)^2)
   Model_SSE_movedur_norm = rbind(Model_SSE_movedur_norm,SSE)
-  
+
   Model_AIC_movedur_norm = c(Model_AIC_movedur_norm, 4*log(SSE)-4*log(4)+2*(n_params+1))
   Model_BIC_movedur_norm = c(Model_BIC_movedur_norm, 4*log(SSE)-4*log(4)+log(4)*(n_params+1))
-  
+
   model_peakvel_temp1_norm = filter(model_vels,model==model1)$norm_vels
   # Change here for 2a/b/c
   model_peakvel_temp2_norm = aggregate(peakvel_target~eff_mass,pilotdata,mean)$peakvel_target/aggregate(peakvel_target~eff_mass,pilotdata,mean)$peakvel_target[1]
   SSE = sum((model_peakvel_temp1_norm-model_peakvel_temp2_norm)^2)
   Model_SSE_peakvel_norm = rbind(Model_SSE_peakvel_norm,SSE)
   # Model_SSE_colnames = rbind(Model_SSE_colnames,model1)
-  
+
   Model_AIC_peakvel_norm = c(Model_AIC_peakvel_norm, 4*log(SSE)-4*log(4)+2*(n_params+1))
   Model_BIC_peakvel_norm = c(Model_BIC_peakvel_norm, 4*log(SSE)-4*log(4)+log(4)*(n_params+1))
-  
+
 }
 Model_SSE_movedur_norm = formatC(Model_SSE_movedur_norm,format = 'e', digits = 3)
 Model_SSE_peakvel_norm = formatC(Model_SSE_peakvel_norm,format = 'e', digits = 3)
@@ -9373,7 +9373,7 @@ Model_SSE_norm = filter(Model_SSE_norm,
                         model!='m1',
                         model!='Util_gross',
                         model!='Util_net')
-  
+
 Model_SSE_norm$model = c('Accuracy Prob',
                     'Met Cost Gross',
                     'Met Cost Net',

@@ -1123,6 +1123,8 @@ fml_plot_delc(pilotdata,variable,labels,'Subject')
 labels['title'] = 'Circle Target Experiment'
 fml_plot_delc(prefdata,variable,labels,'Condition')
 
+eval(parse(text = paste('cftest(lmer(',variable,' ~ delcond + trial +(1|subj),data=prefdata))')))
+
 ```
 
 ```{r, fig.width=9, fig.height=6}
@@ -1130,12 +1132,16 @@ fml_plot_delc(prefdata,variable,labels,'Condition')
 labels['title'] = 'Smallt Target Experiment'
 fml_plot_delc(smalltdata,variable,labels,'Condition')
 
+eval(parse(text = paste('cftest(lmer(',variable,' ~ delcond + trial +(1|subj),data=smalltdata))')))
+
 ```
 
 ```{r, fig.width=9, fig.height=6}
 
 labels['title'] = 'No Target Experiment'
 fml_plot_delc(pilotdata,variable,labels,'Condition')
+
+eval(parse(text = paste('cftest(lmer(',variable,' ~ delcond + trial +(1|subj),data=pilotdata))')))
 
 ```
 
@@ -1175,6 +1181,8 @@ fml_plot_delc(pilotdata,variable,labels,'Subject')
 labels['title'] = 'Circle Target Experiment'
 fml_plot_delc(prefdata,variable,labels,'Condition')
 
+eval(parse(text = paste('cftest(lmer(',variable,' ~ delcond + trial +(1|subj),data=prefdata))')))
+
 ```
 
 ```{r, fig.width=9, fig.height=6}
@@ -1182,12 +1190,16 @@ fml_plot_delc(prefdata,variable,labels,'Condition')
 labels['title'] = 'Smallt Target Experiment'
 fml_plot_delc(smalltdata,variable,labels,'Condition')
 
+eval(parse(text = paste('cftest(lmer(',variable,' ~ delcond + trial +(1|subj),data=smalltdata))')))
+
 ```
 
 ```{r, fig.width=9, fig.height=6}
 
 labels['title'] = 'No Target Experiment'
 fml_plot_delc(pilotdata,variable,labels,'Condition')
+
+eval(parse(text = paste('cftest(lmer(',variable,' ~ delcond + trial +(1|subj),data=pilotdata))')))
 
 ```
 
@@ -1337,6 +1349,8 @@ fml_plot_delc(pilotdata,variable,labels,'Subject')
 labels['title'] = 'Circle Target Experiment'
 fml_plot_delc(prefdata,variable,labels,'Condition')
 
+eval(parse(text = paste('cftest(lmer(',variable,' ~ delcond + trial +(1|subj),data=prefdata))')))
+
 ```
 
 ```{r, fig.width=9, fig.height=6}
@@ -1344,12 +1358,16 @@ fml_plot_delc(prefdata,variable,labels,'Condition')
 labels['title'] = 'Smallt Target Experiment'
 fml_plot_delc(smalltdata,variable,labels,'Condition')
 
+eval(parse(text = paste('cftest(lmer(',variable,' ~ delcond + trial +(1|subj),data=smalltdata))')))
+
 ```
 
 ```{r, fig.width=9, fig.height=6}
 
 labels['title'] = 'No Target Experiment'
 fml_plot_delc(pilotdata,variable,labels,'Condition')
+
+eval(parse(text = paste('cftest(lmer(',variable,' ~ delcond + trial +(1|subj),data=pilotdata))')))
 
 ```
 
@@ -1389,12 +1407,16 @@ fml_plot_delc(pilotdata,variable,labels,'Subject')
 labels['title'] = 'Circle Target Experiment'
 fml_plot_delc(prefdata,variable,labels,'Condition')
 
+eval(parse(text = paste('cftest(lmer(',variable,' ~ delcond + trial +(1|subj),data=prefdata))')))
+
 ```
 
 ```{r, fig.width=9, fig.height=6}
 
 labels['title'] = 'Smallt Target Experiment'
 fml_plot_delc(smalltdata,variable,labels,'Condition')
+
+eval(parse(text = paste('cftest(lmer(',variable,' ~ delcond + trial +(1|subj),data=smalltdata))')))
 
 ```
 
@@ -1403,4 +1425,8 @@ fml_plot_delc(smalltdata,variable,labels,'Condition')
 labels['title'] = 'No Target Experiment'
 fml_plot_delc(pilotdata,variable,labels,'Condition')
 
+eval(parse(text = paste('cftest(lmer(',variable,' ~ delcond + trial +(1|subj),data=pilotdata))')))
+
 ```
+
+

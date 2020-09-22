@@ -233,6 +233,23 @@ colnames(metdata) = append(colnames(metdata)[1:length(colnames(metdata))-1],'out
 #metdata2 = metdata
 metdata = filter(metdata,odd_trial==1)
 
+# ========================== Adding normalized ================================================
+add_norm <- function(data, variables){
+  for (vari in variables){
+    # eval(parse(text = paste('zero_vals = aggregate(',vari,'~ subj + condition,data,mean)',sep = '')))
+    eval(parse(text = paste('zero_vals = aggregate(',vari,'~ condition,data,mean)',sep = '')))
+    zero_vals = zero_vals[zero_vals$condition == '0',]
+    for (k in 1:length(data$subj)){
+      data[k,paste(vari,'_norm',sep='')] = data[k,vari]/zero_vals[,vari]
+      # data[k,paste(vari,'_norm',sep='')] = data[k,vari]/zero_vals[zero_vals$subj == data[k,'subj'],vari]
+    }
+  }
+  return(data)
+}
+
+prefdata <- add_norm(prefdata,c('movedur','peakvel_target'))
+smalltdata <- add_norm(smalltdata,c('movedur','peakvel_target'))
+pilotdata <- add_norm(pilotdata,c('movedur','peakvel_target'))
 
 # ========================== Adding Metabolics things =========================================
 
@@ -376,7 +393,10 @@ allexp_plot <- function(vars,data,...){
   return(a)
 }
 
-vars = c('targetnum','movedur','peakvel_target','miss_dist','reaction_tanv','reaction_tanvel',
+vars = c('targetnum','movedur','movedur_norm',
+         'peakvel_target','peakvel_target_norm',
+         'miss_dist',
+         'reaction_tanv','reaction_tanvel',
          'pathltar','missangle','miss_rad','trial',
          'miss_dist_avg','miss_dist_sd',
          'missangle_avg','missangle_sd',
@@ -1505,6 +1525,12 @@ This next stat output shows the a LME with movedur ~ target + eff_mass*exp + (1|
 ```{r Movedurbyexperiment, echo = FALSE, warning = FALSE, fig.width=12, fig.height=8, fig.cap = 'Movement Duration by experiment.'}
 # ```{r movedur2, echo = FALSE, warning = FALSE, fig.width=12, fig.height=8, fig.cap = 'Movement duration by experiment.'}
   Movedur_by_experiment+theme(text = element_text(size = 18))
+
+setwd(pref_plots_dir)
+if (save_plots){
+  ggsave('Movedur_by_experiment.pdf',plot=Movedur_by_experiment+theme(text = element_text(size = 18)),width=12,height=8, useDingbats = FALSE)
+}
+
 ```
 
 ```{r, echo = FALSE, warning = FALSE}
@@ -1553,6 +1579,130 @@ movedur_nv[['smallt']]<-avg_plot('movedur',smalltdata,ylab = 'Movement duration 
             labels = c('Preferred','Smallt','2c','','',''))
 ```
 
+### Movement Duration Norm
+```{r, echo = FALSE}
+  dur_lm_all = cftest(lmer(movedur_norm ~ factor(targetnum) + eff_mass + (1|subj) + (1|exp),data=prefpilot))
+  dur_lm_pref = cftest(lmer(movedur_norm ~ factor(targetnum) + eff_mass + (1|subj),data=filter(prefpilot,exp=='pref')))
+  dur_lm_pilot = cftest(lmer(movedur_norm ~ factor(targetnum) + eff_mass + (1|subj),data=filter(prefpilot,exp=='pilot')))
+  dur_lm_smallt = cftest(lmer(movedur_norm ~ factor(targetnum) + eff_mass + (1|subj),data=filter(prefpilot,exp=='smallt')))
+  
+  dur_p_table = rbind(c('Circle',formatC(dur_lm_pref$test$coefficients[5],format = 'e', digits = 3),
+                        formatC(dur_lm_pref$test$pvalues[5],format = 'e', digits = 3),
+                        formatC(dur_lm_pref$test$sigma[5],format = 'e', digits = 3)),
+                      c('Pilot',formatC(dur_lm_pilot$test$coefficients[5],format = 'e', digits = 3),
+                        formatC(dur_lm_pilot$test$pvalues[5],format = 'e', digits = 3),
+                        formatC(dur_lm_pilot$test$sigma[5],format = 'e', digits = 3)),
+                      c('Arc',formatC(dur_lm_smallt$test$coefficients[5],format = 'e', digits = 3),
+                        formatC(dur_lm_smallt$test$pvalues[5],format = 'e', digits = 3),
+                        formatC(dur_lm_smallt$test$sigma[5],format = 'e', digits = 3)),
+                      c('All',formatC(dur_lm_all$test$coefficients[5],format = 'e', digits = 3),
+                        formatC(dur_lm_all$test$pvalues[5],format = 'e', digits = 3),
+                        formatC(dur_lm_all$test$sigma[5],format = 'e', digits = 3)))
+  colnames(dur_p_table) = c('Duration','Linear Estimate','P-Value','Std Error')
+  
+  kable(dur_p_table, caption = 'Movement duration linear models.')
+  
+  move_pref <- aggregate(movedur_norm ~ eff_mass,prefdata,mean)$movedur_norm
+  move_pilo <- aggregate(movedur_norm ~ eff_mass,pilotdata,mean)$movedur_norm
+  move_arct <- aggregate(movedur_norm ~ eff_mass,smalltdata,mean)$movedur_norm
+  
+  move_pref_se <- aggregate(movedur_norm ~ eff_mass,prefdata,sd)$movedur_norm/sqrt(12)
+  move_pilo_se <- aggregate(movedur_norm ~ eff_mass,pilotdata,sd)$movedur_norm/sqrt(12)
+  move_arct_se <- aggregate(movedur_norm ~ eff_mass,smalltdata,sd)$movedur_norm/sqrt(18)
+  
+  move_dur_avg <- round(cbind(move_pref,move_arct,move_pilo),digits=3)
+  move_dur_se <- round(cbind(move_pref_se,move_arct_se,move_pilo_se),digits=3)
+  move_dur_df = matrix(,nrow = 4, ncol = 3)
+  for (rows in c(1:4)){
+    for (cols in c(1:3)){
+      move_dur_df[rows,cols] = paste(move_dur_avg[rows,cols],'±',move_dur_se[rows,cols],sep='')
+    }
+  }
+  
+  move_dur <- cbind(c(2.5,3.8,4.7,6.1),move_dur_df)
+  colnames(move_dur) <- c('Effective Mass (kg)','2a','2b','2c')
+  kable(move_dur, caption = 'Movement duration average values (s)')
+```
+
+This next stat output shows the a LME with movedur_norm ~ target + eff_mass*exp + (1|subj).
+```{r movedur_norm_exp_stat, echo = FALSE, warning = FALSE}
+# ```{r movedur_norm2, echo = FALSE, warning = FALSE, fig.width=12, fig.height=8, fig.cap = 'Movement duration by experiment.'}
+  # prefpilot$tempexp[prefpilot$exp=='smallt'] = 1
+  # prefpilot$tempexp[prefpilot$exp=='pref'] = 2
+  # prefpilot$tempexp[prefpilot$exp=='pilot'] = 3
+  cftest(lmer(movedur_norm ~ factor(targetnum) + eff_mass*factor(exp) +  (1|subj),data=prefpilot))
+  # mass_exp_int_test = cftest(lmer(movedur_norm ~ factor(targetnum) + eff_mass*factor(exp) +  (1|subj),data=prefpilot))
+  
+  # temp = aov(lm(movedur_norm ~ eff_mass*factor(exp) + (1|subj),data=prefpilot))
+  # test2 =TukeyHSD(temp , which = 'exp')
+  # plot(test2)
+  
+  
+```
+
+`r mass_exp_int_stringgen(prefpilot,'movedur_norm','movement duration')`
+
+
+```{r movedur_normbyexperiment, echo = FALSE, warning = FALSE, fig.width=12, fig.height=8, fig.cap = 'Movement Duration by experiment.'}
+# ```{r movedur_norm2, echo = FALSE, warning = FALSE, fig.width=12, fig.height=8, fig.cap = 'Movement duration by experiment.'}
+
+Movedur_norm_by_experiment <- all_exp_avg_plot('movedur_norm',prefdata,smalltdata,pilotdata,ylab = 'Movement Duration Normalized (s)')
+  
+Movedur_norm_by_experiment+theme(text = element_text(size = 18))
+
+setwd(pref_plots_dir)
+if (save_plots){
+  ggsave('movedur_norm_by_experiment.pdf',plot=Movedur_norm_by_experiment+theme(text = element_text(size = 18)),width=12,height=8, useDingbats = FALSE)
+}
+
+```
+
+```{r, echo = FALSE, warning = FALSE}
+movedur_norm = list()
+
+movedur_norm[['pref']]<-vplot('movedur_norm',prefdata)+
+  labs(x='Effective Mass (kg)',y='Movement Duration (s)')+
+  guides(fill=guide_legend(title="Effective\nMass (kg)"))+
+  theme_classic()+
+  theme(legend.position='none')+
+  geom_hline(yintercept=mean(filter(prefdata,condition==0)$movedur_norm),linetype='dashed',size=.5)
+
+movedur_norm[['pilot']]<-vplot('movedur_norm',pilotdata)+
+  labs(x='Effective Mass (kg)',y='Movement Duration (s)')+
+  guides(fill=guide_legend(title="Effective\nMass (kg)"))+
+  theme_classic()+
+  theme(legend.position='none')+
+  geom_hline(yintercept=mean(filter(pilotdata,condition==0)$movedur_norm),linetype='dashed',size=.5)
+
+
+movedur_norm[['smallt']]<-vplot('movedur_norm',smalltdata)+
+  labs(x='Effective Mass (kg)',y='Movement Duration (s)')+
+  guides(fill=guide_legend(title="Effective\nMass (kg)"))+
+  theme_classic()+
+  theme(legend.position='none')+
+  geom_hline(yintercept=mean(filter(smalltdata,condition==0)$movedur_norm),linetype='dashed',size=.5)
+
+movedur_norm_nv = list()
+movedur_norm_nv[['pref']]<-avg_plot('movedur_norm',prefdata,ylab = 'Movement duration (s)',shape = 21)+theme(legend.position = 'none')
+
+movedur_norm_nv[['pilot']]<-avg_plot('movedur_norm',pilotdata,ylab = 'Movement duration (s)',shape = 22)+theme(legend.position = 'none')
+
+movedur_norm_nv[['smallt']]<-avg_plot('movedur_norm',smalltdata,ylab = 'Movement duration (s)',shape = 24)+theme(legend.position = 'none')
+
+```
+
+```{r movedur_norm1, echo = FALSE, warning = FALSE, fig.width=12, fig.height=8, fig.cap = 'Movement duration broken up by experiment.'}
+  plot_grid(movedur_norm[['pref']],
+            movedur_norm[['smallt']],
+            movedur_norm[['pilot']],
+            movedur_norm_nv[['pref']],
+            movedur_norm_nv[['smallt']],
+            movedur_norm_nv[['pilot']],
+            nrow = 2,
+            align = 'vh',
+            labels = c('Preferred','Smallt','2c','','',''))
+```
+
 ## Peak Velocity
 ```{r, echo = FALSE}
   vel_lm_all = cftest(lmer(peakvel_target ~ factor(targetnum) + eff_mass +  (1|subj) + (1|exp),data=prefpilot))
@@ -1582,7 +1732,7 @@ movedur_nv[['smallt']]<-avg_plot('movedur',smalltdata,ylab = 'Movement duration 
   vel_pilo <- aggregate(peakvel_radv ~ eff_mass,pilotdata,mean)$peakvel_radv
   
   vel_pref_se <- aggregate(peakvel_target ~ eff_mass,prefdata,mean)$peakvel_target/sqrt(12)
-  vel_arct_se <- aggregate(peakvel_target ~ eff_mass,smalltdata,mean)$peakvel_target/sqrt(12)
+  vel_arct_se <- aggregate(peakvel_target ~ eff_mass,smalltdata,mean)$peakvel_targe555t/sqrt(12)
   vel_pilo_se <- aggregate(peakvel_radv ~ eff_mass,pilotdata,mean)$peakvel_radv/sqrt(18)
   
   peak_vel_avg <- round(cbind(vel_pref,vel_arct,vel_pilo),digits=3)
