@@ -53,7 +53,7 @@ theme_set(theme_classic()+
         axis.line         = element_line(color='black')))
 theme_set(theme_cowplot())
 
-save_plots = 1
+save_plots = 0
 
 # #====================== LOAD DATA - Neuromech ==============================
 # met_plots_dir  <- 'D:/Users/Gary/Google Drive/Muscle modeling/Metabolics/Graphs/'
@@ -4501,6 +4501,7 @@ kable(success_tab, caption = 'Success probabilities for experiment 2a and 2b. Al
 ### 2a and 2b GLM probability plots
 
 ```{r, echo = FALSE, warning = FALSE}
+
 exp_succ2a = cbind(aggregate(movedur ~ eff_mass + subj,prefdata,mean),
                    aggregate(success ~ eff_mass + subj,prefdata,mean)$success,
                    rep('2a',4))
@@ -4677,12 +4678,37 @@ met_p_glm  = glm(success_2a ~ movedur+eff_mass,
                  family=binomial(link="logit"))
 metdata$p_success_2a = inv.logit(predict(met_p_glm))
 
-metdata$success_2b = abs(metdata$maxex)<.11 & abs(metdata$missangle)<3
+metdata$success_2b = abs(metdata$maxex)<.110 & abs(metdata$missangle)<7
 met_smallt_p_glm  = glm(success_2b ~ movedur+eff_mass,
                     data=metdata,
                     family=binomial(link="logit"))
 metdata$p_success_2b = inv.logit(predict(met_smallt_p_glm))
 
+# # This is here if I want to change the probabilities
+# prefdata$success = abs(prefdata$miss_dist)<.014
+# exp_succ2a = cbind(aggregate(movedur ~ eff_mass + subj,prefdata,mean),
+#                    aggregate(success ~ eff_mass + subj,prefdata,mean)$success,
+#                    rep('2a',4))
+# colnames(exp_succ2a) = c('eff_mass','subj','movedur','p_success','exp')
+# smalltdata$success = abs(smalltdata$maxex)<.112 & abs(smalltdata$missangle)<7
+# exp_succ2b = cbind(aggregate(movedur ~ eff_mass + subj,smalltdata,mean),
+#                    aggregate(success ~ eff_mass + subj,smalltdata,mean)$success,
+#                    rep('2b',4))
+# colnames(exp_succ2b) = c('eff_mass','subj','movedur','p_success','exp')
+# exp_succ = rbind(exp_succ2a,exp_succ2b)
+# 
+# exp_succ = rbind(cbind(aggregate(movedur ~ eff_mass, filter(exp_succ,exp=='2a'),mean),
+#                        aggregate(movedur ~ eff_mass, filter(exp_succ,exp=='2a'),sd)$movedur/sqrt(length(unique(exp_succ2a$subj))),
+#                        aggregate(p_success ~ eff_mass, filter(exp_succ,exp=='2a'),mean)$p_success,
+#                        aggregate(p_success ~ eff_mass, filter(exp_succ,exp=='2a'),sd)$p_success/sqrt(length(unique(exp_succ2a$subj))),
+#                        rep('2a',4)) %>% 
+#                    `colnames<-`(c("eff_mass","movedur","movedurse","p_success","p_success_se","exp")),
+#                  cbind(aggregate(movedur ~ eff_mass, filter(exp_succ,exp=='2b'),mean),
+#                        aggregate(movedur ~ eff_mass, filter(exp_succ,exp=='2b'),sd)$movedur/sqrt(length(unique(exp_succ2b$subj))),
+#                        aggregate(p_success ~ eff_mass, filter(exp_succ,exp=='2b'),mean)$p_success,
+#                        aggregate(p_success ~ eff_mass, filter(exp_succ,exp=='2b'),sd)$p_success/sqrt(length(unique(exp_succ2b$subj))),
+#                        rep('2b',4)) %>% 
+#                    `colnames<-`(c("eff_mass","movedur","movedurse","p_success","p_success_se","exp")))
 
 # cftest(lmer(p_success_met ~ log(movedur) + eff_mass + (1|subj), metdata))
 # cftest(lmer(log(p_success_met) ~ log(movedur) + eff_mass + (1|subj), metdata))
@@ -6564,12 +6590,15 @@ grouped_utility_movedur <- plot_grid(plot_grid(Movedur_by_experiment+
                                                  theme(legend.position='none',
                                                        plot.title = element_text(hjust = 0.5),
                                                        text=element_text(size=16)),
-                                               Movedurnorm_by_experiment+
+                                               Movedur_norm_by_experiment+
                                                  labs(title = 'Normalized Movement Duration\nBy Experiment')+
                                                  theme(legend.position='none',
                                                        plot.title = element_text(hjust = 0.5),
                                                        text=element_text(size=16)),
-                                               labels=c('A','B'),
+                                               get_legend(Movedur_norm_by_experiment),
+                                               labels=c('A','B',''),
+                                               nrow = 1,
+                                               rel_widths = c(.5,.5,.1),
                                                label_size = 24),
                                      plot_grid(utilfits_by_exp+
                                                  theme(text=element_text(size=16),
