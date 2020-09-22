@@ -53,7 +53,7 @@ theme_set(theme_classic()+
         axis.line         = element_line(color='black')))
 theme_set(theme_cowplot())
 
-save_plots = 0
+save_plots = 1
 
 # #====================== LOAD DATA - Neuromech ==============================
 # met_plots_dir  <- 'D:/Users/Gary/Google Drive/Muscle modeling/Metabolics/Graphs/'
@@ -236,12 +236,12 @@ metdata = filter(metdata,odd_trial==1)
 # ========================== Adding normalized ================================================
 add_norm <- function(data, variables){
   for (vari in variables){
-    # eval(parse(text = paste('zero_vals = aggregate(',vari,'~ subj + condition,data,mean)',sep = '')))
-    eval(parse(text = paste('zero_vals = aggregate(',vari,'~ condition,data,mean)',sep = '')))
+    eval(parse(text = paste('zero_vals = aggregate(',vari,'~ subj + condition,data,mean)',sep = '')))
+    # eval(parse(text = paste('zero_vals = aggregate(',vari,'~ condition,data,mean)',sep = '')))
     zero_vals = zero_vals[zero_vals$condition == '0',]
     for (k in 1:length(data$subj)){
-      data[k,paste(vari,'_norm',sep='')] = data[k,vari]/zero_vals[,vari]
-      # data[k,paste(vari,'_norm',sep='')] = data[k,vari]/zero_vals[zero_vals$subj == data[k,'subj'],vari]
+      # data[k,paste(vari,'_norm',sep='')] = data[k,vari]/zero_vals[,vari]
+      data[k,paste(vari,'_norm',sep='')] = data[k,vari]/zero_vals[zero_vals$subj == data[k,'subj'],vari]
     }
   }
   return(data)
@@ -279,7 +279,6 @@ for (i in 1:length(mpdata$subject)){
 }
 
 mpdata$effmass2 <- eff_mass
-
 
 # ========================== Adding Variance Metrics =========================================
 
@@ -1646,7 +1645,7 @@ This next stat output shows the a LME with movedur_norm ~ target + eff_mass*exp 
 ```{r movedur_normbyexperiment, echo = FALSE, warning = FALSE, fig.width=12, fig.height=8, fig.cap = 'Movement Duration by experiment.'}
 # ```{r movedur_norm2, echo = FALSE, warning = FALSE, fig.width=12, fig.height=8, fig.cap = 'Movement duration by experiment.'}
 
-Movedur_norm_by_experiment <- all_exp_avg_plot('movedur_norm',prefdata,smalltdata,pilotdata,ylab = 'Movement Duration Normalized (s)')
+Movedur_norm_by_experiment <- all_exp_avg_plot('movedur_norm',prefdata,smalltdata,pilotdata,ylab = 'Peak Velocity Normalized (m/s)')
   
 Movedur_norm_by_experiment+theme(text = element_text(size = 18))
 
@@ -1732,7 +1731,7 @@ movedur_norm_nv[['smallt']]<-avg_plot('movedur_norm',smalltdata,ylab = 'Movement
   vel_pilo <- aggregate(peakvel_radv ~ eff_mass,pilotdata,mean)$peakvel_radv
   
   vel_pref_se <- aggregate(peakvel_target ~ eff_mass,prefdata,mean)$peakvel_target/sqrt(12)
-  vel_arct_se <- aggregate(peakvel_target ~ eff_mass,smalltdata,mean)$peakvel_targe555t/sqrt(12)
+  vel_arct_se <- aggregate(peakvel_target ~ eff_mass,smalltdata,mean)$peakvel_target/sqrt(12)
   vel_pilo_se <- aggregate(peakvel_radv ~ eff_mass,pilotdata,mean)$peakvel_radv/sqrt(18)
   
   peak_vel_avg <- round(cbind(vel_pref,vel_arct,vel_pilo),digits=3)
@@ -1805,6 +1804,115 @@ peakvel_target_nv[['smallt']]<-avg_plot('peakvel_target',smalltdata,ylab = 'Peak
             labels = c('Preferred','Smallt','2c','','',''))
 ```
 
+### Peak Velocity Normalized
+```{r, echo = FALSE}
+  vel_lm_all = cftest(lmer(peakvel_target_norm ~ factor(targetnum) + eff_mass +  (1|subj) + (1|exp),data=prefpilot))
+  vel_lm_pref = cftest(lmer(peakvel_target_norm ~ factor(targetnum) + eff_mass +  (1|subj),data=filter(prefpilot,exp=='pref')))
+  vel_lm_pilot = cftest(lmer(peakvel_target_norm ~ factor(targetnum) + eff_mass +  (1|subj),data=filter(prefpilot,exp=='pilot')))
+  vel_lm_smallt = cftest(lmer(peakvel_target_norm ~ factor(targetnum) + eff_mass +  (1|subj),data=filter(prefpilot,exp=='smallt')))
+  
+  
+  vel_p_table = rbind(c('Circle',formatC(vel_lm_pref$test$coefficients[5],format = 'e', digits = 3),
+                        formatC(vel_lm_pref$test$pvalues[5],format = 'e', digits = 3),
+                        formatC(vel_lm_pref$test$sigma[5],format = 'e', digits = 3)),
+                      c('Pilot',formatC(vel_lm_pilot$test$coefficients[5],format = 'e', digits = 3),
+                        formatC(vel_lm_pilot$test$pvalues[5],format = 'e', digits = 3),
+                        formatC(vel_lm_pilot$test$sigma[5],format = 'e', digits = 3)),
+                      c('Arc',formatC(vel_lm_smallt$test$coefficients[5],format = 'e', digits = 3),
+                        formatC(vel_lm_smallt$test$pvalues[5],format = 'e', digits = 3),
+                        formatC(vel_lm_smallt$test$sigma[5],format = 'e', digits = 3)),
+                      c('All',formatC(vel_lm_all$test$coefficients[5],format = 'e', digits = 3),
+                        formatC(vel_lm_all$test$pvalues[5],format = 'e', digits = 3),
+                        formatC(vel_lm_all$test$sigma[5],format = 'e', digits = 3)))
+  colnames(vel_p_table) = c('Velocity','Linear Estimate','P-Value','Std Error')
+  
+  kable(vel_p_table, caption = 'Peak Velocity linear models.')
+  
+  vel_pref <- aggregate(peakvel_target_norm ~ eff_mass,prefdata,mean)$peakvel_target_norm
+  vel_arct <- aggregate(peakvel_target_norm ~ eff_mass,smalltdata,mean)$peakvel_target_norm
+  vel_pilo <- aggregate(peakvel_radv ~ eff_mass,pilotdata,mean)$peakvel_radv
+  
+  vel_pref_se <- aggregate(peakvel_target_norm ~ eff_mass,prefdata,mean)$peakvel_target_norm/sqrt(12)
+  vel_arct_se <- aggregate(peakvel_target_norm ~ eff_mass,smalltdata,mean)$peakvel_target_norm/sqrt(12)
+  vel_pilo_se <- aggregate(peakvel_radv ~ eff_mass,pilotdata,mean)$peakvel_radv/sqrt(18)
+  
+  peak_vel_avg <- round(cbind(vel_pref,vel_arct,vel_pilo),digits=3)
+  peak_vel_se <- round(cbind(vel_pref_se,vel_arct_se,vel_pilo_se),digits=3)
+  peak_vel_df = matrix(,nrow = 4, ncol = 3)
+  for (rows in c(1:4)){
+    for (cols in c(1:3)){
+      peak_vel_df[rows,cols] = paste(peak_vel_avg[rows,cols],'±',peak_vel_se[rows,cols],sep='')
+    }
+  }
+  
+  peak_vel <- cbind(c(2.5,3.8,4.7,6.1),peak_vel_df)
+  colnames(peak_vel) <- c('Effective Mass (kg)','2a','2b','2c')
+  kable(peak_vel, caption = 'Peak Velocity average values (m/s)')
+  
+```
+
+This next stat output shows the a LME with movedur ~ target + eff_mass*exp + (1|subj).
+```{r peakvel_norm_exp_stat, echo = FALSE, warning = FALSE}
+# ```{r movedur2, echo = FALSE, warning = FALSE, fig.width=12, fig.height=8, fig.cap = 'Movement duration by experiment.'}
+  cftest(lmer(peakvel_target_norm ~ factor(targetnum) + eff_mass + eff_mass*factor(exp) +  (1|subj),data=prefpilot))
+```
+
+`r mass_exp_int_stringgen(prefpilot,'peakvel_target_norm','peak velocity')`
+
+```{r Peakvelnormbyexperiment, echo = FALSE, warning = FALSE, fig.width=12, fig.height=8, fig.cap = 'Peak Velocity by experiment.'}
+Peakvel_norm_by_experiment <- all_exp_avg_plot('movedur_norm',prefdata,smalltdata,pilotdata,ylab = 'Movement Duration Normalized (s)')
+  
+Peakvel_norm_by_experiment+theme(text = element_text(size = 18))
+
+setwd(pref_plots_dir)
+if (save_plots){
+  ggsave('peakvel_norm_by_experiment.pdf',plot=Peakvel_norm_by_experiment+theme(text = element_text(size = 18)),width=12,height=8, useDingbats = FALSE)
+}
+
+```
+
+```{r, echo = FALSE, warning = FALSE}
+peakvel_target_norm = list()
+peakvel_target_norm[['pref']]<-vplot('peakvel_target_norm',prefdata)+
+  labs(x='Effective Mass (kg)',y='Peak Velocity (m/s)')+
+  guides(fill=guide_legend(title="Effective\nMass (kg)"))+
+  theme_classic()+
+  theme(legend.position='none')
+
+peakvel_target_norm[['pilot']]<-vplot('peakvel_radv',pilotdata)+
+  labs(x='Effective Mass (kg)',y='Peak Radial Velocity (m/s)')+
+  guides(fill=guide_legend(title="Effective\nMass (kg)"))+
+  theme_classic()+
+  theme(legend.position='none')
+
+
+peakvel_target_norm[['smallt']]<-vplot('peakvel_target_norm',smalltdata)+
+  labs(x='Effective Mass (kg)',y='Peak Velocity (m/s)')+
+  guides(fill=guide_legend(title="Effective\nMass (kg)"))+
+  theme_classic()+
+  theme(legend.position='none')
+
+
+peakvel_target_norm_nv = list()
+peakvel_target_norm_nv[['pref']]<-avg_plot('peakvel_target_norm',prefdata,ylab = 'Peak Velocity (m/s)',shape = 21)+theme(legend.position = 'none')
+
+peakvel_target_norm_nv[['pilot']]<-avg_plot('peakvel_target_norm',pilotdata,ylab = 'Peak Radial Velocity (m/s)',shape = 22)+theme(legend.position = 'none')
+
+peakvel_target_norm_nv[['smallt']]<-avg_plot('peakvel_target_norm',smalltdata,ylab = 'Peak Velocity (m/s)',shape = 24)+theme(legend.position = 'none')
+
+```
+
+```{r peakvelnorm, echo = FALSE, warning = FALSE, fig.width=12, fig.height=8, fig.cap = 'Peak velocity broken by experiment.'}
+  plot_grid(peakvel_target_norm[['pref']],
+            peakvel_target_norm[['smallt']],
+            peakvel_target_norm[['pilot']],
+            peakvel_target_norm_nv[['pref']],
+            peakvel_target_norm_nv[['smallt']],
+            peakvel_target_norm_nv[['pilot']],
+            nrow = 2,
+            align = 'vh',
+            labels = c('Preferred','Smallt','2c','','',''))
+```
 ## Reaction Time
 ```{r, echo = FALSE}
   react_lm_all = cftest(lmer(reaction_tanv ~ factor(targetnum) + eff_mass +  (1|subj) + (1|exp),data=prefpilot))
