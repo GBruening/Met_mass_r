@@ -28,6 +28,7 @@ library(boot)
 library(viridis)
 library(dplyr)
 library(moments)
+library(Dict)
 
 #====================== Load Fonts
 # font_import()
@@ -238,6 +239,22 @@ colnames(metdata) = append(colnames(metdata)[1:length(colnames(metdata))-1],'out
 metdata = filter(metdata,odd_trial==1)
 
 
+# ========================== Adding normalized ================================================
+add_norm <- function(data, variables){
+  for (vari in variables){
+    eval(parse(text = paste('zero_vals = aggregate(',vari,'~ subj + condition,data,mean)',sep = '')))
+    zero_vals = zero_vals[zero_vals$condition == '0',]
+    for (k in 1:length(data$subj)){
+      data[k,paste(vari,'_norm',sep='')] = data[k,vari]/zero_vals[zero_vals$subj == data[k,'subj'],vari]
+    }
+  }
+  return(data)
+}
+
+prefdata <- add_norm(prefdata,c('movedur','peakvel_target'))
+smalltdata <- add_norm(smalltdata,c('movedur','peakvel_target'))
+pilotdata <- add_norm(pilotdata,c('movedur','peakvel_target'))
+
 # ========================== Adding Metabolics things =========================================
 
 index <- c(2.47,4.730,6.990,11.50)
@@ -267,146 +284,45 @@ for (i in 1:length(mpdata$subject)){
 
 mpdata$effmass2 <- eff_mass
 
-
-# ========================== Adding Variance Metrics =========================================
-
-stdev_trial_plot <- function(data, variable, add_or_plot){
-  if (add_or_plot=='add'){
-    max_trial = max(data$trial)
-    
-    for (k in 11:(length(data$subj)-10)){
-      if (var(data[(k-10):(k+10),'eff_mass'])==0){
-        if ('speed' %in% colnames(data) && var(data[(k-10):(k+10),'speed'])==0){
-          data[k,paste(variable,'_sd',sep='')] = sd(data[(k-10):(k+10),variable])
-        } else {
-          data[k,paste(variable,'_sd',sep='')] = sd(data[(k-10):(k+10),variable])
-        }
-      } else {
-        data[k,paste(variable,'_sd',sep='')] = NaN
-      }
-    }
-    
-    return(data)
-  }
-  if (add_or_plot=='plot'){
-    eval(parse(text = paste('data$yvar = data$',variable,'_sd',sep='')))
-    g<-ggplot(data=data)+
-      geom_smooth(aes(x=trial,
-                      y=yvar,
-                      color = factor(subj)))+
-      theme_classic()+
-      labs(x = 'Trial Number', y = paste('StDev (',variable,')',sep=''),color = 'Subject')
-    
-    if ('speed' %in% colnames(data)){
-      g<-g+facet_grid(rows = vars(eff_mass),cols = vars(speed))
-    } else {
-      g<-g+facet_grid(rows = vars(eff_mass))
-    }
-    return(g)
-  }
-}
-
-average_trial_plot <- function(data, variable, add_or_plot){
-  if (add_or_plot=='add'){
-    max_trial = max(data$trial)
-    
-    for (k in 11:(length(data$subj)-10)){
-      if (var(data[(k-10):(k+10),'eff_mass'])==0){
-        if ('speed' %in% colnames(data) && var(data[(k-10):(k+10),'speed'])==0){
-          data[k,paste(variable,'_avg',sep='')] = mean(data[(k-10):(k+10),variable])
-        } else {
-          data[k,paste(variable,'_avg',sep='')] = mean(data[(k-10):(k+10),variable])
-        }
-      } else {
-        data[k,paste(variable,'_avg',sep='')] = NaN
-      }
-    }
-    
-    return(data)
-  }
-  if (add_or_plot=='plot'){
-    eval(parse(text = paste('data$yvar = data$',variable,'_avg',sep='')))
-    g<-ggplot(data=data)+
-      geom_smooth(aes(x=trial,
-                      y=yvar,
-                      color = factor(subj)))+
-      theme_classic()+
-      labs(x = 'Trial Number', y = paste('Average (',variable,')',sep=''),color = 'Subject')
-    
-    if ('speed' %in% colnames(data)){
-      g<-g+facet_grid(rows = vars(eff_mass),cols = vars(speed))
-    } else {
-      g<-g+facet_grid(rows = vars(eff_mass))
-    }
-    return(g)
-  }
-}
-
-
-for (variable in c('miss_dist','miss_rad','missangle')){
-  prefdata <- stdev_trial_plot(prefdata,variable,'add')
-  smalltdata <- stdev_trial_plot(smalltdata,variable,'add')
-  pilotdata <- stdev_trial_plot(pilotdata,variable,'add')
-  metdata <- stdev_trial_plot(metdata,variable,'add')
-  
-  prefdata <- average_trial_plot(prefdata,variable,'add')
-  smalltdata <- average_trial_plot(smalltdata,variable,'add')
-  pilotdata <- average_trial_plot(pilotdata,variable,'add')
-  metdata <- average_trial_plot(metdata,variable,'add')
-}
-
-
 # =========================== Generate the df for 3 experiments ===================
-prefdata$exp <- 'pref'
-pilotdata$exp <- 'pilot'
-smalltdata$exp <- 'smallt'
-smalltdata$subj <- smalltdata$subj+12
-pilotdata$subj <- pilotdata$subj+12+12
-
-allexp_plot <- function(vars,data,...){
-  str = paste('a=as.data.frame(cbind(',data,'$subj,',data,'$eff_mass,',data,'$condition,',data,'$exp',sep='')
-  for (var in vars){
-    # print(var)
-    str = paste(str,',',data,'$',var,sep='')
-  }
-  str = paste(str,'))',sep='')
-  a= eval(parse(text=str))
-  colnames(a) = c('subj','eff_mass','condition','exp',vars)
-  a$eff_mass = as.numeric(as.character(a$eff_mass))
-  a$condition = as.numeric(as.character(a$condition))
-  for (var in vars){
-    eval(parse(text = paste('a$',var,' = as.numeric(as.character(a$',var,'))',sep='')))
-  }
-  return(a)
-}
-
-vars = c('targetnum','movedur','peakvel_target','miss_dist','reaction_tanv','reaction_tanvel',
-         'pathltar','missangle','miss_rad','trial',
-         'miss_dist_avg','miss_dist_sd',
-         'missangle_avg','missangle_sd',
-         'miss_rad_avg','miss_rad_sd')
-a=allexp_plot(vars,'prefdata')
-b=allexp_plot(vars,'pilotdata')
-c=allexp_plot(vars,'smalltdata')
-
-b$peakvel_target = pilotdata$peakvel_radv
-# colnames(b)[colnames(b)=='peakvel_target'] <- 'peavel_radv'
-
-prefpilot=data.frame(rbind(a,b,c))
-prefpilot = filter(prefpilot,movedur<1.75)
-prefpilot$subj <- as.numeric(prefpilot$subj)
-
-# a=as.data.frame(cbind(pilotdata$subj,pilotdata$eff_mass,pilotdata$exp,pilotdata$targetnum,pilotdata$reacttoback,pilotdata$reaction_tanv,pilotdata$miss_rad,pilotdata$peakvel_target))
-# b=as.data.frame(cbind(prefdata$subj,prefdata$eff_mass,prefdata$exp,prefdata$targetnum,prefdata$movedur,prefdata$reaction_tanv,prefdata$miss_rad,prefdata$peakvel_target))
-# c=as.data.frame(cbind(smalltdata$subj,smalltdata$eff_mass,smalltdata$exp,smalltdata$targetnum,smalltdata$movedur,smalltdata$reaction_tanv,smalltdata$miss_rad,smalltdata$peakvel_target))
+# prefdata$exp <- 'pref'
+# pilotdata$exp <- 'pilot'
+# smalltdata$exp <- 'smallt'
+# smalltdata$subj <- smalltdata$subj+12
+# pilotdata$subj <- pilotdata$subj+12+12
+# 
+# allexp_plot <- function(vars,data,...){
+#   str = paste('a=as.data.frame(cbind(',data,'$subj,',data,'$eff_mass,',data,'$condition,',data,'$exp',sep='')
+#   for (var in vars){
+#     # print(var)
+#     str = paste(str,',',data,'$',var,sep='')
+#   }
+#   str = paste(str,'))',sep='')
+#   a= eval(parse(text=str))
+#   colnames(a) = c('subj','eff_mass','condition','exp',vars)
+#   a$eff_mass = as.numeric(as.character(a$eff_mass))
+#   a$condition = as.numeric(as.character(a$condition))
+#   for (var in vars){
+#     eval(parse(text = paste('a$',var,' = as.numeric(as.character(a$',var,'))',sep='')))
+#   }
+#   return(a)
+# }
+# 
+# vars = c('targetnum','movedur','peakvel_target','miss_dist','reaction_tanv','reaction_tanvel',
+#          'pathltar','missangle','miss_rad','trial',
+#          'miss_dist_avg','miss_dist_sd',
+#          'missangle_avg','missangle_sd',
+#          'miss_rad_avg','miss_rad_sd')
+# a=allexp_plot(vars,'prefdata')
+# b=allexp_plot(vars,'pilotdata')
+# c=allexp_plot(vars,'smalltdata')
+# 
+# b$peakvel_target = pilotdata$peakvel_radv
+# # colnames(b)[colnames(b)=='peakvel_target'] <- 'peavel_radv'
+# 
 # prefpilot=data.frame(rbind(a,b,c))
-# colnames(prefpilot) = cbind('subj','eff_mass','exp','targetnum','movedur','reaction_tanv','miss_rad','peakvel_target')
-# prefpilot$movedur<-as.numeric(as.character(prefpilot$movedur))
-# prefpilot$eff_mass<-as.numeric(as.character(prefpilot$eff_mass))
-# prefpilot$reaction_tanv<-as.numeric(as.character(prefpilot$reaction_tanv))
-# prefpilot$miss_rad<-as.numeric(as.character(prefpilot$miss_rad)) 
-# prefpilot$peakvel_target<-as.numeric(as.character(prefpilot$peakvel_target))
-# prefpilot=filter(prefpilot,movedur<1.5,movedur>.25,reaction_tanv<.5,miss_rad>.08,miss_rad<.2)
+# prefpilot = filter(prefpilot,movedur<1.75)
+# prefpilot$subj <- as.numeric(prefpilot$subj)
 
 # ===================== Setting plots sizes ===================
 # Pref stuff
@@ -984,14 +900,8 @@ for (data in c('pref')){#,'smallt','pilot')){
   }
 }
 
-
 ```
 
-```{r, echo = FALSE, message = FALSE, warning = FALSE}
-
-temp_pref <- prefdata %>% group_by(subj,eff_mass) %>% summarise_each(funs(mean))
-
-```
 
 ```{r}
 
@@ -1001,253 +911,522 @@ smalltdata[smalltdata$trialtot<401,'condition'] = 'fml'
 pilotdata = filter(pilotdata, subj != 39)
 pilotdata[pilotdata$trialtot<101,'condition'] = 'fml'
 
+smalltdata = filter(smalltdata,trial<200)
+
+fml_plot <- function(data, variable, labels, group_meth){
+  data$variable = data[,variable]
+  
+  if (group_meth == 'Subject'){
+    g <- ggplot()+
+      geom_smooth(data=data,
+                  aes(x = trial,
+                      y = variable,
+                      color = factor(subj)),
+                  method = 'loess')+
+      facet_wrap(~factor(condition))
+  } else if (group_meth == 'Condition'){
+    g <- ggplot()+
+      geom_smooth(data=prefdata,
+                  aes(x = trial,
+                      y = movedur,
+                      color = factor(condition)),
+                  method = 'loess')
+  }
+  
+  g <- g+
+    labs(title = labels['title'],
+         y = labels['ylab'],
+         x = labels['xlab'],
+         color = group_meth)
+  
+  return(g)
+  
+}
+
+
+
+fml_plot_delc <- function(data, variable, labels, group_meth){
+  data$variable = data[,variable]
+  
+  if (group_meth == 'Subject'){
+    g <- ggplot()+
+      geom_smooth(data=data,
+                  aes(x = trial,
+                      y = variable,
+                      color = factor(subj)),
+                  method = 'loess')+
+      facet_wrap(~factor(delcond))
+  } else if (group_meth == 'Condition'){
+    g <- ggplot()+
+      geom_smooth(data=prefdata,
+                  aes(x = trial,
+                      y = movedur,
+                      color = factor(delcond)),
+                  method = 'loess')+
+    scale_color_manual(values = viridis(9))
+  }
+  
+  g <- g+
+    labs(title = labels['title'],
+         y = labels['ylab'],
+         x = labels['xlab'],
+         color = group_meth)
+  
+  return(g)
+}
 
 ```
 
-# Movement Duration
+# Absolute
+## Movement Duration
 
-## Split by subj
-
-```{r, fig.width=9, fig.height=6}
-ggplot()+geom_smooth(data=prefdata,
-                     aes(x = trial,
-                         y = movedur,
-                         color = factor(subj)),
-                     method = 'loess')+
-    facet_wrap(~factor(condition))+
-  labs(title = 'Preferred')
-
+### Split by subj
+```{r, echo = FALSE}
+variable = 'movedur'
+labels = list()
+labels['title'] = 'Preferred Experiment'
+labels['ylab'] = 'Movement Duration (s)'
+labels['xlab'] = 'Trial #'
 ```
 
 ```{r, fig.width=9, fig.height=6}
 
-
-
-ggplot()+geom_smooth(data=smalltdata,
-                     aes(x = trial,
-                         y = movedur,
-                         color = factor(subj)),
-                     method = 'loess')+
-    facet_wrap(~factor(condition))+
-  labs(title = 'Smallt Data')
-
-```
-
-```{r, fig.width=9, fig.height=6}
-
-
-
-ggplot()+geom_smooth(data=pilotdata,
-                     aes(x = trial,
-                         y = movedur,
-                         color = factor(subj)),
-                     method = 'loess')+
-    facet_wrap(~factor(condition))+
-  labs(title = 'No Target')
-
-```
-
-## Grouped 
-
-```{r, fig.width=9, fig.height=6}
-ggplot()+geom_smooth(data=prefdata,
-                     aes(x = trial,
-                         y = movedur,
-                         color = factor(condition)),
-                     method = 'loess')+
-  labs(title = 'Preferred')
-
-```
-
-```{r, fig.width=9, fig.height=6}
-
-
-
-ggplot()+geom_smooth(data=smalltdata,
-                     aes(x = trial,
-                         y = movedur,
-                         color = factor(condition)),
-                     method = 'loess')+
-  labs(title = 'Smallt Data')
-
-```
-
-```{r, fig.width=9, fig.height=6}
-
-
-
-ggplot()+geom_smooth(data=pilotdata,
-                     aes(x = trial,
-                         y = movedur,
-                         color = factor(condition)),
-                     method = 'loess')+
-  labs(title = 'No Target')
-
-```
-
-# Peak Vel
-
-## Split by subj
-
-```{r, fig.width=9, fig.height=6}
-ggplot()+geom_smooth(data=prefdata,
-                     aes(x = trial,
-                         y = peakvel_target,
-                         color = factor(subj)),
-                     method = 'loess')+
-    facet_wrap(~factor(condition))+
-  labs(title = 'Preferred')
+labels['title'] = 'Circle Target Experiment'
+fml_plot(prefdata,variable,labels,'Subject')
 
 ```
 
 ```{r, fig.width=9, fig.height=6}
 
-
-
-ggplot()+geom_smooth(data=smalltdata,
-                     aes(x = trial,
-                         y = peakvel_target,
-                         color = factor(subj)),
-                     method = 'loess')+
-    facet_wrap(~factor(condition))+
-  labs(title = 'Smallt Data')
+labels['title'] = 'Smallt Target Experiment'
+fml_plot(smalltdata,variable,labels,'Subject')
 
 ```
 
 ```{r, fig.width=9, fig.height=6}
 
-
-
-ggplot()+geom_smooth(data=pilotdata,
-                     aes(x = trial,
-                         y = peakvel_target,
-                         color = factor(subj)),
-                     method = 'loess')+
-    facet_wrap(~factor(condition))+
-  labs(title = 'No Target')
+labels['title'] = 'No Target Experiment'
+fml_plot(pilotdata,variable,labels,'Subject')
 
 ```
 
-## Grouped 
+### Grouped 
 
 ```{r, fig.width=9, fig.height=6}
-ggplot()+geom_smooth(data=prefdata,
-                     aes(x = trial,
-                         y = peakvel_target,
-                         color = factor(condition)),
-                     method = 'loess')+
-  labs(title = 'Preferred')
+
+labels['title'] = 'Circle Target Experiment'
+fml_plot(prefdata,variable,labels,'Condition')
 
 ```
 
 ```{r, fig.width=9, fig.height=6}
 
-
-
-ggplot()+geom_smooth(data=smalltdata,
-                     aes(x = trial,
-                         y = peakvel_target,
-                         color = factor(condition)),
-                     method = 'loess')+
-  labs(title = 'Smallt Data')
+labels['title'] = 'Smallt Target Experiment'
+fml_plot(smalltdata,variable,labels,'Condition')
 
 ```
 
 ```{r, fig.width=9, fig.height=6}
 
-
-
-ggplot()+geom_smooth(data=pilotdata,
-                     aes(x = trial,
-                         y = peakvel_target,
-                         color = factor(condition)),
-                     method = 'loess')+
-  labs(title = 'No Target')
+labels['title'] = 'No Target Experiment'
+fml_plot(pilotdata,variable,labels,'Condition')
 
 ```
 
+## Peak Vel
 
-
-
-
-# Movement Duration DelCond
-
-## Split by subj
+### Split by subj
+```{r, echo = FALSE}
+variable = 'peakvel_target'
+labels['ylab'] = 'Peak Velocity (m/s)'
+```
 
 ```{r, fig.width=9, fig.height=6}
-ggplot()+geom_smooth(data=prefdata,
-                     aes(x = trial,
-                         y = movedur,
-                         color = factor(subj)),
-                     method = 'loess')+
-    facet_wrap(~factor(delcond))+
-  labs(title = 'Preferred')
+
+labels['title'] = 'Circle Target Experiment'
+fml_plot(prefdata,variable,labels,'Subject')
 
 ```
 
 ```{r, fig.width=9, fig.height=6}
 
-
-
-ggplot()+geom_smooth(data=filter(smalltdata,trial<200),
-                     aes(x = trial,
-                         y = movedur,
-                         color = factor(subj)),
-                     method = 'loess')+
-    facet_wrap(~factor(delcond))+
-  labs(title = 'Smallt Data')
+labels['title'] = 'Smallt Target Experiment'
+fml_plot(smalltdata,variable,labels,'Subject')
 
 ```
 
 ```{r, fig.width=9, fig.height=6}
 
-
-
-ggplot()+geom_smooth(data=pilotdata,
-                     aes(x = trial,
-                         y = movedur,
-                         color = factor(subj)),
-                     method = 'loess')+
-    facet_wrap(~factor(delcond))+
-  labs(title = 'No Target')
+labels['title'] = 'No Target Experiment'
+fml_plot(pilotdata,variable,labels,'Subject')
 
 ```
 
-## Grouped 
+### Grouped 
 
 ```{r, fig.width=9, fig.height=6}
-ggplot()+geom_smooth(data=prefdata,
-                     aes(x = trial,
-                         y = movedur,
-                         color = factor(delcond)),
-                     method = 'loess')+
-    scale_color_manual(values = viridis(9))+
-  labs(title = 'Preferred')
+
+labels['title'] = 'Circle Target Experiment'
+fml_plot(prefdata,variable,labels,'Condition')
 
 ```
 
 ```{r, fig.width=9, fig.height=6}
 
-ggplot()+geom_smooth(data=filter(smalltdata,trial<200),
-                     aes(x = trial,
-                         y = movedur,
-                         color = factor(delcond)),
-                     method = 'loess')+
-    scale_color_manual(values = viridis(9))+
-  labs(title = 'Smallt Data')
+labels['title'] = 'Smallt Target Experiment'
+fml_plot(smalltdata,variable,labels,'Condition')
 
 ```
 
 ```{r, fig.width=9, fig.height=6}
 
-
-
-ggplot()+geom_smooth(data=pilotdata,
-                     aes(x = trial,
-                         y = movedur,
-                         color = factor(delcond)),
-                     method = 'loess')+
-    scale_color_manual(values = viridis(9))+
-  labs(title = 'No Target')
+labels['title'] = 'No Target Experiment'
+fml_plot(pilotdata,variable,labels,'Condition')
 
 ```
+
+
+
+## Movement Duration DelCond
+
+### Split by subj
+```{r, echo = FALSE}
+variable = 'movedur'
+labels['ylab'] = 'Movement Duration (s)'
+```
+
+```{r, fig.width=9, fig.height=6}
+
+labels['title'] = 'Circle Target Experiment'
+fml_plot_delc(prefdata,variable,labels,'Subject')
+
+```
+
+```{r, fig.width=9, fig.height=6}
+
+labels['title'] = 'Smallt Target Experiment'
+fml_plot_delc(smalltdata,variable,labels,'Subject')
+
+```
+
+```{r, fig.width=9, fig.height=6}
+
+labels['title'] = 'No Target Experiment'
+fml_plot_delc(pilotdata,variable,labels,'Subject')
+
+```
+
+### Grouped 
+
+```{r, fig.width=9, fig.height=6}
+
+labels['title'] = 'Circle Target Experiment'
+fml_plot_delc(prefdata,variable,labels,'Condition')
+
+eval(parse(text = paste('cftest(lmer(',variable,' ~ delcond + trial +(1|subj),data=prefdata))')))
+
+```
+
+```{r, fig.width=9, fig.height=6}
+
+labels['title'] = 'Smallt Target Experiment'
+fml_plot_delc(smalltdata,variable,labels,'Condition')
+
+eval(parse(text = paste('cftest(lmer(',variable,' ~ delcond + trial +(1|subj),data=smalltdata))')))
+
+```
+
+```{r, fig.width=9, fig.height=6}
+
+labels['title'] = 'No Target Experiment'
+fml_plot_delc(pilotdata,variable,labels,'Condition')
+
+eval(parse(text = paste('cftest(lmer(',variable,' ~ delcond + trial +(1|subj),data=pilotdata))')))
+
+```
+
+## Peak Vel DelCond
+
+### Split by subj
+```{r, echo = FALSE}
+variable = 'peakvel_target'
+labels['ylab'] = 'Peak Velocity (m/s)'
+```
+
+```{r, fig.width=9, fig.height=6}
+
+labels['title'] = 'Circle Target Experiment'
+fml_plot_delc(prefdata,variable,labels,'Subject')
+
+```
+
+```{r, fig.width=9, fig.height=6}
+
+labels['title'] = 'Smallt Target Experiment'
+fml_plot_delc(smalltdata,variable,labels,'Subject')
+
+```
+
+```{r, fig.width=9, fig.height=6}
+
+labels['title'] = 'No Target Experiment'
+fml_plot_delc(pilotdata,variable,labels,'Subject')
+
+```
+
+### Grouped 
+
+```{r, fig.width=9, fig.height=6}
+
+labels['title'] = 'Circle Target Experiment'
+fml_plot_delc(prefdata,variable,labels,'Condition')
+
+eval(parse(text = paste('cftest(lmer(',variable,' ~ delcond + trial +(1|subj),data=prefdata))')))
+
+```
+
+```{r, fig.width=9, fig.height=6}
+
+labels['title'] = 'Smallt Target Experiment'
+fml_plot_delc(smalltdata,variable,labels,'Condition')
+
+eval(parse(text = paste('cftest(lmer(',variable,' ~ delcond + trial +(1|subj),data=smalltdata))')))
+
+```
+
+```{r, fig.width=9, fig.height=6}
+
+labels['title'] = 'No Target Experiment'
+fml_plot_delc(pilotdata,variable,labels,'Condition')
+
+eval(parse(text = paste('cftest(lmer(',variable,' ~ delcond + trial +(1|subj),data=pilotdata))')))
+
+```
+
+# Normalized
+## Movement Duration
+
+### Split by subj
+```{r, echo = FALSE}
+variable = 'movedur_norm'
+labels = list()
+labels['title'] = 'Preferred Experiment'
+labels['ylab'] = 'Normalized Movement Duration (s)'
+labels['xlab'] = 'Trial #'
+```
+
+```{r, fig.width=9, fig.height=6}
+
+labels['title'] = 'Circle Target Experiment'
+fml_plot(prefdata,variable,labels,'Subject')
+
+```
+
+```{r, fig.width=9, fig.height=6}
+
+labels['title'] = 'Smallt Target Experiment'
+fml_plot(smalltdata,variable,labels,'Subject')
+
+```
+
+```{r, fig.width=9, fig.height=6}
+
+labels['title'] = 'No Target Experiment'
+fml_plot(pilotdata,variable,labels,'Subject')
+
+```
+
+### Grouped 
+
+```{r, fig.width=9, fig.height=6}
+
+labels['title'] = 'Circle Target Experiment'
+fml_plot(prefdata,variable,labels,'Condition')
+
+```
+
+```{r, fig.width=9, fig.height=6}
+
+labels['title'] = 'Smallt Target Experiment'
+fml_plot(smalltdata,variable,labels,'Condition')
+
+```
+
+```{r, fig.width=9, fig.height=6}
+
+labels['title'] = 'No Target Experiment'
+fml_plot(pilotdata,variable,labels,'Condition')
+
+```
+
+## Peak Vel
+
+### Split by subj
+```{r, echo = FALSE}
+variable = 'peakvel_target_norm'
+labels['ylab'] = 'Normalized Peak Velocity (m/s)'
+```
+
+```{r, fig.width=9, fig.height=6}
+
+labels['title'] = 'Circle Target Experiment'
+fml_plot(prefdata,variable,labels,'Subject')
+
+```
+
+```{r, fig.width=9, fig.height=6}
+
+labels['title'] = 'Smallt Target Experiment'
+fml_plot(smalltdata,variable,labels,'Subject')
+
+```
+
+```{r, fig.width=9, fig.height=6}
+
+labels['title'] = 'No Target Experiment'
+fml_plot(pilotdata,variable,labels,'Subject')
+
+```
+
+### Grouped 
+
+```{r, fig.width=9, fig.height=6}
+
+labels['title'] = 'Circle Target Experiment'
+fml_plot(prefdata,variable,labels,'Condition')
+
+```
+
+```{r, fig.width=9, fig.height=6}
+
+labels['title'] = 'Smallt Target Experiment'
+fml_plot(smalltdata,variable,labels,'Condition')
+
+```
+
+```{r, fig.width=9, fig.height=6}
+
+labels['title'] = 'No Target Experiment'
+fml_plot(pilotdata,variable,labels,'Condition')
+
+```
+
+
+
+## Movement Duration DelCond
+
+### Split by subj
+```{r, echo = FALSE}
+variable = 'movedur_norm'
+labels['ylab'] = 'Normalized Movement Duration (s)'
+```
+
+```{r, fig.width=9, fig.height=6}
+
+labels['title'] = 'Circle Target Experiment'
+fml_plot_delc(prefdata,variable,labels,'Subject')
+
+```
+
+```{r, fig.width=9, fig.height=6}
+
+labels['title'] = 'Smallt Target Experiment'
+fml_plot_delc(smalltdata,variable,labels,'Subject')
+
+```
+
+```{r, fig.width=9, fig.height=6}
+
+labels['title'] = 'No Target Experiment'
+fml_plot_delc(pilotdata,variable,labels,'Subject')
+
+```
+
+### Grouped 
+
+```{r, fig.width=9, fig.height=6}
+
+labels['title'] = 'Circle Target Experiment'
+fml_plot_delc(prefdata,variable,labels,'Condition')
+
+eval(parse(text = paste('cftest(lmer(',variable,' ~ delcond + trial +(1|subj),data=prefdata))')))
+
+```
+
+```{r, fig.width=9, fig.height=6}
+
+labels['title'] = 'Smallt Target Experiment'
+fml_plot_delc(smalltdata,variable,labels,'Condition')
+
+eval(parse(text = paste('cftest(lmer(',variable,' ~ delcond + trial +(1|subj),data=smalltdata))')))
+
+```
+
+```{r, fig.width=9, fig.height=6}
+
+labels['title'] = 'No Target Experiment'
+fml_plot_delc(pilotdata,variable,labels,'Condition')
+
+eval(parse(text = paste('cftest(lmer(',variable,' ~ delcond + trial +(1|subj),data=pilotdata))')))
+
+```
+
+## Peak Vel DelCond
+
+### Split by subj
+```{r, echo = FALSE}
+variable = 'peakvel_target_norm'
+labels['ylab'] = 'Normalized Peak Velocity (m/s)'
+```
+
+```{r, fig.width=9, fig.height=6}
+
+labels['title'] = 'Circle Target Experiment'
+fml_plot_delc(prefdata,variable,labels,'Subject')
+
+```
+
+```{r, fig.width=9, fig.height=6}
+
+labels['title'] = 'Smallt Target Experiment'
+fml_plot_delc(smalltdata,variable,labels,'Subject')
+
+```
+
+```{r, fig.width=9, fig.height=6}
+
+labels['title'] = 'No Target Experiment'
+fml_plot_delc(pilotdata,variable,labels,'Subject')
+
+```
+
+### Grouped 
+
+```{r, fig.width=9, fig.height=6}
+
+labels['title'] = 'Circle Target Experiment'
+fml_plot_delc(prefdata,variable,labels,'Condition')
+
+eval(parse(text = paste('cftest(lmer(',variable,' ~ delcond + trial +(1|subj),data=prefdata))')))
+
+```
+
+```{r, fig.width=9, fig.height=6}
+
+labels['title'] = 'Smallt Target Experiment'
+fml_plot_delc(smalltdata,variable,labels,'Condition')
+
+eval(parse(text = paste('cftest(lmer(',variable,' ~ delcond + trial +(1|subj),data=smalltdata))')))
+
+```
+
+```{r, fig.width=9, fig.height=6}
+
+labels['title'] = 'No Target Experiment'
+fml_plot_delc(pilotdata,variable,labels,'Condition')
+
+eval(parse(text = paste('cftest(lmer(',variable,' ~ delcond + trial +(1|subj),data=pilotdata))')))
+
+```
+
+
