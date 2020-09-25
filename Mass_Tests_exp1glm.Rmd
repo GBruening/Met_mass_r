@@ -3922,13 +3922,13 @@ colnames(pdata) = c('speed','effmass','movedur','movedurse','grosscost','grossco
   
 MCGross <- ggplot(data=mpdata_factor)+
   stat_function(aes(x=movedur),
-                fun=fun.1,size=met_line_size,color='black')+
+                fun=fun.1,size=met_line_size+.5,color='black')+
   stat_function(aes(x=movedur),
-                fun=fun.2,size=met_line_size,color='black')+
+                fun=fun.2,size=met_line_size+.5,color='black')+
   stat_function(aes(x=movedur),
-                fun=fun.3,size=met_line_size,color='black')+
+                fun=fun.3,size=met_line_size+.5,color='black')+
   stat_function(aes(x=movedur),
-                fun=fun.4,size=met_line_size,color='black')+
+                fun=fun.4,size=met_line_size+.5,color='black')+
   stat_function(aes(x=movedur),
                 fun=fun.1,size=met_line_size,color=rgb(color1[1],color1[2],color1[3]))+
   stat_function(aes(x=movedur),
@@ -3937,6 +3937,20 @@ MCGross <- ggplot(data=mpdata_factor)+
                 fun=fun.3,size=met_line_size,color=rgb(color3[1],color3[2],color3[3]))+
   stat_function(aes(x=movedur),
                 fun=fun.4,size=met_line_size,color=rgb(color4[1],color4[2],color4[3]))+
+  geom_errorbar(data = pdata,
+                aes(x=movedur,
+                    ymin=grosscost-grosscostse-.1,
+                    ymax=grosscost+grosscostse+.1),
+                color = 'black',
+                width = 0,
+                size = met_errorbar_size+.5)+
+  geom_errorbarh(data=pdata,
+                 aes(xmin=movedur-movedurse-.001,
+                     xmax=movedur+movedurse+.001,
+                     y=grosscost),
+                 color='black',
+                 height = 0,
+                 size = met_errorbar_size+.5)+
   geom_errorbar(data = pdata,
                 aes(x=movedur,
                     ymin=grosscost-grosscostse,
@@ -3951,13 +3965,6 @@ MCGross <- ggplot(data=mpdata_factor)+
                      color=factor(effmass)),
                  height = 0,
                  size = met_errorbar_size)+
-  # geom_point(data=mpdata_factor,
-  #            aes(x=movedur,
-  #                y=grosscost,
-  #                fill = factor(effmass),
-  #                color = 'black'),
-  #            size=met_point_size,
-  #            pch = 21)+
   geom_point(data=data.frame(temp),
              aes(x=MCostmin_dur,
                  y=MCostmin_obj,
