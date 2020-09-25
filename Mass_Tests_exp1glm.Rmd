@@ -4330,8 +4330,8 @@ miss_anglevar_grouped_met<-ggplot()+
               se=FALSE,size=met_line_size,span=3, method = 'loess')+
   geom_errorbar(data = pdata,
                 aes(x=movedur,
-                    ymin=yvar-yvarse-.002,
-                    ymax=yvar+yvarse+.002),
+                    ymin=yvar-yvarse-.001,
+                    ymax=yvar+yvarse+.001),
                 color = 'black',
                 width = 0,
                 size = met_errorbar_size+.5)+
@@ -4413,8 +4413,28 @@ radial_endpointvar_grouped_met<-ggplot()+
   geom_smooth(data = pdata,
               aes(x=movedur,
                   y=yvar,
+                  group = factor(eff_mass)),
+              color = 'black',
+              se=FALSE,size=met_line_size+.5,span=3, method = 'loess')+
+  geom_smooth(data = pdata,
+              aes(x=movedur,
+                  y=yvar,
                   color = factor(eff_mass)),
               se=FALSE,size=met_line_size,span=3, method = 'loess')+
+  geom_errorbar(data = pdata,
+                aes(x=movedur,
+                    ymin=yvar-yvarse-.0005,
+                    ymax=yvar+yvarse+.0005),
+                color = 'black',
+                width = 0,
+                size = met_errorbar_size+.5)+
+  geom_errorbarh(data=pdata,
+                 aes(xmin=movedur-movedurse-.002,
+                     xmax=movedur+movedurse+.002,
+                     y=yvar),
+                 color = 'black',
+                 height = 0,
+                 size = met_errorbar_size+.5)+
   geom_errorbar(data = pdata,
                 aes(x=movedur,
                     ymin=yvar-yvarse,
