@@ -435,9 +435,9 @@ react_plot_point_size = 1
 # Met stuff
 met_point_size = 3
 met_costmin_size = met_point_size-2
-met_line_size = .5
+met_line_size = 1
 
-met_errorbar_size = 1
+met_errorbar_size = .5
 
 # ===================== Fucntions ===================
 # Violin Plotting Function
@@ -4500,8 +4500,8 @@ reaction_bydur_met <- ggplot()+
               se=FALSE,size=met_line_size,span=3, method = 'loess')+
   geom_errorbar(data = pdata,
                 aes(x=movedur,
-                    ymin=yvar-yvarse-.001,
-                    ymax=yvar+yvarse+.001),
+                    ymin=yvar-yvarse-.0001,
+                    ymax=yvar+yvarse+.0001),
                 color = 'black',
                 width = 0,
                 size = met_errorbar_size+.5)+
@@ -4529,7 +4529,7 @@ reaction_bydur_met <- ggplot()+
   scale_color_manual(values = mass_colors)+
   labs(x='Movement Duration (s)',
        y='Reaction Time (s)',
-       title='Metabolic Experiment Reaction time',
+       # title='Metabolic Experiment Reaction time',
        color='Effective\nMass (kg)')+
   theme(text              = element_text(color='black'),
         axis.text         = element_text(color='black'),
