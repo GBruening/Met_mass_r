@@ -241,9 +241,9 @@ add_norm <- function(data, variables){
   return(data)
 }
 
-prefdata <- add_norm(prefdata,c('movedur','peakvel_target'))
-smalltdata <- add_norm(smalltdata,c('movedur','peakvel_target'))
-pilotdata <- add_norm(pilotdata,c('movedur','peakvel_target'))
+prefdata <- add_norm(prefdata,c('movedur','peakvel_target','reaction_tanv','miss_dist'))
+smalltdata <- add_norm(smalltdata,c('movedur','peakvel_target','reaction_tanv','miss_dist'))
+pilotdata <- add_norm(pilotdata,c('movedur','peakvel_target','reaction_tanv','miss_dist'))
 
 # ========================== Adding Metabolics things =========================================
 
@@ -388,8 +388,8 @@ allexp_plot <- function(vars,data,...){
 
 vars = c('targetnum','movedur','movedur_norm',
          'peakvel_target','peakvel_target_norm',
-         'miss_dist',
-         'reaction_tanv','reaction_tanvel',
+         'miss_dist','miss_dist_norm',
+         'reaction_tanv','reaction_tanv_norm','reaction_tanvel',
          'pathltar','missangle','miss_rad','trial',
          'miss_dist_avg','miss_dist_sd',
          'missangle_avg','missangle_sd',
@@ -655,6 +655,7 @@ avg_plot2 <- function(variable,data,ylab,shape_labs,...){
   }
   return(g)
 }
+
 
 all_exp_avg_plot <- function(variable,data1,data2,data3,ylab,...){
   exp = list(...)
@@ -1508,8 +1509,6 @@ This next stat output shows the a LME with movedur ~ target + eff_mass*exp + (1|
   # temp = aov(lm(movedur ~ eff_mass*factor(exp) + (1|subj),data=prefpilot))
   # test2 =TukeyHSD(temp , which = 'exp')
   # plot(test2)
-  
-  
 ```
 
 `r mass_exp_int_stringgen(prefpilot,'movedur','movement duration')`
@@ -1553,21 +1552,19 @@ movedur[['smallt']]<-vplot('movedur',smalltdata)+
 
 movedur_nv = list()
 movedur_nv[['pref']]<-avg_plot('movedur',prefdata,ylab = 'Movement duration (s)',shape = 21)+theme(legend.position = 'none')
-
 movedur_nv[['pilot']]<-avg_plot('movedur',pilotdata,ylab = 'Movement duration (s)',shape = 22)+theme(legend.position = 'none')
-
 movedur_nv[['smallt']]<-avg_plot('movedur',smalltdata,ylab = 'Movement duration (s)',shape = 24)+theme(legend.position = 'none')
 
 ```
 
-```{r movedur1, echo = FALSE, warning = FALSE, fig.width=12, fig.height=8, fig.cap = 'Movement duration broken up by experiment.'}
+```{r movedur1, echo = FALSE, warning = FALSE, fig.width=12, fig.height=12, fig.cap = 'Movement duration broken up by experiment.'}
   plot_grid(movedur[['pref']],
             movedur[['smallt']],
             movedur[['pilot']],
             movedur_nv[['pref']],
             movedur_nv[['smallt']],
             movedur_nv[['pilot']],
-            nrow = 2,
+            nrow = 3,
             align = 'vh',
             labels = c('Preferred','Smallt','2c','','',''))
 ```
@@ -1619,7 +1616,6 @@ movedur_nv[['smallt']]<-avg_plot('movedur',smalltdata,ylab = 'Movement duration 
 
 This next stat output shows the a LME with movedur_norm ~ target + eff_mass*exp + (1|subj).
 ```{r movedur_norm_exp_stat, echo = FALSE, warning = FALSE}
-# ```{r movedur_norm2, echo = FALSE, warning = FALSE, fig.width=12, fig.height=8, fig.cap = 'Movement duration by experiment.'}
   # prefpilot$tempexp[prefpilot$exp=='smallt'] = 1
   # prefpilot$tempexp[prefpilot$exp=='pref'] = 2
   # prefpilot$tempexp[prefpilot$exp=='pilot'] = 3
@@ -1637,7 +1633,6 @@ This next stat output shows the a LME with movedur_norm ~ target + eff_mass*exp 
 
 
 ```{r movedur_normbyexperiment, echo = FALSE, warning = FALSE, fig.width=12, fig.height=8, fig.cap = 'Movement Duration by experiment.'}
-# ```{r movedur_norm2, echo = FALSE, warning = FALSE, fig.width=12, fig.height=8, fig.cap = 'Movement duration by experiment.'}
 
 Movedur_norm_by_experiment <- all_exp_avg_plot('movedur_norm',prefdata,smalltdata,pilotdata,ylab = 'Peak Velocity Normalized (m/s)')
   
@@ -1677,9 +1672,7 @@ movedur_norm[['smallt']]<-vplot('movedur_norm',smalltdata)+
 
 movedur_norm_nv = list()
 movedur_norm_nv[['pref']]<-avg_plot('movedur_norm',prefdata,ylab = 'Movement duration (s)',shape = 21)+theme(legend.position = 'none')
-
 movedur_norm_nv[['pilot']]<-avg_plot('movedur_norm',pilotdata,ylab = 'Movement duration (s)',shape = 22)+theme(legend.position = 'none')
-
 movedur_norm_nv[['smallt']]<-avg_plot('movedur_norm',smalltdata,ylab = 'Movement duration (s)',shape = 24)+theme(legend.position = 'none')
 
 ```
@@ -1779,9 +1772,7 @@ peakvel_target[['smallt']]<-vplot('peakvel_target',smalltdata)+
 
 peakvel_target_nv = list()
 peakvel_target_nv[['pref']]<-avg_plot('peakvel_target',prefdata,ylab = 'Peak Velocity (m/s)',shape = 21)+theme(legend.position = 'none')
-
 peakvel_target_nv[['pilot']]<-avg_plot('peakvel_target',pilotdata,ylab = 'Peak Radial Velocity (m/s)',shape = 22)+theme(legend.position = 'none')
-
 peakvel_target_nv[['smallt']]<-avg_plot('peakvel_target',smalltdata,ylab = 'Peak Velocity (m/s)',shape = 24)+theme(legend.position = 'none')
 
 ```
@@ -1907,7 +1898,9 @@ peakvel_target_norm_nv[['smallt']]<-avg_plot('peakvel_target_norm',smalltdata,yl
             align = 'vh',
             labels = c('Preferred','Smallt','2c','','',''))
 ```
+
 ## Reaction Time
+
 ```{r, echo = FALSE}
   react_lm_all = cftest(lmer(reaction_tanv ~ factor(targetnum) + eff_mass +  (1|subj) + (1|exp),data=prefpilot))
   react_lm_pref = cftest(lmer(reaction_tanv ~ factor(targetnum) + eff_mass +  (1|subj),data=filter(prefpilot,exp=='pref')))
@@ -1992,10 +1985,13 @@ reaction_tanv[['smallt']]<-vplot('reaction_tanv',smalltdata)+
 
 reaction_tanv_nv = list()
 reaction_tanv_nv[['pref']]<-avg_plot('reaction_tanv',prefdata,ylab = 'Reaction Time (s)',shape = 21)+theme(legend.position = 'none')
-
 reaction_tanv_nv[['pilot']]<-avg_plot('reaction_tanv',pilotdata,ylab = 'Reaction Time (s)',shape = 22)+theme(legend.position = 'none')
-
 reaction_tanv_nv[['smallt']]<-avg_plot('reaction_tanv',smalltdata,ylab = 'Reaction Time (s)',shape = 24)+theme(legend.position = 'none')
+
+reaction_tanv_norm_nv = list()
+reaction_tanv_norm_nv[['pref']]<-avg_plot('reaction_tanv_norm',prefdata,ylab = 'Reaction Time Norm (s)',shape = 21)+theme(legend.position = 'none')
+reaction_tanv_norm_nv[['pilot']]<-avg_plot('reaction_tanv_norm',pilotdata,ylab = 'Reaction Time Norm (s)',shape = 22)+theme(legend.position = 'none')
+reaction_tanv_norm_nv[['smallt']]<-avg_plot('reaction_tanv_norm',smalltdata,ylab = 'Reaction Time Norm (s)',shape = 24)+theme(legend.position = 'none')
 ```
 
 ```{r reactiontanv1, echo = FALSE, warning = FALSE, fig.width=12, fig.height=8, fig.cap = 'Reaction Time broken by experiment.'}
@@ -2008,6 +2004,106 @@ reaction_tanv_nv[['smallt']]<-avg_plot('reaction_tanv',smalltdata,ylab = 'Reacti
             nrow = 2,
             align = 'vh',
             labels = c('Preferred','Smallt','2c','','',''))
+```
+
+### Reaction Time Normalized
+
+```{r, echo = FALSE}
+react_lm_all = cftest(lmer(reaction_tanv_norm ~ factor(targetnum) + eff_mass +  (1|subj) + (1|exp),data=prefpilot))
+react_lm_pref = cftest(lmer(reaction_tanv_norm ~ factor(targetnum) + eff_mass +  (1|subj),data=filter(prefpilot,exp=='pref')))
+react_lm_pilot = cftest(lmer(reaction_tanv_norm ~ factor(targetnum) + eff_mass +  (1|subj),data=filter(prefpilot,exp=='pilot')))
+react_lm_smallt = cftest(lmer(reaction_tanv_norm ~ factor(targetnum) + eff_mass +  (1|subj),data=filter(prefpilot,exp=='smallt')))
+
+react_p_table = rbind(c('Circle',formatC(react_lm_pref$test$coefficients[5],format = 'e', digits = 3),
+                        formatC(react_lm_pref$test$pvalues[5],format = 'e', digits = 3),
+                        formatC(react_lm_pref$test$sigma[5],format = 'e', digits = 3)),
+                      c('Pilot',formatC(react_lm_pilot$test$coefficients[5],format = 'e', digits = 3),
+                        formatC(react_lm_pilot$test$pvalues[5],format = 'e', digits = 3),
+                        formatC(react_lm_pilot$test$sigma[5],format = 'e', digits = 3)),
+                      c('Arc',formatC(react_lm_smallt$test$coefficients[5],format = 'e', digits = 3),
+                        formatC(react_lm_smallt$test$pvalues[5],format = 'e', digits = 3),
+                        formatC(react_lm_smallt$test$sigma[5],format = 'e', digits = 3)),
+                      c('All',formatC(react_lm_all$test$coefficients[5],format = 'e', digits = 3),
+                        formatC(react_lm_all$test$pvalues[5],format = 'e', digits = 3),
+                        formatC(react_lm_all$test$sigma[5],format = 'e', digits = 3)))
+colnames(react_p_table) = c('Reaction Time Norm','Linear Estimate','P-Value','Std Error')
+kable(react_p_table, caption = 'Reaction Time linear models.')
+
+react_pref <- aggregate(reaction_tanv_norm ~ eff_mass,prefdata,mean)$reaction_tanv_norm
+react_arct <- aggregate(reaction_tanv_norm ~ eff_mass,smalltdata,mean)$reaction_tanv_norm
+react_pilo <- aggregate(reaction_tanv_norm ~ eff_mass,pilotdata,mean)$reaction_tanv_norm
+
+react_pref_se <- aggregate(reaction_tanv_norm ~ eff_mass,prefdata,sd)$reaction_tanv_norm/sqrt(12)
+react_arct_se <- aggregate(reaction_tanv_norm ~ eff_mass,smalltdata,sd)$reaction_tanv_norm/sqrt(12)
+react_pilo_se <- aggregate(reaction_tanv_norm ~ eff_mass,pilotdata,sd)$reaction_tanv_norm/sqrt(18)
+
+react_time_avg <- round(cbind(react_pref,react_arct,react_pilo),digits=3)
+react_time_se <- round(cbind(react_pref_se,react_arct_se,react_pilo_se),digits=3)
+react_time_df = matrix(,nrow = 4, ncol = 3)
+for (rows in c(1:4)){
+  for (cols in c(1:3)){
+    react_time_df[rows,cols] = paste(react_time_avg[rows,cols],'±',react_time_se[rows,cols],sep='')
+  }
+}
+
+react_time <- cbind(c(2.5,3.8,4.7,6.1),react_time_df)
+colnames(react_time) <- c('Effective Mass (kg)','2a','2b','2c')
+kable(react_time, caption = 'Reaction time average values (m/s)')
+
+```
+
+This next stat output shows the a LME with movedur ~ target + eff_mass*exp + (1|subj).
+```{r reactiontanvnorm_exp_stat, echo = FALSE, warning = FALSE}
+# ```{r movedur2, echo = FALSE, warning = FALSE, fig.width=12, fig.height=8, fig.cap = 'Movement duration by experiment.'}
+cftest(lmer(reaction_tanv_norm ~ factor(targetnum) + eff_mass + eff_mass*factor(exp) +  (1|subj),data=prefpilot))
+```
+
+`r mass_exp_int_stringgen(prefpilot,'reaction_tanv_norm','reaction_time')`
+
+```{r Reacttimenormbyexperiment, echo = FALSE, warning = FALSE, fig.width=12, fig.height=8, fig.cap = 'Reaction Time by experiment.'}
+Reacttime_by_experiment+theme(text = element_text(size = 18))
+```
+
+```{r, echo = FALSE, warning = FALSE}
+reaction_tanv_norm = list()
+reaction_tanv_norm[['pref']]<-vplot('reaction_tanv_norm',prefdata)+
+  labs(x='Effective Mass (kg)',y='Reaction Time (s)')+
+  guides(fill=guide_legend(title="Effective\nMass (kg)"))+
+  # theme_classic()
+  theme(legend.position='none')+
+  geom_hline(yintercept=mean(filter(prefdata,condition==0)$reaction_tanv_norm),linetype='dashed',size=.5)
+
+reaction_tanv_norm[['pilot']]<-vplot('reaction_tanv_norm',pilotdata)+
+  labs(x='Effective Mass (kg)',y='Reaction Time (s)')+
+  guides(fill=guide_legend(title="Effective\nMass (kg)"))+
+  # theme_classic()
+  theme(legend.position='none')+
+  geom_hline(yintercept=mean(filter(pilotdata,condition==0)$reaction_tanv_norm),linetype='dashed',size=.5)
+
+reaction_tanv_norm[['smallt']]<-vplot('reaction_tanv_norm',smalltdata)+
+  labs(x='Effective Mass (kg)',y='Reaction Time (s)')+
+  guides(fill=guide_legend(title="Effective\nMass (kg)"))+
+  # theme_classic()
+  theme(legend.position='none')+
+  geom_hline(yintercept=mean(filter(smalltdata,condition==0)$reaction_tanv_norm),linetype='dashed',size=.5)
+
+
+reaction_tanv_norm_nv = list()
+reaction_tanv_norm_nv[['pref']]<-avg_plot('reaction_tanv_norm',prefdata,ylab = 'Reaction Time (s)',shape = 21)+theme(legend.position = 'none')
+reaction_tanv_norm_nv[['pilot']]<-avg_plot('reaction_tanv_norm',pilotdata,ylab = 'Reaction Time (s)',shape = 22)+theme(legend.position = 'none')
+reaction_tanv_norm_nv[['smallt']]<-avg_plot('reaction_tanv_norm',smalltdata,ylab = 'Reaction Time (s)',shape = 24)+theme(legend.position = 'none')
+```
+
+```{r reactiontanvnorm, echo = FALSE, warning = FALSE, fig.width=12, fig.height=8, fig.cap = 'Reaction Time broken by experiment.'}
+plot_grid(reaction_tanv_norm[['pref']],
+          reaction_tanv_norm[['smallt']],
+          reaction_tanv_norm[['pilot']],
+          reaction_tanv_norm_nv[['pref']],
+          reaction_tanv_norm_nv[['smallt']],
+          reaction_tanv_norm_nv[['pilot']],
+          nrow = 2,
+          align = 'vh',
+          labels = c('Preferred','Smallt','2c','','',''))
 ```
 
 ### Reaction Velocity
@@ -2095,9 +2191,7 @@ reaction_tanvel[['smallt']]<-vplot('reaction_tanvel',smalltdata)+
 
 reaction_tanvel_nv = list()
 reaction_tanvel_nv[['pref']]<-avg_plot('reaction_tanvel',prefdata,ylab = 'Reaction Velocity (m/s)',shape = 21)+theme(legend.position = 'none')
-
 reaction_tanvel_nv[['pilot']]<-avg_plot('reaction_tanvel',pilotdata,ylab = 'Reaction Velocity (m/s)',shape = 22)+theme(legend.position = 'none')
-
 reaction_tanvel_nv[['smallt']]<-avg_plot('reaction_tanvel',smalltdata,ylab = 'Reaction Velocity (m/s)',shape = 24)+theme(legend.position = 'none')
 ```
 
@@ -2252,6 +2346,20 @@ cftest(lmer(miss_dist ~ factor(targetnum) + eff_mass + eff_mass*factor(exp) +  (
 miss_dist_by_experiment+theme(text = element_text(size = 18))
 ```
 
+
+```{r missdist_normbyexperiment, echo = FALSE, warning = FALSE, fig.width=12, fig.height=8, fig.cap = 'Movement Duration by experiment.'}
+
+Miss_dist_norm_by_experiment <- all_exp_avg_plot('miss_dist_norm',prefdata,smalltdata,pilotdata,ylab = 'Miss Distance Normalized (m/s)')
+  
+Miss_dist_norm_by_experiment+theme(text = element_text(size = 18))
+
+setwd(pref_plots_dir)
+if (save_plots){
+  ggsave('miss_dist_norm_by_experiment.pdf',plot=Miss_dist_norm_by_experiment+theme(text = element_text(size = 18)),width=12,height=8, useDingbats = FALSE)
+}
+
+```
+
 ```{r, echo = FALSE, warning = FALSE}
 prefdata$miss_dist = prefdata$miss_dist*100
 pilotdata$miss_dist = pilotdata$miss_dist*100
@@ -2282,9 +2390,7 @@ miss_dist[['smallt']]<-vplot('miss_dist',smalltdata)+
 
 miss_dist_nv = list()
 miss_dist_nv[['pref']]<-avg_plot('miss_dist',prefdata,ylab = 'Miss Distance (cm)',shape = 21)+theme(legend.position = 'none')
-
 miss_dist_nv[['pilot']]<-avg_plot('miss_dist',pilotdata,ylab = 'Maximum Excursion (cm)',shape = 22)+theme(legend.position = 'none')
-
 miss_dist_nv[['smallt']]<-avg_plot('miss_dist',smalltdata,ylab = 'Miss Distance (cm)',shape = 24)+theme(legend.position = 'none')
 
 
@@ -2300,6 +2406,113 @@ plot_grid(miss_dist[['pref']],
           miss_dist_nv[['pref']],
           miss_dist_nv[['smallt']],
           miss_dist_nv[['pilot']],
+          nrow = 2,
+          align = 'vh',
+          labels = c('2a','2b','2c','','',''))
+```
+### Endpoint Error Norm
+```{r, echo = FALSE}
+miss_dist_norm_lm_all = cftest(lmer(miss_dist_norm ~ factor(targetnum) + eff_mass +  (1|subj) + (1|exp),data=prefpilot))
+miss_dist_norm_lm_pref = cftest(lmer(miss_dist_norm ~ factor(targetnum) + eff_mass +  (1|subj),data=filter(prefpilot,exp=='pref')))
+miss_dist_norm_lm_pilot = cftest(lmer(miss_dist_norm ~ factor(targetnum) + eff_mass +  (1|subj),data=filter(prefpilot,exp=='pilot')))
+miss_dist_norm_lm_smallt = cftest(lmer(miss_dist_norm ~ factor(targetnum) + eff_mass +  (1|subj),data=filter(prefpilot,exp=='smallt')))
+
+miss_dist_norm_p_table = rbind(c('Circle',formatC(miss_dist_norm_lm_pref$test$coefficients[5],format = 'e', digits = 3),
+                            formatC(miss_dist_norm_lm_pref$test$pvalues[5],format = 'e', digits = 3),
+                            formatC(miss_dist_norm_lm_pref$test$sigma[5],format = 'e', digits = 3)),
+                          c('Pilot',formatC(miss_dist_norm_lm_pilot$test$coefficients[5],format = 'e', digits = 3),
+                            formatC(miss_dist_norm_lm_pilot$test$pvalues[5],format = 'e', digits = 3),
+                            formatC(miss_dist_norm_lm_pilot$test$sigma[5],format = 'e', digits = 3)),
+                          c('Arc',formatC(miss_dist_norm_lm_smallt$test$coefficients[5],format = 'e', digits = 3),
+                            formatC(miss_dist_norm_lm_smallt$test$pvalues[5],format = 'e', digits = 3),
+                            formatC(miss_dist_norm_lm_smallt$test$sigma[5],format = 'e', digits = 3)),
+                          c('All',formatC(miss_dist_norm_lm_all$test$coefficients[5],format = 'e', digits = 3),
+                            formatC(miss_dist_norm_lm_all$test$pvalues[5],format = 'e', digits = 3),
+                            formatC(miss_dist_norm_lm_all$test$sigma[5],format = 'e', digits = 3)))
+colnames(miss_dist_norm_p_table) = c('Miss Distance Norm','Linear Estimate','P-Value','Std Error')
+kable(miss_dist_norm_p_table, caption = 'Miss Distance Norm linear models.')
+
+miss_dist_norm_pref <- aggregate(miss_dist_norm ~ eff_mass,prefdata,mean)$miss_dist_norm*100
+miss_dist_norm_arct <- aggregate(miss_dist_norm ~ eff_mass,smalltdata,mean)$miss_dist_norm*100
+miss_dist_norm_pilo <- aggregate(miss_dist_norm ~ eff_mass,pilotdata,mean)$miss_dist_norm*100
+
+miss_dist_norm_pref_se <- aggregate(miss_dist_norm ~ eff_mass,prefdata,sd)$miss_dist_norm*100/sqrt(12)
+miss_dist_norm_arct_se <- aggregate(miss_dist_norm ~ eff_mass,smalltdata,sd)$miss_dist_norm*100/sqrt(12)
+miss_dist_norm_pilo_se <- aggregate(miss_dist_norm ~ eff_mass,pilotdata,sd)$miss_dist_norm*100/sqrt(18)
+
+miss_dist_norm_time_avg <- round(cbind(miss_dist_norm_pref,miss_dist_norm_arct,miss_dist_norm_pilo),digits=3)
+miss_dist_norm_time_se <- round(cbind(miss_dist_norm_pref_se,miss_dist_norm_arct_se,miss_dist_norm_pilo_se),digits=3)
+miss_dist_norm_time_df = matrix(,nrow = 4, ncol = 3)
+for (rows in c(1:4)){
+  for (cols in c(1:3)){
+    miss_dist_norm_time_df[rows,cols] = paste(miss_dist_norm_time_avg[rows,cols],'±',miss_dist_norm_time_se[rows,cols],sep='')
+  }
+}
+
+miss_dist_norm_time <- cbind(c(2.5,3.8,4.7,6.1),miss_dist_norm_time_df)
+colnames(miss_dist_norm_time) <- c('Effective Mass (kg)','2a','2b','2c')
+kable(miss_dist_norm_time, caption = 'Miss Distance Norm average values (cm)')
+
+```
+
+This next stat output shows the a LME with miss_dist_norm ~ target + eff_mass*exp + (1|subj).
+```{r missdistexpstatnorm, echo = FALSE, warning = FALSE}
+# ```{r movedur2, echo = FALSE, warning = FALSE, fig.width=12, fig.height=8, fig.cap = 'Movement duration by experiment.'}
+cftest(lmer(miss_dist_norm ~ factor(targetnum) + eff_mass + eff_mass*factor(exp) +  (1|subj),data=prefpilot))
+```
+
+`r mass_exp_int_stringgen(prefpilot,'miss_dist_norm','endpoint error')`
+
+```{r missdistexperimentnorm, echo = FALSE, warning = FALSE, fig.width=12, fig.height=8, fig.cap = 'Miss Distance Norm (cm) by experiment.'}
+Miss_dist_norm_by_experiment+theme(text = element_text(size = 18))
+```
+
+```{r, echo = FALSE, warning = FALSE}
+prefdata$miss_dist_norm = prefdata$miss_dist_norm*100
+pilotdata$miss_dist_norm = pilotdata$miss_dist_norm*100
+smalltdata$miss_dist_norm = smalltdata$miss_dist_norm*100
+
+miss_dist_norm = list()
+miss_dist_norm[['pref']]<-vplot('miss_dist_norm',prefdata)+
+  labs(x='Effective Mass (kg)',y='Miss Distance Norm (cm)')+
+  guides(fill=guide_legend(title="Effective\nMass (kg)"))+
+  # theme_classic()
+  theme(legend.position='none')+
+  geom_hline(yintercept=mean(filter(prefdata,condition==0)$miss_dist_norm),linetype='dashed',size=.5)
+
+miss_dist_norm[['pilot']]<-vplot('miss_dist_norm',pilotdata)+
+  labs(x = 'Effective Mass (kg)',y = 'Maximum Excursion (cm)')+
+  guides(fill=guide_legend(title="Effective\nMass (kg)"))+
+  # theme_classic()
+  theme(legend.position='none')+
+  geom_hline(yintercept=mean(filter(pilotdata,condition==0)$miss_dist_norm),linetype='dashed',size=.5)
+
+miss_dist_norm[['smallt']]<-vplot('miss_dist_norm',smalltdata)+
+  labs(x='Effective Mass (kg)',y='Miss Distance Norm (cm)')+
+  guides(fill=guide_legend(title="Effective\nMass (kg)"))+
+  # theme_classic()
+  theme(legend.position='none')+
+  geom_hline(yintercept=mean(filter(smalltdata,condition==0)$miss_dist_norm),linetype='dashed',size=.5)
+
+
+miss_dist_norm_nv = list()
+miss_dist_norm_nv[['pref']]<-avg_plot('miss_dist_norm',prefdata,ylab = 'Miss Distance Norm (cm)',shape = 21)+theme(legend.position = 'none')
+miss_dist_norm_nv[['pilot']]<-avg_plot('miss_dist_norm',pilotdata,ylab = 'Maximum Excursion (cm)',shape = 22)+theme(legend.position = 'none')
+miss_dist_norm_nv[['smallt']]<-avg_plot('miss_dist_norm',smalltdata,ylab = 'Miss Distance Norm (cm)',shape = 24)+theme(legend.position = 'none')
+
+
+prefdata$miss_dist_norm = prefdata$miss_dist_norm/100
+pilotdata$miss_dist_norm = pilotdata$miss_dist_norm/100
+smalltdata$miss_dist_norm = smalltdata$miss_dist_norm/100
+```
+
+```{r miss_dist_norm11, echo = FALSE, warning = FALSE, fig.width=12, fig.height=8, fig.cap = 'Miss Distance Norm (cm) broken by experiment.'}
+plot_grid(miss_dist_norm[['pref']],
+          miss_dist_norm[['smallt']],
+          miss_dist_norm[['pilot']],
+          miss_dist_norm_nv[['pref']],
+          miss_dist_norm_nv[['smallt']],
+          miss_dist_norm_nv[['pilot']],
           nrow = 2,
           align = 'vh',
           labels = c('2a','2b','2c','','',''))
@@ -2478,8 +2691,23 @@ colnames(c) = c('subj','eff_mass','movedur','missangle')
 c$exp = 'pilot'
 miss_var_pilot = c
 
+add_norm_var <- function(data, variables){
+  for (vari in variables){
+    zero_vals = data[data$eff_mass == '2.47',]
+    for (k in 1:length(data$subj)){
+      data[k,paste(vari,'_norm',sep='')] = data[k,vari]/zero_vals[zero_vals$subj == data[k,'subj'],vari]
+    }
+  }
+  return(data)
+}
+
+miss_var_pref <- add_norm_var(miss_var_pref,c('missangle'))
+miss_var_smallt <- add_norm_var(miss_var_smallt,c('missangle'))
+miss_var_pilot <- add_norm_var(miss_var_pilot,c('missangle'))
+
 var_data = rbind(miss_var_pref,miss_var_smallt,miss_var_pilot)
 var_data$exp = factor(var_data$exp, levels = c('pref','smallt','pilot'))
+
 
 missangle_lm_all = cftest(lmer(missangle ~ eff_mass +  (1|subj) + (1|exp),data=var_data))
 missangle_lm_pref = cftest(lmer(missangle ~ eff_mass +  (1|subj),data=filter(var_data,exp=='pref')))
@@ -2566,10 +2794,15 @@ missangle[['smallt']]<-vplot('missangle',filter(var_data,exp=='smallt'))+
 
 missangle_nv = list()
 missangle_nv[['pref']]<-avg_plot('missangle',filter(var_data,exp=='pref'),ylab = 'Miss Angle Variance (deg^2)',shape = 21)+theme(legend.position = 'none')
-
 missangle_nv[['pilot']]<-avg_plot('missangle',filter(var_data,exp=='pilot'),ylab = 'Miss Angle Variance (deg^2)',shape = 22)+theme(legend.position = 'none')
-
 missangle_nv[['smallt']]<-avg_plot('missangle',filter(var_data,exp=='smallt'),ylab = 'Miss Angle Variance (deg^2)',shape = 24)+theme(legend.position = 'none')
+
+missangle_norm_nv = list()
+missangle_norm_nv[['pref']]<-avg_plot('missangle_norm',filter(var_data,exp=='pref'),ylab = 'Miss Angle Variance Norm (deg^2)',shape = 21)+theme(legend.position = 'none')
+missangle_norm_nv[['pilot']]<-avg_plot('missangle_norm',filter(var_data,exp=='pilot'),ylab = 'Miss Angle Variance Norm (deg^2)',shape = 22)+theme(legend.position = 'none')
+missangle_norm_nv[['smallt']]<-avg_plot('missangle_norm',filter(var_data,exp=='smallt'),ylab = 'Miss Angle Variance Norm (deg^2)',shape = 24)+theme(legend.position = 'none')
+
+
 ```
 
 ```{r missangle11, echo = FALSE, warning = FALSE, fig.width=12, fig.height=8, fig.cap = 'Miss Angle Variance (deg^2) broken by experiment.'}
@@ -2756,6 +2989,10 @@ colnames(c) = c('subj','eff_mass','movedur','miss_rad')
 c$exp = 'pilot'
 miss_var_pilot = c
 
+miss_var_pref <- add_norm_var(miss_var_pref,c('miss_rad'))
+miss_var_smallt <- add_norm_var(miss_var_smallt,c('miss_rad'))
+miss_var_pilot <- add_norm_var(miss_var_pilot,c('miss_rad'))
+
 var_data = rbind(miss_var_pref,miss_var_smallt,miss_var_pilot)
 var_data$miss_rad = var_data$miss_rad*(100^2)
 var_data$exp = factor(var_data$exp, levels = c('pref','smallt','pilot'))
@@ -2842,10 +3079,13 @@ miss_rad[['smallt']]<-vplot('miss_rad',filter(var_data,exp=='smallt'))+
 
 miss_rad_nv = list()
 miss_rad_nv[['pref']]<-avg_plot('miss_rad',filter(var_data,exp=='pref'),ylab = 'Miss Radial Variance (cm^2)',shape = 21)+theme(legend.position = 'none')
-
 miss_rad_nv[['pilot']]<-avg_plot('miss_rad',filter(var_data,exp=='pilot'),ylab = 'Miss Radial Variance (cm^2)',shape = 22)+theme(legend.position = 'none')
-
 miss_rad_nv[['smallt']]<-avg_plot('miss_rad',filter(var_data,exp=='smallt'),ylab = 'Miss Radial Variance (cm^2)',shape = 24)+theme(legend.position = 'none')
+
+miss_rad_norm_nv = list()
+miss_rad_norm_nv[['pref']]<-avg_plot('miss_rad_norm',filter(var_data,exp=='pref'),ylab = 'Miss Radial Variance Norm (cm^2)',shape = 21)+theme(legend.position = 'none')
+miss_rad_norm_nv[['pilot']]<-avg_plot('miss_rad_norm',filter(var_data,exp=='pilot'),ylab = 'Miss Radial Variance Norm (cm^2)',shape = 22)+theme(legend.position = 'none')
+miss_rad_norm_nv[['smallt']]<-avg_plot('miss_rad_norm',filter(var_data,exp=='smallt'),ylab = 'Miss Radial Variance Norm (cm^2)',shape = 24)+theme(legend.position = 'none')
 
 ```
 
@@ -3032,7 +3272,9 @@ resample_plot <- function(resamp_data, n_timepoint){
   c_count=1
   str = 'abs_vel<-ggplot(data=resamp_abs)+'
   for (cond in c(0,3,5,8)){
+    str = paste(str,'geom_line(aes(x=(1:n_timepoint),y=v',cond,'),color=\'black\',size=vel_plot_line_size+1)+',sep='')
     str = paste(str,'geom_line(aes(x=(1:n_timepoint),y=v',cond,'),color=mass_colors[',c_count,'],size=vel_plot_line_size)+',sep='')
+    str = paste(str,'geom_point(aes(x=which.max(v',cond,'),y=v',cond,'[which.max(v',cond,')]),color=\'black\',size=vel_plot_point_size+1)+',sep='')
     str = paste(str,'geom_point(aes(x=which.max(v',cond,'),y=v',cond,'[which.max(v',cond,')]),color=mass_colors[',c_count,'],size=vel_plot_point_size)+',sep='')
     c_count = c_count+1
   }
@@ -3044,7 +3286,7 @@ resample_plot <- function(resamp_data, n_timepoint){
 }
 
 resamp_plots = list()
-resamp_plots[['pref']] <- resample_plot(resample_data_pref_abs,200)+
+resamp_plots[['pref']] <- resample_plot(resample_data_pref_abs,250)+
   theme(legend.position='none')+
   theme(text              = element_text(color='black'),
         axis.text         = element_text(color='black'),
@@ -3052,7 +3294,7 @@ resamp_plots[['pref']] <- resample_plot(resample_data_pref_abs,200)+
         plot.title        = element_text(hjust = 0.5),
         axis.line         = element_line(color='black'))
 
-resamp_plots[['pilot']] <- resample_plot(resample_data_pilot_abs,150)+
+resamp_plots[['pilot']] <- resample_plot(resample_data_pilot_abs,250)+
   scale_y_continuous(breaks = c(0,0.05,0.1,0.15,0.20,0.25,0.30),
                      labels = c(0,0.05,0.1,0.15,0.20,0.25,0.30))+
   theme(legend.position='none')+
@@ -3062,7 +3304,7 @@ resamp_plots[['pilot']] <- resample_plot(resample_data_pilot_abs,150)+
         plot.title        = element_text(hjust = 0.5),
         axis.line         = element_line(color='black'))
 
-resamp_plots[['smallt']] <- resample_plot(resample_data_smallt_abs,200)+
+resamp_plots[['smallt']] <- resample_plot(resample_data_smallt_abs,250)+
   theme(legend.position='none')+
   theme(text              = element_text(color='black'),
         axis.text         = element_text(color='black'),
@@ -3100,7 +3342,8 @@ for (exp in c('pref','pilot','smallt')){
                                movedur[[exp]],
                                peakvel_target[[exp]],
                                reaction_tanv[[exp]],
-                               nrow = 1)
+                               nrow = 1,
+                               rel_widths = c(2,1,1,1))
 }
 add_legend = get_legend(movedur[['pref']]+theme(legend.position = 'right'))
 pref_results = plot_grid(plot_grid(NULL,
@@ -3140,7 +3383,8 @@ for (exp in c('pref','pilot','smallt')){
                                   miss_dist_nv[[exp]],
                                   missangle_nv[[exp]],
                                   miss_rad_nv[[exp]],
-                                  nrow = 1)
+                                  nrow = 1,
+                                  rel_widths = c(2,1,1,1,1,1,1))
 }
 
 add_legend = get_legend(movedur[['pref']]+theme(legend.position = 'right'))
@@ -3162,6 +3406,83 @@ pref_results_nv = plot_grid(plot_grid(NULL,
 setwd(pref_plots_dir)
 if (save_plots){
   ggsave('Pref_results_nv.pdf',plot=pref_results_nv,width=18/.9,height=9, useDingbats = FALSE)
+}
+```
+
+### Normalized
+
+```{r, echo = FALSE, warning = FALSE, message = FALSE}
+
+exp_plots_norm = list()
+for (exp in c('pref','pilot','smallt')){
+  exp_plots_norm[[exp]] = plot_grid(resamp_plots[[exp]],
+                               movedur_norm[[exp]],
+                               peakvel_target_norm[[exp]],
+                               reaction_tanv_norm[[exp]],
+                               nrow = 1,
+                               rel_widths = c(2,1,1,1))
+}
+add_legend = get_legend(movedur_norm[['pref']]+theme(legend.position = 'right'))
+pref_results_norm = plot_grid(plot_grid(NULL,
+                                   exp_plots_norm[['pref']],
+                                   NULL,
+                                   exp_plots_norm[['smallt']],
+                                   NULL,
+                                   exp_plots_norm[['pilot']],
+                                   nrow = 6,
+                                   labels = c('2a','','2b','','2c'),
+                                   # labels = 'AUTO',
+                                   rel_heights = c(.15,1,.15,1,.15,1)),
+                         add_legend,
+                         nrow = 1,
+                         rel_widths = c(.9,.1))
+
+
+setwd(pref_plots_dir)
+if (save_plots){
+  ggsave('Pref_results_norm_r2.pdf',plot=pref_results_norm,width=9/.9,height=9, useDingbats = FALSE)
+}
+```
+
+```{r prefresultsnorm, echo = FALSE, warning = FALSE, fig.width=12, fig.height=9, fig.cap = 'Preferred experiment Norm results.'}
+pref_results_norm
+```
+
+```{r prefresults_norm_nv, echo = FALSE, warning = FALSE, message = FALSE}
+# This is only for the non-violin plot versions.
+exp_plots_norm_nv = list()
+for (exp in c('pref','pilot','smallt')){
+  data <- eval(parse(text = paste(exp,'data',sep='')))
+  exp_plots_norm_nv[[exp]] = plot_grid(resamp_plots[[exp]],
+                                  movedur_norm_nv[[exp]],
+                                  peakvel_target_norm_nv[[exp]],
+                                  reaction_tanv_norm_nv[[exp]],
+                                  miss_dist_norm_nv[[exp]],
+                                  missangle_norm_nv[[exp]],
+                                  miss_rad_norm_nv[[exp]],
+                                  nrow = 1,
+                                  rel_widths = c(2,1,1,1,1,1,1))
+}
+
+add_legend = get_legend(movedur_norm[['pref']]+theme(legend.position = 'right'))
+pref_results_norm_nv = plot_grid(plot_grid(NULL,
+                                      exp_plots_norm_nv[['pref']],
+                                      NULL,
+                                      exp_plots_norm_nv[['smallt']],
+                                      NULL,
+                                      exp_plots_norm_nv[['pilot']],
+                                      nrow = 6,
+                                      labels = c('2a','','2b','','2c'),
+                                      # labels = 'AUTO',
+                                      rel_heights = c(.15,1,.15,1,.15,1)),
+                            add_legend,
+                            nrow = 1,
+                            rel_widths = c(.9,.1))
+
+
+setwd(pref_plots_dir)
+if (save_plots){
+  ggsave('Pref_results_norm_nv.pdf',plot=pref_results_norm_nv,width=18/.9,height=9, useDingbats = FALSE)
 }
 ```
 
