@@ -47,7 +47,7 @@ theme_set(theme_classic()+
                   axis.line         = element_line(color='black')))
 # theme_set(theme_cowplot())
 
-save_plots = 1
+save_plots = 0
 
 # #====================== LOAD DATA - Neuromech ==============================
 # met_plots_dir  <- 'D:/Users/Gary/Google Drive/Muscle modeling/Metabolics/Graphs/'
@@ -3611,15 +3611,33 @@ MPGross <- ggplot(mpdata_factor,
                       y=metpowergross,
                       color = factor(effmass)))+
   # geom_point(size=3)+
+  stat_function(fun=fun.1,size=met_line_size+.5,color='black')+
+  stat_function(fun=fun.2,size=met_line_size+.5,color='black')+ 
+  stat_function(fun=fun.3,size=met_line_size+.5,color='black')+ 
+  stat_function(fun=fun.4,size=met_line_size+.5,color='black')+
   stat_function(fun=fun.1,size=met_line_size,color=rgb(color1[1],color1[2],color1[3]))+
   stat_function(fun=fun.2,size=met_line_size,color=rgb(color2[1],color2[2],color2[3]))+ 
   stat_function(fun=fun.3,size=met_line_size,color=rgb(color3[1],color3[2],color3[3]))+ 
   stat_function(fun=fun.4,size=met_line_size,color=rgb(color4[1],color4[2],color4[3]))+
   geom_errorbar(data = pdata,
                 aes(x=movedur,
+                    ymin=metpowergross-metpowergrossse-.5,
+                    ymax=metpowergross+metpowergrossse+.5),
+                color = 'black',
+                width = 0,
+                size = met_errorbar_size+.5)+
+  geom_errorbarh(data=pdata,
+               aes(xmin=movedur-movedurse-.001,
+                   xmax=movedur+movedurse+.001,
+                   y=metpowergross),
+                   color='black',
+               height = 0,
+               size = met_errorbar_size+.5)+
+  geom_errorbar(data = pdata,
+                aes(x=movedur,
                     ymin=metpowergross-metpowergrossse,
                     ymax=metpowergross+metpowergrossse,
-                    color = factor(effmass)),
+                color = factor(effmass)),
                 width = 0,
                 size = met_errorbar_size)+
   geom_errorbarh(data=pdata,
@@ -3628,7 +3646,7 @@ MPGross <- ggplot(mpdata_factor,
                    y=metpowergross,
                    color=factor(effmass)),
                height = 0,
-                size = met_errorbar_size)+
+               size = met_errorbar_size)+
   geom_hline(yintercept = a_mpgross,
              linetype = 'dashed',
              color = 'black')+
@@ -3648,7 +3666,7 @@ MPGross <- ggplot(mpdata_factor,
            y = a_mpgross+7,
            label = 'Resting Rate + a',
            hjust = 0)+#expression(atop(Resting~Rate+a)))+
-  scale_color_manual(values = mass_colors)+
+  scale_color_manual(values = c(mass_colors))+
   labs(x='Movement Duration (s)',
        y='Gross Metabolic Power (W)',
        color='Effective\nMass (kg)')+
@@ -3904,15 +3922,35 @@ colnames(pdata) = c('speed','effmass','movedur','movedurse','grosscost','grossco
   
 MCGross <- ggplot(data=mpdata_factor)+
   stat_function(aes(x=movedur),
-                fun=fun.1,
-                size=met_line_size,
-                color=rgb(color1[1],color1[2],color1[3]))+
+                fun=fun.1,size=met_line_size+.5,color='black')+
+  stat_function(aes(x=movedur),
+                fun=fun.2,size=met_line_size+.5,color='black')+
+  stat_function(aes(x=movedur),
+                fun=fun.3,size=met_line_size+.5,color='black')+
+  stat_function(aes(x=movedur),
+                fun=fun.4,size=met_line_size+.5,color='black')+
+  stat_function(aes(x=movedur),
+                fun=fun.1,size=met_line_size,color=rgb(color1[1],color1[2],color1[3]))+
   stat_function(aes(x=movedur),
                 fun=fun.2,size=met_line_size,color=rgb(color2[1],color2[2],color2[3]))+
   stat_function(aes(x=movedur),
                 fun=fun.3,size=met_line_size,color=rgb(color3[1],color3[2],color3[3]))+
   stat_function(aes(x=movedur),
                 fun=fun.4,size=met_line_size,color=rgb(color4[1],color4[2],color4[3]))+
+  geom_errorbar(data = pdata,
+                aes(x=movedur,
+                    ymin=grosscost-grosscostse-.1,
+                    ymax=grosscost+grosscostse+.1),
+                color = 'black',
+                width = 0,
+                size = met_errorbar_size+.5)+
+  geom_errorbarh(data=pdata,
+                 aes(xmin=movedur-movedurse-.001,
+                     xmax=movedur+movedurse+.001,
+                     y=grosscost),
+                 color='black',
+                 height = 0,
+                 size = met_errorbar_size+.5)+
   geom_errorbar(data = pdata,
                 aes(x=movedur,
                     ymin=grosscost-grosscostse,
@@ -3927,13 +3965,6 @@ MCGross <- ggplot(data=mpdata_factor)+
                      color=factor(effmass)),
                  height = 0,
                  size = met_errorbar_size)+
-  # geom_point(data=mpdata_factor,
-  #            aes(x=movedur,
-  #                y=grosscost,
-  #                fill = factor(effmass),
-  #                color = 'black'),
-  #            size=met_point_size,
-  #            pch = 21)+
   geom_point(data=data.frame(temp),
              aes(x=MCostmin_dur,
                  y=MCostmin_obj,
@@ -4165,8 +4196,28 @@ miss_dist_grouped_met <- ggplot()+
     geom_smooth(data = pdata,
                 aes(x=movedur,
                     y=yvar,
+                    group=factor(eff_mass)),
+                color = 'black',
+                se=FALSE,size=met_line_size+.5,span=3, method = 'loess')+
+    geom_smooth(data = pdata,
+                aes(x=movedur,
+                    y=yvar,
                     color = factor(eff_mass)),
                 se=FALSE,size=met_line_size,span=3, method = 'loess')+
+  geom_errorbar(data = pdata,
+                aes(x=movedur,
+                    ymin=yvar-yvarse-.002,
+                    ymax=yvar+yvarse+.002),
+                color = 'black',
+                width = 0,
+                size = met_errorbar_size+.5)+
+  geom_errorbarh(data=pdata,
+                 aes(xmin=movedur-movedurse-.002,
+                     xmax=movedur+movedurse+.002,
+                     y=yvar),
+                 color='black',
+                 height = 0,
+                 size = met_errorbar_size+.5)+
   geom_errorbar(data = pdata,
                 aes(x=movedur,
                     ymin=yvar-yvarse,
@@ -4269,8 +4320,28 @@ miss_anglevar_grouped_met<-ggplot()+
   geom_smooth(data = pdata,
               aes(x=movedur,
                   y=yvar,
+                  group = factor(eff_mass)),
+              color = 'black',
+              se=FALSE,size=met_line_size+.5,span=3, method = 'loess')+
+  geom_smooth(data = pdata,
+              aes(x=movedur,
+                  y=yvar,
                   color = factor(eff_mass)),
               se=FALSE,size=met_line_size,span=3, method = 'loess')+
+  geom_errorbar(data = pdata,
+                aes(x=movedur,
+                    ymin=yvar-yvarse-.001,
+                    ymax=yvar+yvarse+.001),
+                color = 'black',
+                width = 0,
+                size = met_errorbar_size+.5)+
+  geom_errorbarh(data=pdata,
+                 aes(xmin=movedur-movedurse-.002,
+                     xmax=movedur+movedurse+.002,
+                     y=yvar),
+                 color='black',
+                 height = 0,
+                 size = met_errorbar_size+.5)+
   geom_errorbar(data = pdata,
                 aes(x=movedur,
                     ymin=yvar-yvarse,
@@ -4342,8 +4413,28 @@ radial_endpointvar_grouped_met<-ggplot()+
   geom_smooth(data = pdata,
               aes(x=movedur,
                   y=yvar,
+                  group = factor(eff_mass)),
+              color = 'black',
+              se=FALSE,size=met_line_size+.5,span=3, method = 'loess')+
+  geom_smooth(data = pdata,
+              aes(x=movedur,
+                  y=yvar,
                   color = factor(eff_mass)),
               se=FALSE,size=met_line_size,span=3, method = 'loess')+
+  geom_errorbar(data = pdata,
+                aes(x=movedur,
+                    ymin=yvar-yvarse-.0005,
+                    ymax=yvar+yvarse+.0005),
+                color = 'black',
+                width = 0,
+                size = met_errorbar_size+.5)+
+  geom_errorbarh(data=pdata,
+                 aes(xmin=movedur-movedurse-.002,
+                     xmax=movedur+movedurse+.002,
+                     y=yvar),
+                 color = 'black',
+                 height = 0,
+                 size = met_errorbar_size+.5)+
   geom_errorbar(data = pdata,
                 aes(x=movedur,
                     ymin=yvar-yvarse,
@@ -4399,8 +4490,28 @@ reaction_bydur_met <- ggplot()+
   geom_smooth(data = pdata,
               aes(x=movedur,
                   y=yvar,
+                  group = factor(eff_mass)),
+              color = 'black',
+              se=FALSE,size=met_line_size+.5,span=3, method = 'loess')+
+  geom_smooth(data = pdata,
+              aes(x=movedur,
+                  y=yvar,
                   color = factor(eff_mass)),
               se=FALSE,size=met_line_size,span=3, method = 'loess')+
+  geom_errorbar(data = pdata,
+                aes(x=movedur,
+                    ymin=yvar-yvarse-.001,
+                    ymax=yvar+yvarse+.001),
+                color = 'black',
+                width = 0,
+                size = met_errorbar_size+.5)+
+  geom_errorbarh(data=pdata,
+                 aes(xmin=movedur-movedurse-.001,
+                     xmax=movedur+movedurse+.001,
+                     y=yvar),
+                 color='black',
+                 height = 0,
+                 size = met_errorbar_size+.5)+
   geom_errorbar(data = pdata,
                 aes(x=movedur,
                     ymin=yvar-yvarse,
@@ -4478,20 +4589,28 @@ for (plot in plots_to_fix){
 #                          hjust=-1,
 #                          align = 'vh')
 
-met_results <- plot_grid(plot_grid(NULL, MPGross, NULL,
-                                   nrow = 1, labels = c('','A',''),rel_widths = c(.1,.8,.1)), 
-                         plot_grid(MCGross,
-                                   MCNet,
-                                   miss_dist_grouped_met,
-                                   miss_anglevar_grouped_met,
-                                   radial_endpointvar_grouped_met,
-                                   reaction_bydur_met,
-                                   nrow = 3, labels = c('B','C','D','E','F'), align = 'vh'),
-                         nrow = 2,
-                         align = 'vh',
-                         rel_heights = c(2,4))
+# met_results <- plot_grid(plot_grid(NULL, MPGross, NULL,
+#                                    nrow = 1, labels = c('','A',''),rel_widths = c(.1,.8,.1)), 
+#                          plot_grid(MCGross,
+#                                    MCNet,
+#                                    miss_dist_grouped_met,
+#                                    miss_anglevar_grouped_met,
+#                                    radial_endpointvar_grouped_met,
+#                                    reaction_bydur_met,
+#                                    nrow = 3, labels = c('B','C','D','E','F'), align = 'vh'),
+#                          nrow = 2,
+#                          align = 'vh',
+#                          rel_heights = c(2,4))
 
-
+met_results <- plot_grid(MPGross,
+                         MCGross,
+                         miss_dist_grouped_met,
+                         miss_anglevar_grouped_met,
+                         radial_endpointvar_grouped_met,
+                         reaction_bydur_met,
+                         nrow = 3, 
+                         labels = c('A','B','C','D','E','F'),
+                         align = 'vh')
 
 met_results <- plot_grid(met_results,
                          mass_met_legend,
@@ -4499,7 +4618,7 @@ met_results <- plot_grid(met_results,
                          rel_widths = c(.85,.15))
 
 setwd(met_plots_dir)
-if (save_plots){ggsave('Met_results_r.pdf',plot=met_results,width=7/.85,height=12, device=cairo_pdf)}
+if (save_plots){ggsave('Met_results_r.pdf',plot=met_results,width=8/.85,height=9, device=cairo_pdf)}
 ```
 
 ```{r metresults1, echo = FALSE, warning = FALSE, fig.width=12, fig.height=10, fig.cap = 'Metabolic experiment results.'}
