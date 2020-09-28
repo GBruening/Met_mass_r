@@ -7145,7 +7145,7 @@ utilfits_by_exp_2alphas <- ggplot()+
          alpha = FALSE)
 
 setwd(pref_plots_dir)
-if (save_plots){ggsave(filename='utilfits_by_exp_2alphas.pdf',plot=utilfits_by_exp_2alphas,height=4,width=6,useDingbats=FALSE)}
+if (save_plots){ggsave(filename='utilfits_by_exp_2alphas.pdf',plot=utilfits_by_exp_2alphas,height=8,width=12,useDingbats=FALSE)}
 
 theme_set(theme_cowplot(font_size=12))
 exp_legend <- get_legend(utilfits_by_exp_2alphas)
@@ -7794,8 +7794,8 @@ Model_movedur_color <- model_plotting('movedur','Movement Duration (s)',temp_dur
         plot.title        = element_text(hjust = 0.5),
         axis.line         = element_line(color='black'))
 
-# setwd(pref_plots_dir)
-# if (save_plots){ggsave('Model_movedur_shape.pdf',plot=Model_movedur_shape, useDingbats = FALSE)}
+setwd(pref_plots_dir)
+if (save_plots){ggsave('Model_movedur_shape.pdf',plot=Model_movedur_shape, useDingbats = FALSE)}
 
 temp_durs = model_durs
 temp_durs = filter(model_durs, modelnum %in% models_to_plot)
