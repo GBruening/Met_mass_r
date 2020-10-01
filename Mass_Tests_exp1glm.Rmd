@@ -1845,7 +1845,7 @@ This next stat output shows the a LME with movedur ~ target + eff_mass*exp + (1|
 `r mass_exp_int_stringgen(prefpilot,'peakvel_target_norm','peak velocity')`
 
 ```{r Peakvelnormbyexperiment, echo = FALSE, warning = FALSE, fig.width=12, fig.height=8, fig.cap = 'Peak Velocity by experiment.'}
-Peakvel_norm_by_experiment <- all_exp_avg_plot('movedur_norm',prefdata,smalltdata,pilotdata,ylab = 'Movement Duration Normalized (s)')
+Peakvel_norm_by_experiment <- all_exp_avg_plot('peakvel_norm',prefdata,smalltdata,pilotdata,ylab = 'Peak Velocity Normalized (m/s)')
   
 Peakvel_norm_by_experiment+theme(text = element_text(size = 18))
 
@@ -3526,6 +3526,14 @@ setwd(pref_plots_dir)
 if (save_plots){
   ggsave('Pref_results_nv.pdf',plot=pref_results_nv,width=18/.9,height=9, useDingbats = FALSE)
 }
+
+plot_grid(resamp_plots[['pref']],
+          resamp_plots[['smallt']],
+          resamp_plots[['pilot']],
+          nrow = 3)
+
+plot_grid(Movedur_by_experiment,Peakvel_by_experiment,Reacttime_by_experiment,
+          Movedurnorm_by_experiment,Peakvel_norm_by_experiment,Reacttime_norm_by_experiment)
 ```
 
 ### Normalized
