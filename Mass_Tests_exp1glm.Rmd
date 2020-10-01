@@ -4663,9 +4663,11 @@ reaction_bydur_met <- ggplot()+
   reaction_bydur_met
 ```
 
-#### Reaction Time %
+### Reaction Time %
 ```{r reacttimetabperc, echo = FALSE, warning = FALSE, message=FALSE}
+
 metdata$reaction_tanv_perc = metdata$reaction_tanv/metdata$movedur
+metdata$total_dur = metdata$reaction_tanv+metdata$movedur
 
 cftest(lmer(reaction_tanv_perc ~ log(movedur) + eff_mass2+ (1|subj),data=metdata))
 cftest(lmer(reaction_tanv_perc ~ movedur + eff_mass2+ (1|subj),data=metdata))
@@ -4675,58 +4677,60 @@ kable(react_time_tab, caption = 'Reaction time plus/minus standard error for the
 
 variable = 'reaction_tanv_perc'
 string = paste('
-pdata = cbind(aggregate(movedur ~ speed + eff_mass,metdata,mean),
-              aggregate(movedur ~ speed + eff_mass,metdata,sd)$movedur/sqrt(8),
+pdata = cbind(aggregate(total_dur ~ speed + eff_mass,metdata,mean),
+              aggregate(total_dur ~ speed + eff_mass,metdata,sd)$total_dur/sqrt(8),
               aggregate(',variable,' ~ speed + eff_mass,metdata,mean)$',variable,',
               aggregate(',variable,' ~ speed + eff_mass,metdata,var)$',variable,'/sqrt(8))
-colnames(pdata) = c(\'speed\',\'eff_mass\',\'movedur\',\'movedurse\',\'yvar\',\'yvarse\')',sep='')
+colnames(pdata) = c(\'speed\',\'eff_mass\',\'total_dur\',\'movedurse\',\'yvar\',\'yvarse\')',sep='')
 
 eval(parse(text = string))
 
+# Change mvoement duration to total duration? Reaction+movement
+
 reaction_perc_bydur_met <- ggplot()+
   geom_smooth(data = pdata,
-              aes(x=movedur,
+              aes(x=total_dur,
                   y=yvar,
                   group = factor(eff_mass)),
               color = 'black',
               se=FALSE,size=met_line_size+0.5,span=3, method = 'loess')+
   geom_smooth(data = pdata,
-              aes(x=movedur,
+              aes(x=total_dur,
                   y=yvar,
                   color = factor(eff_mass)),
               se=FALSE,size=met_line_size,span=3, method = 'loess')+
   geom_errorbar(data = pdata,
-                aes(x=movedur,
+                aes(x=total_dur,
                     ymin=yvar-yvarse-.0001,
                     ymax=yvar+yvarse+.0001),
                 color = 'black',
                 width = 0,
                 size = met_errorbar_size+.5)+
   geom_errorbarh(data=pdata,
-                 aes(xmin=movedur-movedurse-.001,
-                     xmax=movedur+movedurse+.001,
+                 aes(xmin=total_dur-movedurse-.001,
+                     xmax=total_dur+movedurse+.001,
                      y=yvar),
                  color='black',
                  height = 0,
                  size = met_errorbar_size+.5)+
   geom_errorbar(data = pdata,
-                aes(x=movedur,
+                aes(x=total_dur,
                     ymin=yvar-yvarse,
                     ymax=yvar+yvarse,
                     color = factor(eff_mass)),
                 width = 0,
                 size = met_errorbar_size)+
   geom_errorbarh(data=pdata,
-                 aes(xmin=movedur-movedurse,
-                     xmax=movedur+movedurse,
+                 aes(xmin=total_dur-movedurse,
+                     xmax=total_dur+movedurse,
                      y=yvar,
                      color=factor(eff_mass)),
                  height = 0,
                  size = met_errorbar_size)+
   scale_color_manual(values = mass_colors)+
-  labs(x='Movement Duration (s)',
+  labs(x='Total Duration (s)',
        y='Reaction Time % (s)',
-       # title='Metabolic Experiment Reaction time',
+       title='Rxn %, rxn/(rxn+mvt)',
        color='Effective\nMass (kg)')+
   theme(text              = element_text(color='black'),
         axis.text         = element_text(color='black'),
@@ -4738,7 +4742,7 @@ reaction_perc_bydur_met <- ggplot()+
 ```
 
 ```{r reactionpercbydurmet, echo = FALSE, warning = FALSE, fig.width=9, fig.height=6, fig.cap = 'Reaction time in metabolic experiment.'}
-reaction_bydur_met
+reaction_perc_bydur_met
 ```
 
 
