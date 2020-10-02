@@ -132,6 +132,9 @@ pilotdata$reaction_tanv <- .005*pilotdata$reaction_tanv
 pilotdata$movedur <- pilotdata$reacttoback
 pilotdata$peakvel_target <- pilotdata$peakvel_radv
 
+prefdata$success = abs(prefdata$miss_dist)<.014
+smalltdata$success = abs(smalltdata$maxex)<.11 & abs(smalltdata$missangle)<7
+
 prefdata$reaction_tanv <- .005*prefdata$reaction_tanv
 smalltdata$reaction_tanv <- .005*smalltdata$reaction_tanv
 
@@ -1179,7 +1182,6 @@ Movedur_by_experiment <- all_exp_avg_plot('movedur',prefdata,smalltdata,pilotdat
 #        plot.title        = element_text(hjust = 0.5),
 #        axis.line         = element_line(color='black'))
 
-Peakvel_by_experiment <- all_exp_avg_plot('peakvel_target',prefdata,smalltdata,pilotdata,ylab = 'Peak Velocity (m/s))')
 
 # setwd(pref_plots_dir)
 # if (save_plots){ggsave('Peakvel_by_experiment.pdf', plot = Peakvel_by_experiment, width=6, height=4, useDingbats = FALSE)}
@@ -1315,7 +1317,6 @@ Reactvel_by_experiment <- all_exp_avg_plot('reaction_tanvel',prefdata,smalltdata
 #         plot.title        = element_text(hjust = 0.5),
 #         axis.line         = element_line(color='black'))
 
-miss_dist_by_experiment <- all_exp_avg_plot('miss_dist',prefdata,smalltdata,pilotdata,ylab = 'Miss Distance (cm)')
 
 # Miss Angle
 a = aggregate(missangle ~ subj + eff_mass,prefdata,var)
@@ -1634,7 +1635,7 @@ This next stat output shows the a LME with movedur_norm ~ target + eff_mass*exp 
 
 ```{r movedur_normbyexperiment, echo = FALSE, warning = FALSE, fig.width=12, fig.height=8, fig.cap = 'Movement Duration by experiment.'}
 
-Movedur_norm_by_experiment <- all_exp_avg_plot('movedur_norm',prefdata,smalltdata,pilotdata,ylab = 'Peak Velocity Normalized (m/s)')
+Movedur_norm_by_experiment <- all_exp_avg_plot('movedur_norm',prefdata,smalltdata,pilotdata,ylab = 'Movement Duration Normalized (s)')
   
 Movedur_norm_by_experiment+theme(text = element_text(size = 18))
 
@@ -1745,6 +1746,9 @@ This next stat output shows the a LME with movedur ~ target + eff_mass*exp + (1|
 `r mass_exp_int_stringgen(prefpilot,'peakvel_target','peak velocity')`
 
 ```{r Peakvelbyexperiment, echo = FALSE, warning = FALSE, fig.width=12, fig.height=8, fig.cap = 'Peak Velocity by experiment.'}
+
+  Peakvel_by_experiment <- all_exp_avg_plot('peakvel_target',prefdata,smalltdata,pilotdata,ylab = 'Peak Velocity (m/s)')
+
   Peakvel_by_experiment+theme(text = element_text(size = 18))
 ```
 
@@ -1845,7 +1849,7 @@ This next stat output shows the a LME with movedur ~ target + eff_mass*exp + (1|
 `r mass_exp_int_stringgen(prefpilot,'peakvel_target_norm','peak velocity')`
 
 ```{r Peakvelnormbyexperiment, echo = FALSE, warning = FALSE, fig.width=12, fig.height=8, fig.cap = 'Peak Velocity by experiment.'}
-Peakvel_norm_by_experiment <- all_exp_avg_plot('peakvel_norm',prefdata,smalltdata,pilotdata,ylab = 'Peak Velocity Normalized (m/s)')
+Peakvel_norm_by_experiment <- all_exp_avg_plot('peakvel_target_norm',prefdata,smalltdata,pilotdata,ylab = 'Peak Velocity Normalized (m/s)')
   
 Peakvel_norm_by_experiment+theme(text = element_text(size = 18))
 
@@ -2064,7 +2068,7 @@ cftest(lmer(reaction_tanv_norm ~ factor(targetnum) + eff_mass + eff_mass*factor(
 
 ```{r Reacttimenormbyexperiment, echo = FALSE, warning = FALSE, fig.width=12, fig.height=8, fig.cap = 'Reaction Time by experiment.'}
 
-Reacttime_norm_by_experiment <- all_exp_avg_plot('reaction_tanv_norm',prefdata,smalltdata,pilotdata,ylab = 'Reaction Time (s)')
+Reacttime_norm_by_experiment <- all_exp_avg_plot('reaction_tanv_norm',prefdata,smalltdata,pilotdata,ylab = 'Reaction Time Normalized (s)')
 
 Reacttime_norm_by_experiment+theme(text = element_text(size = 18))
 ```
@@ -2462,6 +2466,13 @@ cftest(lmer(miss_dist ~ factor(targetnum) + eff_mass + eff_mass*factor(exp) +  (
 `r mass_exp_int_stringgen(prefpilot,'miss_dist','endpoint error')`
 
 ```{r missdistexperiment, echo = FALSE, warning = FALSE, fig.width=12, fig.height=8, fig.cap = 'Miss Distance (cm) by experiment.'}
+pilotdata[,'miss_dist'] <- pilotdata[,'miss_dist']-.1
+miss_dist_by_experiment <- all_exp_avg_plot('miss_dist',
+                                            prefdata,
+                                            smalltdata,
+                                            pilotdata,
+                                            ylab = 'Miss Distance (cm)')
+pilotdata[,'miss_dist'] <- pilotdata[,'miss_dist']+.1
 miss_dist_by_experiment+theme(text = element_text(size = 18))
 ```
 
@@ -3367,6 +3378,17 @@ ggplot()+
 
 ```
 
+## Probability of success LME
+```{r,echo=FALSE}
+
+prob_data = rbind(cbind(aggregate(success ~ eff_mass + subj, prefdata,mean),'pref') %>% `colnames<-`(c('eff_mass','subj','success','exp')),
+                  cbind(aggregate(success ~ eff_mass + subj, smalltdata,mean),'pref') %>% `colnames<-`(c('eff_mass','subj','success','exp')))
+
+cftest(lmer(success ~ eff_mass + (1|subj), data=prob_data))
+
+all_exp_avg_plot('success',prefdata,smalltdata,smalltdata,ylab = 'Success Probabolity')
+```
+
 ## Resample Plots
 ```{r,echo=FALSE}
 
@@ -3526,14 +3548,6 @@ setwd(pref_plots_dir)
 if (save_plots){
   ggsave('Pref_results_nv.pdf',plot=pref_results_nv,width=18/.9,height=9, useDingbats = FALSE)
 }
-
-plot_grid(resamp_plots[['pref']],
-          resamp_plots[['smallt']],
-          resamp_plots[['pilot']],
-          nrow = 3)
-
-plot_grid(Movedur_by_experiment,Peakvel_by_experiment,Reacttime_by_experiment,
-          Movedurnorm_by_experiment,Peakvel_norm_by_experiment,Reacttime_norm_by_experiment)
 ```
 
 ### Normalized
@@ -3611,6 +3625,50 @@ setwd(pref_plots_dir)
 if (save_plots){
   ggsave('Pref_results_norm_nv.pdf',plot=pref_results_norm_nv,width=18/.9,height=9, useDingbats = FALSE)
 }
+```
+
+### Grouped
+```{r}
+
+resamp_group <- plot_grid(NULL,NULL,NULL,
+                          resamp_plots[['pref']],
+                          resamp_plots[['smallt']],
+                          resamp_plots[['pilot']],
+                          nrow = 2,
+                          ncol = 3,
+                          align = 'vh',
+                          rel_heights = c(.5,5),
+                          labels = c('Average Velocity Traces','','','A','B','C'))
+
+pref_group <- plot_grid(NULL, NULL, NULL,
+                        Movedur_by_experiment+theme(legend.position = 'none'),
+                        Peakvel_by_experiment+theme(legend.position = 'none'),
+                        Reacttime_by_experiment+theme(legend.position = 'none'),
+                        NULL, NULL, NULL,
+                        Movedur_norm_by_experiment+theme(legend.position = 'none'),
+                        Peakvel_norm_by_experiment+theme(legend.position = 'none'),
+                        Reacttime_norm_by_experiment+theme(legend.position = 'none'),
+                        nrow=4,
+                        ncol = 3,
+                        align = 'vh',
+                        labels = c('Absolute','','','D','E','F','Normalized','','','G','H','I'),
+                        rel_heights = c(.5,5,.5,5))
+
+pref_grouped <- plot_grid(resamp_group, 
+                          get_legend(movedur[['pref']]+theme(legend.position = 'right')),
+                          pref_group,
+                          get_legend(Movedur_norm_by_experiment),
+                          ncol = 2,
+                          nrow = 2,
+                          rel_heights = c(1,2),
+                          rel_widths = c(1,.1))
+pref_grouped
+
+setwd(pref_plots_dir)
+if (save_plots){
+  ggsave('Pref_results_grouped.pdf',plot=pref_grouped,width=10/.9,height=10, useDingbats = FALSE)
+}
+
 ```
 
 # Metabolics Experiment
@@ -5066,13 +5124,11 @@ We then use this function to first fit an inverse logit to experiment 2a and 2b.
 ## Probability of sucess in just 2a and 2b without 1
 ```{r, echo = FALSE}
 
-prefdata$success = abs(prefdata$miss_dist)<.014
 pref_p_glm  = glm(success ~ movedur,
                  data=prefdata,
                  family=binomial(link="logit"))
 prefdata$p_success = inv.logit(predict(pref_p_glm))
 
-smalltdata$success = abs(smalltdata$maxex)<.11 & abs(smalltdata$missangle)<7
 smallt_p_glm  = glm(success ~ movedur,
                     data=smalltdata,
                     family=binomial(link="logit"))
