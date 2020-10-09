@@ -47,7 +47,7 @@ theme_set(theme_classic()+
                   axis.line         = element_line(color='black')))
 # theme_set(theme_cowplot())
 
-save_plots = 1
+save_plots = 0
 
 # #====================== LOAD DATA - Neuromech ==============================
 # met_plots_dir  <- 'D:/Users/Gary/Google Drive/Muscle modeling/Metabolics/Graphs/'
@@ -6214,23 +6214,22 @@ b=coef(MPGross_model)[2]*100
 c=coef(MPGross_model)[3]
 d=coef(MPGross_model)[4]
 
-# Using given probabilities
-alpha_utility_gross_rx = optimize(fun_optim_prx,
-                                  masses = masses,
-                                  mvttimes = mvttimes_pref,
-                                  p_alpha  = p_alpha_pref,
-                                  rxtimes = rxtimes_pref,
-                                  opt_or_dur = 'optimize',
-                                  interval=c(-100,300))
+# # Using given probabilities
+# alpha_utility_gross_rx = optimize(fun_optim_prx,
+#                                   masses = masses,
+#                                   mvttimes = mvttimes_pref,
+#                                   p_alpha  = p_alpha_pref,
+#                                   rxtimes = rxtimes_pref,
+#                                   opt_or_dur = 'optimize',
+#                                   interval=c(-100,300))
+# 
+# util_dur_gross_rx = as.numeric(fun_optim_prx(alpha_utility_gross_rx$minimum,
+#                                        masses     = masses,
+#                                        mvttimes   = mvttimes_pref,
+#                                        p_alpha    = p_alpha_pref,
+#                                        opt_or_dur = 'duration',
+#                                        rxtimes    = rxtimes_pref))
 
-util_dur_gross_rx = as.numeric(fun_optim_prx(alpha_utility_gross_rx$minimum,
-                                       masses     = masses,
-                                       mvttimes   = mvttimes_pref,
-                                       p_alpha    = p_alpha_pref,
-                                       opt_or_dur = 'duration',
-                                       rxtimes    = rxtimes_pref))
-ut1_alpha_2a = alpha_utility_gross_rx
-ut1_dur_2a   = util_dur_gross_rx
 
 # Using logit function
 alpha_utility_gross_rx = optimize(fun_optim_prx_logit,
@@ -6248,6 +6247,8 @@ util_dur_gross_rx = as.numeric(fun_optim_prx_logit(
                                        p_alpha    = pref_glm_use,
                                        opt_or_dur = 'duration',
                                        rxtimes    = rxtimes_pref))
+ut1_alpha_2a = alpha_utility_gross_rx
+ut1_dur_2a   = util_dur_gross_rx
 
 ## Net Utility
 a0 = mean(mpdata$metpowerrest)
@@ -6257,20 +6258,20 @@ b=coef(MPNet_model)[2]
 c=coef(MPNet_model)[3]
 d=coef(MPNet_model)[4]
 
-# Using given probabilities
-alpha_utility_net_rx = optimize(fun_optim_prx,
-                                masses = masses,
-                                mvttimes = mvttimes_pref,
-                                p_alpha  = p_alpha_pref,
-                                opt_or_dur = 'optimize',
-                                rxtimes = rxtimes_pref,
-                                interval=c(-100,300))
-util_dur_net_rx = as.numeric(fun_optim_prx(alpha_utility_net_rx$minimum,
-                                        masses = masses,
-                                        mvttimes = mvttimes_pref,
-                                        p_alpha  = p_alpha_pref,
-                                        opt_or_dur = 'duration',
-                                        rxtimes = rxtimes_pref))
+# # Using given probabilities
+# alpha_utility_net_rx = optimize(fun_optim_prx,
+#                                 masses = masses,
+#                                 mvttimes = mvttimes_pref,
+#                                 p_alpha  = p_alpha_pref,
+#                                 opt_or_dur = 'optimize',
+#                                 rxtimes = rxtimes_pref,
+#                                 interval=c(-100,300))
+# util_dur_net_rx = as.numeric(fun_optim_prx(alpha_utility_net_rx$minimum,
+#                                         masses = masses,
+#                                         mvttimes = mvttimes_pref,
+#                                         p_alpha  = p_alpha_pref,
+#                                         opt_or_dur = 'duration',
+#                                         rxtimes = rxtimes_pref))
 
 # Using logit function
 alpha_utility_net_rx = optimize(fun_optim_prx_logit,
@@ -6286,6 +6287,8 @@ util_dur_net_rx = as.numeric(fun_optim_prx_logit(alpha_utility_net_rx$minimum,
                                         p_alpha  = pref_glm_use,
                                         opt_or_dur = 'duration',
                                         rxtimes = rxtimes_pref))
+# ut1_alpha_2a = alpha_utility_net_rx
+# ut1_dur_2a   = util_dur_net_rx
 
 #================  M = 1 ==========================
 
@@ -6738,13 +6741,12 @@ fun_optim_prx_ut2 <- function(alpha,masses,mvttimes,p_alpha,rxtimes,opt_or_dur){
   times = seq(0.3,2,0.001)
   ut = matrix(,nrow = length(mvttimes),ncol = length(times))
   for (k in 1:length(mvttimes)){
-    t = mvttimes[k]
     m = masses[k]
     p = p_alpha[k]
     rt = rxtimes[k]
     count = 1
     for (t in times){
-      ut[k, count] = -a0*rt-a*t+b*(m^c)/(t^(d-1))#alpha*p
+      ut[k, count] = alpha*p-a0*rt-a*t-(b*(m^c)/(t^(d-1)))
       count = count+1
     }
     dur[k] = times[which.max(ut[k,])]
@@ -6831,7 +6833,7 @@ ut2_alpha_2c = optimize(fun_optim_prx_ut2,
                      p_alpha  = p_alpha_pilot_gross,
                      rxtimes  = rxtimes_pilot,
                      opt_or_dur = 'optimize',
-                     interval = c(-100,1e8))
+                     interval = c(-100,1e5))
 
 ut2_dur_2c = as.numeric(fun_optim_prx_ut2(
                           alpha = ut2_alpha_2c$minimum,
@@ -6846,7 +6848,7 @@ ut2_dur_2c = as.numeric(fun_optim_prx_ut2(
 fun_optim_prx_ut3 <- function(alpha,masses,mvttimes,p_alpha,rxtimes,opt_or_dur){
   err=0
   dur = rep(0,length(mvttimes))
-  times = seq(0.3,2,0.001)
+  times = seq(0.1,2,0.001)
   ut = matrix(,nrow = length(mvttimes),ncol = length(times))
   for (k in 1:length(mvttimes)){
     t = mvttimes[k]
@@ -6942,7 +6944,7 @@ ut3_alpha_2c = optimize(fun_optim_prx_ut3,
                      p_alpha    = p_alpha_pilot_gross,
                      rxtimes    = rxtimes_pilot,
                      opt_or_dur = 'optimize',
-                     interval   = c(-100,1e8))
+                     interval   = c(-100,100))
 
 ut3_dur_2c = as.numeric(fun_optim_prx_ut3(
                           alpha      = ut3_alpha_2c$minimum,
@@ -6952,8 +6954,132 @@ ut3_dur_2c = as.numeric(fun_optim_prx_ut3(
                           rxtimes    = rxtimes_pilot,
                           opt_or_dur = 'duration'))
 
+#================  Utility4 and P(alpha) ==========================
+
+## Net Utility
+a0 = mean(mpdata$metpowerrest)
+a0_se = sd(mpdata$metpowerrest)/sqrt(8)
+a=coef(MPNet_model)[1]
+b=coef(MPNet_model)[2]
+c=coef(MPNet_model)[3]
+d=coef(MPNet_model)[4]
+
+# Using logit function
+ut4_alpha_2a = optimize(fun_optim_prx_logit_ut2,
+                      masses     = masses,
+                      mvttimes   = mvttimes_pref,
+                      p_alpha    = pref_glm_use,
+                      rxtimes    = rxtimes_pref,
+                      opt_or_dur = 'optimize',
+                      interval   = c(-100,1000))
+
+ut4_dur_2a = as.numeric(fun_optim_prx_logit_ut2(
+                         alpha      = ut4_alpha_2a$minimum,
+                         masses     = masses,
+                         mvttimes   = mvttimes_pref,
+                         p_alpha    = pref_glm_use,
+                         opt_or_dur = 'duration',
+                         rxtimes    = rxtimes_pref))
+
+ut4_alpha_2b = optimize(fun_optim_prx_logit_ut2,
+                      masses     = masses,
+                      mvttimes   = mvttimes_smallt,
+                      p_alpha    = smallt_glm_use,
+                      rxtimes    = rxtimes_smallt,
+                      opt_or_dur = 'optimize',
+                      interval   = c(-100,1000))
+
+ut4_dur_2b = as.numeric(fun_optim_prx_logit_ut2(
+                           alpha      = ut4_alpha_2b$minimum, #changing between alpha_pref and alpha_smallt_gross
+                           masses     = masses,
+                           mvttimes   = mvttimes_smallt,
+                           p_alpha    = smallt_glm_use,
+                           rxtimes    = rxtimes_smallt,
+                           opt_or_dur = 'duration'))
+
+ut4_alpha_2c = optimize(fun_optim_prx_ut2,
+                     masses     = masses,
+                     mvttimes   = mvttimes_pilot,
+                     p_alpha    = p_alpha_pilot_gross,
+                     rxtimes    = rxtimes_pilot,
+                     opt_or_dur = 'optimize',
+                     interval   = c(-100,1e5))
+
+ut4_dur_2c = as.numeric(fun_optim_prx_ut2(
+                          alpha      = ut4_alpha_2c$minimum,
+                          masses     = masses,
+                          mvttimes   = mvttimes_pilot,
+                          p_alpha    = p_alpha_pilot_gross,
+                          rxtimes    = rxtimes_pilot,
+                          opt_or_dur = 'duration'))
+
+#================  Utility5 and P(alpha) ==========================
+
+## Net Utility
+a0 = mean(mpdata$metpowerrest)
+a0_se = sd(mpdata$metpowerrest)/sqrt(8)
+a=coef(MPNet_model)[1]
+b=coef(MPNet_model)[2]
+c=coef(MPNet_model)[3]
+d=coef(MPNet_model)[4]
+
+# Using logit function
+ut5_alpha_2a = optimize(fun_optim_prx_logit_ut3,
+                        masses     = masses,
+                        mvttimes   = mvttimes_pref,
+                        p_alpha    = pref_glm_use,
+                        rxtimes    = rxtimes_pref,
+                        opt_or_dur = 'optimize',
+                        interval   = c(-100,1000))
+
+ut5_dur_2a = as.numeric(fun_optim_prx_logit_ut3(
+                        alpha      = ut5_alpha_2a$minimum,
+                        masses     = masses,
+                        mvttimes   = mvttimes_pref,
+                        p_alpha    = pref_glm_use,
+                        opt_or_dur = 'duration',
+                        rxtimes    = rxtimes_pref))
+
+ut5_alpha_2b = optimize(fun_optim_prx_logit_ut3,
+                        masses     = masses,
+                        mvttimes   = mvttimes_smallt,
+                        p_alpha    = smallt_glm_use,
+                        rxtimes    = rxtimes_smallt,
+                        opt_or_dur = 'optimize',
+                        interval   = c(-100,1000))
+
+ut5_dur_2b = as.numeric(fun_optim_prx_logit_ut3(
+                        alpha      = ut5_alpha_2b$minimum, #changing between alpha_pref and alpha_smallt_gross
+                        masses     = masses,
+                        mvttimes   = mvttimes_smallt,
+                        p_alpha    = smallt_glm_use,
+                        rxtimes    = rxtimes_smallt,
+                        opt_or_dur = 'duration'))
+
+ut5_alpha_2c = optimize(fun_optim_prx_ut3,
+                        masses     = masses,
+                        mvttimes   = mvttimes_pilot,
+                        p_alpha    = p_alpha_pilot_gross,
+                        rxtimes    = rxtimes_pilot,
+                        opt_or_dur = 'optimize',
+                        interval   = c(-100,100))
+
+ut5_dur_2c = as.numeric(fun_optim_prx_ut3(
+                        alpha      = ut5_alpha_2c$minimum,
+                        masses     = masses,
+                        mvttimes   = mvttimes_pilot,
+                        p_alpha    = p_alpha_pilot_gross,
+                        rxtimes    = rxtimes_pilot,
+                        opt_or_dur = 'duration'))
 
 
+# Reset to gross ===================
+a0 = mean(mpdata$metpowerrest)
+a0_se = sd(mpdata$metpowerrest)/sqrt(8)
+a=coef(MPGross_model)[1]
+b=coef(MPGross_model)[2]*100
+c=coef(MPGross_model)[3]
+d=coef(MPGross_model)[4]
 ```
 
 ### Combined utility code
@@ -7045,7 +7171,7 @@ rxtimes_smallt = aggregate(reaction_tanv~eff_mass,smalltdata,mean)$reaction_tanv
 #                       interval   = c(-100,200))
 # pref_glm_use smallt_glm_use
 
-# COMBINED UTILITY Gross
+# COMBINED UTILITY Gross ===========================
 # USING logit function
 a=coef(MPGross_model)[1]
 b=coef(MPGross_model)[2]*100
@@ -7060,7 +7186,8 @@ alpha_pref_comb_gross=optimize(fun_optim_prx_logit_comb,
                       opt_or_dur = 'optimize',
                       interval   = c(-100,200))
 
-util_dur_pref_alpha_comb_gross = as.numeric(fun_optim_prx_logit_comb(alpha_pref_comb_gross$minimum,
+util_dur_pref_alpha_comb_gross = as.numeric(fun_optim_prx_logit_comb(
+                                       alpha      = alpha_pref_comb_gross$minimum,
                                        masses     = c(masses,masses),
                                        mvttimes   = c(mvttimes_pref,mvttimes_smallt),
                                        glm1       = pref_glm_use,
@@ -7071,7 +7198,15 @@ util_dur_pref_alpha_comb_gross = as.numeric(fun_optim_prx_logit_comb(alpha_pref_
 ut1_alpha_2a2b = alpha_pref_comb_gross
 ut1_dur_2a2b   = util_dur_pref_alpha_comb_gross
 
-# COMBINED UTILITY Net
+ut1_dur_2a2b2c = as.numeric(fun_optim_prx(
+                          alpha    = alpha_pref_comb_gross$minimum,
+                          masses   = masses,
+                          mvttimes = mvttimes_pilot,
+                          p_alpha  = p_alpha_pilot_gross,
+                          rxtimes  = rxtimes_pilot,
+                          opt_or_dur = 'duration'))
+
+# COMBINED UTILITY Net  ===========================
 a=coef(MPNet_model)[1]
 b=coef(MPNet_model)[2]
 c=coef(MPNet_model)[3]
@@ -7138,7 +7273,7 @@ p_alpha_plot <- ggplot()+
 # setwd(pref_plots_dir)
 # if (save_plots){ggsave(filename='p_alpha_plot.pdf',plot=p_alpha_plot,height=4,width=6,useDingbats=FALSE)}
 
-## Using ut2/ut3
+## Using ut2/ut3 ===========================
 
 fun_optim_prx_comb_ut2 <- function(alpha,masses,mvttimes,p_alpha,rxtimes,opt_or_dur){
   err=0
@@ -7210,13 +7345,21 @@ ut2_alpha_2a2b=optimize(fun_optim_prx_logit_comb_ut2,
               interval   = c(-100,1000))
 
 ut2_dur_2a2b = as.numeric(fun_optim_prx_logit_comb_ut2(
-               alpha = ut2_alpha_2a2b$minimum,
+               alpha      = ut2_alpha_2a2b$minimum,
                masses     = c(masses,masses),
                mvttimes   = c(mvttimes_pref,mvttimes_smallt),
                glm1       = pref_glm_use,
                glm2       = smallt_glm_use,
                opt_or_dur = 'duration',
                rxtimes    = c(rxtimes_pref,rxtimes_smallt)))
+
+ut2_dur_2a2b2c = as.numeric(fun_optim_prx_ut2(
+                          alpha    = ut2_alpha_2a2b$minimum,
+                          masses   = masses,
+                          mvttimes = mvttimes_pilot,
+                          p_alpha  = p_alpha_pilot_gross,
+                          rxtimes  = rxtimes_pilot,
+                          opt_or_dur = 'duration'))
 
 fun_optim_prx_comb_ut3 <- function(alpha,masses,mvttimes,p_alpha,rxtimes,opt_or_dur){
   err=0
@@ -7288,7 +7431,7 @@ ut3_alpha_2a2b = optimize(fun_optim_prx_logit_comb_ut3,
               interval   = c(-100,1000))
 
 ut3_dur_2a2b = as.numeric(fun_optim_prx_logit_comb_ut3(
-               alpha = ut3_alpha_2a2b$minimum,
+               alpha      = ut3_alpha_2a2b$minimum,
                masses     = c(masses,masses),
                mvttimes   = c(mvttimes_pref,mvttimes_smallt),
                glm1       = pref_glm_use,
@@ -7296,147 +7439,94 @@ ut3_dur_2a2b = as.numeric(fun_optim_prx_logit_comb_ut3(
                opt_or_dur = 'duration',
                rxtimes    = c(rxtimes_pref,rxtimes_smallt)))
 
-```
+ut3_dur_2a2b2c = as.numeric(fun_optim_prx_ut3(
+                          alpha    = ut3_alpha_2a2b$minimum,
+                          masses   = masses,
+                          mvttimes = mvttimes_pilot,
+                          p_alpha  = p_alpha_pilot_gross,
+                          rxtimes  = rxtimes_pilot,
+                          opt_or_dur = 'duration'))
 
-### Different utility models
+## Using ut4 ===========================
 
-Utility 1:
-$$J = \frac{\alpha P(R|m,T_m) -\left( a_0 T_r + a T_m + \frac{bm^c}{T_m^d} \right)}{T_r+T_m}$$
+## Net Utility
+a0 = mean(mpdata$metpowerrest)
+a0_se = sd(mpdata$metpowerrest)/sqrt(8)
+a=coef(MPNet_model)[1]
+b=coef(MPNet_model)[2]
+c=coef(MPNet_model)[3]
+d=coef(MPNet_model)[4]
 
-Utility 2:
-$$J = \alpha P(R|m,T_m) -\left( a_0 T_r + a T_m + \frac{bm^c}{T_m^d} \right)$$
+ut4_alpha_2a2b=optimize(fun_optim_prx_logit_comb_ut2,
+                        masses     = c(masses,masses),
+                        mvttimes   = c(mvttimes_pref,mvttimes_smallt),
+                        glm1       = pref_glm_use,
+                        glm2       = smallt_glm_use,
+                        rxtimes    = c(rxtimes_pref,rxtimes_smallt),
+                        opt_or_dur = 'optimize',
+                        interval   = c(-100,1000))
 
-Utility 3:
-$$J = \frac{\alpha P(R|m,T_m)}{T_r+T_m} -\left( a_0 T_r + a T_m + \frac{bm^c}{T_m^d} \right)$$
+ut4_dur_2a2b = as.numeric(fun_optim_prx_logit_comb_ut2(
+                          alpha      = ut4_alpha_2a2b$minimum,
+                          masses     = c(masses,masses),
+                          mvttimes   = c(mvttimes_pref,mvttimes_smallt),
+                          glm1       = pref_glm_use,
+                          glm2       = smallt_glm_use,
+                          opt_or_dur = 'duration',
+                          rxtimes    = c(rxtimes_pref,rxtimes_smallt)))
 
-```{r, echo = FALSE, warning = FALSE}
-#2a =========================================================
-ut_2a_tab = cbind(unique(prefdata$eff_mass),
-              mvttimes_pref,
-              ut1_dur_2a,
-              ut2_dur_2a,
-              ut3_dur_2a,
-              ut1_dur_2a2b[1:4],
-              ut2_dur_2a2b[1:4],
-              ut3_dur_2a2b[1:4])
-colnames(ut_2a_tab)<-c('eff_mass',colnames(ut_2a_tab)[2:5],'utcomb1_dur_2a','utcomb2_dur_2a','utcomb3_dur_2a')
-kable(ut_2a_tab %>% `colnames<-`(c('eff_mass','MOvement Duration (s)',
-                                   'Utility 1 Duration','Utility 2 Duration','Utility 3 Duration',
-                                   'Utility Comb 1 Duration','Utility Comb 2 Duration','Utility Comb 3 Duration')),
-      caption = '2a - Movement duration by utility model for experiment 2a.')
+ut4_dur_2a2b2c = as.numeric(fun_optim_prx_ut2(
+                            alpha    = ut4_alpha_2a2b$minimum,
+                            masses   = masses,
+                            mvttimes = mvttimes_pilot,
+                            p_alpha  = p_alpha_pilot_gross,
+                            rxtimes  = rxtimes_pilot,
+                            opt_or_dur = 'duration'))
 
-masses = unique(prefdata$eff_mass)
-ut_2a_df = as.data.frame(rbind(cbind(masses,rep('Exp',4),mvttimes_pref),
-                 cbind(masses,rep('Ut1',4),ut1_dur_2a),
-                 cbind(masses,rep('Ut2',4),ut2_dur_2a),
-                 cbind(masses,rep('Ut3',4),ut3_dur_2a),
-                 cbind(masses,rep('Utcomb1',4),ut1_dur_2a2b[1:4]),
-                 cbind(masses,rep('Utcomb2',4),ut2_dur_2a2b[1:4]),
-                 cbind(masses,rep('Utcomb3',4),ut3_dur_2a2b[1:4])) %>% `colnames<-`(c('eff_mass','data','movedur')))
-ut_2a_df$movedur = as.numeric(as.character(ut_2a_df$movedur))
-ut_2a_df$data = as.factor(ut_2a_df$data)
+## Using ut5 ===========================
 
-ut_2a_plot <- ggplot()+
-  geom_line(data=ut_2a_df,
-             aes(x=eff_mass,
-                 y=movedur,
-                 group = factor(data),
-                 color = factor(data)),
-            size = 1)+
-  geom_point(data=ut_2a_df,
-             aes(x=eff_mass,
-                 y=movedur,
-                 color = factor(data)),
-            size = 2)+
-  labs(x = 'Effective Mass (kg)', y = 'Predicted Movement Duration (s)', color = 'Data')
-  
-#2b =========================================================
-ut_2b_tab = cbind(unique(prefdata$eff_mass),
-              mvttimes_pref,
-              ut1_dur_2b,
-              ut2_dur_2b,
-              ut3_dur_2b,
-              ut1_dur_2a2b[5:8],
-              ut2_dur_2a2b[5:8],
-              ut3_dur_2a2b[5:8])
-colnames(ut_2b_tab)<-c('eff_mass',colnames(ut_2b_tab)[2:5],'utcomb1_dur_2b','utcomb2_dur_2b','utcomb3_dur_2b')
-kable(ut_2b_tab %>% `colnames<-`(c('eff_mass','MOvement Duration (s)',
-                                   'Utility 1 Duration','Utility 2 Duration','Utility 3 Duration',
-                                   'Utility Comb 1 Duration','Utility Comb 2 Duration','Utility Comb 3 Duration')),
-      caption = '2a - Movement duration by utility model for experiment 2a.')
+## Net Utility
+a0 = mean(mpdata$metpowerrest)
+a0_se = sd(mpdata$metpowerrest)/sqrt(8)
+a=coef(MPNet_model)[1]
+b=coef(MPNet_model)[2]
+c=coef(MPNet_model)[3]
+d=coef(MPNet_model)[4]
+ut5_alpha_2a2b = optimize(fun_optim_prx_logit_comb_ut3,
+                          masses     = c(masses,masses),
+                          mvttimes   = c(mvttimes_pref,mvttimes_smallt),
+                          glm1       = pref_glm_use,
+                          glm2       = smallt_glm_use,
+                          rxtimes    = c(rxtimes_pref,rxtimes_smallt),
+                          opt_or_dur = 'optimize',
+                          interval   = c(-100,1000))
 
-ut_2b_df = as.data.frame(rbind(cbind(masses,rep('Exp',4),mvttimes_smallt),
-                 cbind(masses,rep('Ut1',4),ut1_dur_2b),
-                 cbind(masses,rep('Ut2',4),ut2_dur_2b),
-                 cbind(masses,rep('Ut3',4),ut3_dur_2b),
-                 cbind(masses,rep('Utcomb1',4),ut1_dur_2a2b[5:8]),
-                 cbind(masses,rep('Utcomb2',4),ut2_dur_2a2b[5:8]),
-                 cbind(masses,rep('Utcomb3',4),ut3_dur_2a2b[5:8])) %>% `colnames<-`(c('eff_mass','data','movedur')))
-ut_2b_df$movedur = as.numeric(as.character(ut_2b_df$movedur))
-ut_2b_df$data = as.factor(ut_2b_df$data)
+ut5_dur_2a2b = as.numeric(fun_optim_prx_logit_comb_ut3(
+                          alpha      = ut5_alpha_2a2b$minimum,
+                          masses     = c(masses,masses),
+                          mvttimes   = c(mvttimes_pref,mvttimes_smallt),
+                          glm1       = pref_glm_use,
+                          glm2       = smallt_glm_use,
+                          opt_or_dur = 'duration',
+                          rxtimes    = c(rxtimes_pref,rxtimes_smallt)))
 
-ut_2b_plot <- ggplot()+
-  geom_line(data=ut_2b_df,
-             aes(x=eff_mass,
-                 y=movedur,
-                 group = factor(data),
-                 color = factor(data)),
-            size = 1)+
-  geom_point(data=ut_2b_df,
-             aes(x=eff_mass,
-                 y=movedur,
-                 color = factor(data)),
-            size = 2)+
-  labs(x = 'Effective Mass (kg)', y = 'Predicted Movement Duration (s)', color = 'Data')
+ut5_dur_2a2b2c = as.numeric(fun_optim_prx_ut3(
+                            alpha    = ut5_alpha_2a2b$minimum,
+                            masses   = masses,
+                            mvttimes = mvttimes_pilot,
+                            p_alpha  = p_alpha_pilot_gross,
+                            rxtimes  = rxtimes_pilot,
+                            opt_or_dur = 'duration'))
 
-#2c =========================================================
-ut_2c_tab = cbind(unique(prefdata$eff_mass),
-              mvttimes_pilot,
-              ut1_dur_2c,
-              ut2_dur_2c,
-              ut3_dur_2c)
-colnames(ut_2c_tab)<-c('eff_mass',colnames(ut_2c_tab)[2:5])
-kable(ut_2c_tab %>% `colnames<-`(c('eff_mass','MOvement Duration (s)','Utility 1 Duration','Utility 2 Duration','Utility 3 Duration')),
-      caption = '2c - Movement duration by utility model for experiment 2c.')
+## Reset Gross ==============
+a=coef(MPGross_model)[1]
+b=coef(MPGross_model)[2]*100
+c=coef(MPGross_model)[3]
+d=coef(MPGross_model)[4]
 
-ut_2c_df = as.data.frame(rbind(cbind(masses,rep('Exp',4),mvttimes_pilot),
-                 cbind(masses,rep('Ut1',4),ut1_dur_2c),
-                 cbind(masses,rep('Ut2',4),ut2_dur_2c),
-                 cbind(masses,rep('Ut3',4),ut3_dur_2c)) %>% `colnames<-`(c('eff_mass','data','movedur')))
-ut_2c_df$movedur = as.numeric(as.character(ut_2c_df$movedur))
-ut_2c_df$data = as.factor(ut_2c_df$data)
-
-ut_2c_plot <- ggplot()+
-  geom_line(data=ut_2c_df,
-             aes(x=eff_mass,
-                 y=movedur,
-                 group = factor(data),
-                 color = factor(data)),
-            size = 1)+
-  geom_point(data=ut_2c_df,
-             aes(x=eff_mass,
-                 y=movedur,
-                 color = factor(data)),
-            size = 2)+
-  scale_color_manual(values = gg_color_hue(7))+
-  ylim(c(.6,.8))+
-  labs(x = 'Effective Mass (kg)', y = 'Predicted Movement Duration (s)', color = 'Data')#, title = 'ut2/ut3 not shown cause it doesn\'t fit.')
 
 ```
 
-```{r altutilitymodels, echo = FALSE, warning = FALSE, fig.height=8, fig.width = 6, fig.cap = 'Alternative utility models for 2a, 2b, and 2c.'}
-alt_ut_mod <- plot_grid(plot_grid(ut_2a_plot+theme(legend.position = 'none'),
-                    ut_2b_plot+theme(legend.position = 'none'),
-                    ut_2c_plot+theme(legend.position = 'none'),
-                    nrow = 3),
-          get_legend(ut_2a_plot),
-          ncol = 2,
-          rel_widths = c(4,1))
-alt_ut_mod
-
-# setwd(pref_plots_dir)
-# if (save_plots){ggsave(filename='alt_ut_mod.pdf',plot=alt_ut_mod,height=8,width=6,useDingbats=FALSE)}
-```
 
 ## Table for the coefficients in Utility Modeling
 We next fitted a utility model by altering $\alpha$ to try and predict the movement durations seen in 2a,b,c.
@@ -8059,6 +8149,323 @@ if (save_plots){ggsave('grouped_utility_movedur.pdf',plot=grouped_utility_movedu
      theme(text=element_text(size=16),
            legend.position = 'none')
 ```
+## Different utility models
+
+Utility 1:
+$$J = \frac{\alpha P(R|m,T_m) -\left( a_0 T_r + a T_m + \frac{bm^c}{T_m^d} \right)}{T_r+T_m}$$
+
+Utility 2:
+$$J = \alpha P(R|m,T_m) -\left( a_0 T_r + a T_m + \frac{bm^c}{T_m^d} \right)$$
+
+Utility 3:
+$$J = \frac{\alpha P(R|m,T_m)}{T_r+T_m} -\left( a_0 T_r + a T_m + \frac{bm^c}{T_m^d} \right)$$
+
+Utility 4 is utility 2 with net rate:
+$$J = \alpha P(R|m,T_m) -\left( a_0 T_r + a_{net} T_m + \frac{b_{net}m^{c_{net}}}{T_m^{d_{net}}} \right)$$
+
+Utility 5 is utility 2 with net rate:
+$$J = \frac{\alpha P(R|m,T_m)}{T_r+T_m} -\left( a_0 T_r + a_{net} T_m + \frac{b_{net}m^{c_{net}}}{T_m^{d_{net}}} \right)$$
+
+```{r, echo = FALSE, warning = FALSE}
+#2a =========================================================
+sse_fun <- function(dur1,dur2){
+  sse = formatC(sum((dur1-dur2)^2),format = 'e', digits = 3)
+  return(sse)
+}
+ut_2a_tab = cbind(c('alpha',unique(prefdata$eff_mass),'SSE'),
+              c('alpha',round(mvttimes_pref,4),'SSE'),
+              c(round(ut1_alpha_2a$minimum,3),ut1_dur_2a,sse_fun(ut1_dur_2a,mvttimes_pref)),
+              c(round(ut2_alpha_2a$minimum,3),ut2_dur_2a,sse_fun(ut2_dur_2a,mvttimes_pref)),
+              c(round(ut3_alpha_2a$minimum,3),ut3_dur_2a,sse_fun(ut3_dur_2a,mvttimes_pref)),
+              c(round(ut4_alpha_2a$minimum,3),ut4_dur_2a,sse_fun(ut4_dur_2a,mvttimes_pref)),
+              c(round(ut5_alpha_2a$minimum,3),ut5_dur_2a,sse_fun(ut5_dur_2a,mvttimes_pref)),
+              c(round(ut1_alpha_2a2b$minimum,3),ut1_dur_2a2b[1:4],sse_fun(ut1_dur_2a2b[1:4],mvttimes_pref)),
+              c(round(ut2_alpha_2a2b$minimum,3),ut2_dur_2a2b[1:4],sse_fun(ut2_dur_2a2b[1:4],mvttimes_pref)),
+              c(round(ut3_alpha_2a2b$minimum,3),ut3_dur_2a2b[1:4],sse_fun(ut3_dur_2a2b[1:4],mvttimes_pref)),
+              c(round(ut4_alpha_2a2b$minimum,3),ut4_dur_2a2b[1:4],sse_fun(ut4_dur_2a2b[1:4],mvttimes_pref)),
+              c(round(ut5_alpha_2a2b$minimum,3),ut5_dur_2a2b[1:4],sse_fun(ut5_dur_2a2b[1:4],mvttimes_pref))
+              )
+colnames(ut_2a_tab)<-c('eff_mass','Movement Duration (s)',
+                       'Utility 1 Duration',
+                       'Utility 2 Duration',
+                       'Utility 3 Duration',
+                       'Utility 4 Duration',
+                       'Utility 5 Duration',
+                       'Utility Comb 1 Duration',
+                       'Utility Comb 2 Duration',
+                       'Utility Comb 3 Duration',
+                       'Utility Comb 4 Duration',
+                       'Utility Comb 5 Duration'
+                       )
+kable(ut_2a_tab, caption = '2a - Movement duration by utility model for experiment 2a.')
+
+masses = unique(prefdata$eff_mass)
+ut_2a_df = as.data.frame(rbind(cbind(masses,rep('Exp',4),mvttimes_pref),
+                 cbind(masses,rep('Ut1',4),ut1_dur_2a),
+                 cbind(masses,rep('Ut2',4),ut2_dur_2a),
+                 cbind(masses,rep('Ut3',4),ut3_dur_2a),
+                 cbind(masses,rep('Ut4',4),ut4_dur_2a),
+                 cbind(masses,rep('Ut5',4),ut5_dur_2a),
+                 cbind(masses,rep('Utcomb1',4),ut1_dur_2a2b[1:4]),
+                 cbind(masses,rep('Utcomb2',4),ut2_dur_2a2b[1:4]),
+                 cbind(masses,rep('Utcomb3',4),ut3_dur_2a2b[1:4]),
+                 cbind(masses,rep('Utcomb4',4),ut4_dur_2a2b[1:4]),
+                 cbind(masses,rep('Utcomb5',4),ut5_dur_2a2b[1:4])) %>% `colnames<-`(c('eff_mass','data','movedur')))
+ut_2a_df$movedur = as.numeric(as.character(ut_2a_df$movedur))
+ut_2a_df$data = as.factor(ut_2a_df$data)
+
+ut_2a_plot <- ggplot()+
+  geom_line(data = ut_2a_df,
+             aes(x = eff_mass,
+                 y = movedur,
+                 group = factor(data),
+                 color = factor(data)),
+            size = 1)+
+  geom_point(data=ut_2a_df,
+             aes(x = eff_mass,
+                 y = movedur,
+                 color = factor(data)),
+            size = 2)+
+  geom_point(data=filter(ut_2a_df,data=='Exp'),
+             aes(x = eff_mass,
+                 y = movedur),
+             color = gg_color_hue(11)[1],
+             size = 5)+
+  geom_line(data=filter(ut_2a_df,data=='Exp'),
+            aes(x = eff_mass,
+                y = movedur,
+                group = data),
+            color = gg_color_hue(11)[1],
+            size = 2)+
+  geom_text(data = filter(ut_2a_df, eff_mass == 2.506),
+            aes(x = eff_mass,
+                y = movedur,
+                label = data))+
+  scale_color_manual(values = gg_color_hue(11))+
+  labs(x = 'Effective Mass (kg)', y = '2a Movement Duration (s)', color = 'Data')#, title = 'ut2/ut3 not shown cause it doesn\'t fit.')
+  
+#2b =========================================================
+ut_2b_tab = cbind(c('alpha',unique(prefdata$eff_mass),'SSE'),
+                  c('alpha',round(mvttimes_smallt,4),'SSE'),
+                  c(round(ut1_alpha_2b$minimum,3),ut1_dur_2b,sse_fun(ut1_dur_2b,mvttimes_smallt)),
+                  c(round(ut2_alpha_2b$minimum,3),ut2_dur_2b,sse_fun(ut2_dur_2b,mvttimes_smallt)),
+                  c(round(ut3_alpha_2b$minimum,3),ut3_dur_2b,sse_fun(ut3_dur_2b,mvttimes_smallt)),
+                  c(round(ut4_alpha_2b$minimum,3),ut4_dur_2b,sse_fun(ut4_dur_2b,mvttimes_smallt)),
+                  c(round(ut5_alpha_2b$minimum,3),ut5_dur_2b,sse_fun(ut5_dur_2b,mvttimes_smallt)),
+                  c(round(ut1_alpha_2a2b$minimum,3),ut1_dur_2a2b[5:8],sse_fun(ut1_dur_2a2b[5:8],mvttimes_smallt)),
+                  c(round(ut2_alpha_2a2b$minimum,3),ut2_dur_2a2b[5:8],sse_fun(ut2_dur_2a2b[5:8],mvttimes_smallt)),
+                  c(round(ut3_alpha_2a2b$minimum,3),ut3_dur_2a2b[5:8],sse_fun(ut3_dur_2a2b[5:8],mvttimes_smallt)),
+                  c(round(ut4_alpha_2a2b$minimum,3),ut4_dur_2a2b[5:8],sse_fun(ut4_dur_2a2b[5:8],mvttimes_smallt)),
+                  c(round(ut5_alpha_2a2b$minimum,3),ut5_dur_2a2b[5:8],sse_fun(ut5_dur_2a2b[5:8],mvttimes_smallt)))
+colnames(ut_2b_tab)<-c('eff_mass','Movement Duration (s)',
+                       'Utility 1 Duration',
+                       'Utility 2 Duration',
+                       'Utility 3 Duration',
+                       'Utility 4 Duration',
+                       'Utility 5 Duration',
+                       'Utility Comb 1 Duration',
+                       'Utility Comb 2 Duration',
+                       'Utility Comb 3 Duration',
+                       'Utility Comb 4 Duration',
+                       'Utility Comb 5 Duration')
+kable(ut_2b_tab, caption = '2b - Movement duration by utility model for experiment 2b.')
+
+masses = unique(prefdata$eff_mass)
+ut_2b_df = as.data.frame(rbind(cbind(masses,rep('Exp',4),mvttimes_smallt),
+                               cbind(masses,rep('Ut1',4),ut1_dur_2b),
+                               cbind(masses,rep('Ut2',4),ut2_dur_2b),
+                               cbind(masses,rep('Ut3',4),ut3_dur_2b),
+                               cbind(masses,rep('Ut4',4),ut4_dur_2b),
+                               cbind(masses,rep('Ut5',4),ut5_dur_2b),
+                               cbind(masses,rep('Utcomb1',4),ut1_dur_2a2b[5:8]),
+                               cbind(masses,rep('Utcomb2',4),ut2_dur_2a2b[5:8]),
+                               cbind(masses,rep('Utcomb3',4),ut3_dur_2a2b[5:8]),
+                               cbind(masses,rep('Utcomb4',4),ut4_dur_2a2b[5:8]),
+                               cbind(masses,rep('Utcomb5',4),ut5_dur_2a2b[5:8])) %>% `colnames<-`(c('eff_mass','data','movedur')))
+ut_2b_df$movedur = as.numeric(as.character(ut_2b_df$movedur))
+ut_2b_df$data = as.factor(ut_2b_df$data)
+
+ut_2b_plot <- ggplot()+
+  geom_line(data = ut_2b_df,
+            aes(x = eff_mass,
+                y = movedur,
+                group = factor(data),
+                color = factor(data)),
+            size = 1)+
+  geom_point(data=ut_2b_df,
+             aes(x = eff_mass,
+                 y = movedur,
+                 color = factor(data)),
+             size = 2)+
+  geom_point(data=filter(ut_2b_df,data=='Exp'),
+             aes(x = eff_mass,
+                 y = movedur),
+             color = gg_color_hue(11)[1],
+             size = 5)+
+  geom_line(data=filter(ut_2b_df,data=='Exp'),
+            aes(x = eff_mass,
+                y = movedur,
+                group = data),
+            color = gg_color_hue(11)[1],
+            size = 2)+
+  geom_text(data = filter(ut_2b_df, eff_mass == 2.506),
+            aes(x = eff_mass,
+                y = movedur,
+                label = data))+
+  scale_color_manual(values = gg_color_hue(11))+
+  labs(x = 'Effective Mass (kg)', y = '2b Movement Duration (s)', color = 'Data')#, title = 'ut2/ut3 not shown cause it doesn\'t fit.')
+
+#2c =========================================================
+ut_2c_tab = cbind(c('alpha',unique(prefdata$eff_mass),'SSE'),
+                  c('alpha',round(mvttimes_pilot,4),'SSE'),
+                  c(round(ut1_alpha_2c$minimum,3),ut1_dur_2c,sse_fun(ut1_dur_2b,mvttimes_pilot)),
+                  c(round(ut2_alpha_2c$minimum,3),ut2_dur_2c,sse_fun(ut2_dur_2b,mvttimes_pilot)),
+                  c(round(ut3_alpha_2c$minimum,3),ut3_dur_2c,sse_fun(ut3_dur_2b,mvttimes_pilot)),
+                  c(round(ut4_alpha_2c$minimum,3),ut4_dur_2c,sse_fun(ut4_dur_2b,mvttimes_pilot)),
+                  c(round(ut5_alpha_2c$minimum,3),ut5_dur_2c,sse_fun(ut5_dur_2b,mvttimes_pilot)),
+                  c(round(ut1_alpha_2a2b$minimum,3),ut1_dur_2a2b2c,sse_fun(ut1_dur_2a2b2c,mvttimes_pilot)),
+                  c(round(ut2_alpha_2a2b$minimum,3),ut2_dur_2a2b2c,sse_fun(ut2_dur_2a2b2c,mvttimes_pilot)),
+                  c(round(ut3_alpha_2a2b$minimum,3),ut3_dur_2a2b2c,sse_fun(ut3_dur_2a2b2c,mvttimes_pilot)),
+                  c(round(ut4_alpha_2a2b$minimum,3),ut4_dur_2a2b2c,sse_fun(ut4_dur_2a2b2c,mvttimes_pilot)),
+                  c(round(ut5_alpha_2a2b$minimum,3),ut5_dur_2a2b2c,sse_fun(ut5_dur_2a2b2c,mvttimes_pilot)))
+colnames(ut_2c_tab)<-c('eff_mass','Movement Duration (s)',
+                       'Utility 1 Duration',
+                       'Utility 2 Duration',
+                       'Utility 3 Duration',
+                       'Utility 4 Duration',
+                       'Utility 5 Duration',
+                       'Utility Comb 1 Duration',
+                       'Utility Comb 2 Duration',
+                       'Utility Comb 3 Duration',
+                       'Utility Comb 4 Duration',
+                       'Utility Comb 5 Duration')
+kable(ut_2c_tab, caption = '2c - Movement duration by utility model for experiment 2c.')
+
+masses = unique(prefdata$eff_mass)
+ut_2c_df = as.data.frame(rbind(cbind(masses,rep('Exp',4),mvttimes_pilot),
+                               cbind(masses,rep('Ut1',4),ut1_dur_2c),
+                               cbind(masses,rep('Ut2',4),ut2_dur_2c),
+                               cbind(masses,rep('Ut3',4),ut3_dur_2c),
+                               cbind(masses,rep('Ut4',4),ut4_dur_2c),
+                               cbind(masses,rep('Ut5',4),ut5_dur_2c),
+                               cbind(masses,rep('Utcomb1',4),ut1_dur_2a2b2c),
+                               cbind(masses,rep('Utcomb2',4),ut2_dur_2a2b2c),
+                               cbind(masses,rep('Utcomb3',4),ut3_dur_2a2b2c),
+                               cbind(masses,rep('Utcomb4',4),ut4_dur_2a2b2c),
+                               cbind(masses,rep('Utcomb5',4),ut5_dur_2a2b2c)) %>% `colnames<-`(c('eff_mass','data','movedur')))
+ut_2c_df$movedur = as.numeric(as.character(ut_2c_df$movedur))
+ut_2c_df$data = as.factor(ut_2c_df$data)
+
+ut_2c_plot <- ggplot()+
+  geom_line(data = ut_2c_df,
+            aes(x = eff_mass,
+                y = movedur,
+                group = factor(data),
+                color = factor(data)),
+            size = 1)+
+  geom_point(data=ut_2c_df,
+             aes(x = eff_mass,
+                 y = movedur,
+                 color = factor(data)),
+             size = 2)+
+  geom_point(data=filter(ut_2c_df,data=='Exp'),
+             aes(x = eff_mass,
+                 y = movedur),
+             color = gg_color_hue(11)[1],
+             size = 5)+
+  geom_line(data=filter(ut_2c_df,data=='Exp'),
+            aes(x = eff_mass,
+                y = movedur,
+                group = data),
+            color = gg_color_hue(11)[1],
+            size = 2)+
+  scale_color_manual(values = gg_color_hue(11))+
+  geom_text(data = filter(ut_2c_df, eff_mass == 2.506),
+            aes(x = eff_mass,
+                y = movedur,
+                label = data))+
+  labs(x = 'Effective Mass (kg)', y = '2c Movement Duration (s)', color = 'Data')#, title = 'ut2/ut3 not shown cause it doesn\'t fit.')
+
+```
+
+```{r altutilitymodels, echo = FALSE, warning = FALSE, fig.height=10, fig.width = 9, fig.cap = 'Alternative utility models for 2a, 2b, and 2c.'}
+alt_ut_mod <- plot_grid(plot_grid(ut_2a_plot+theme(legend.position = 'none'),
+                    ut_2b_plot+theme(legend.position = 'none'),
+                    ut_2c_plot+theme(legend.position = 'none'),
+                    nrow = 3),
+          get_legend(ut_2a_plot),
+          ncol = 2,
+          rel_widths = c(4,1))
+alt_ut_mod
+
+# setwd(pref_plots_dir)
+# if (save_plots){ggsave(filename='alt_ut_mod.pdf',plot=alt_ut_mod,height=10,width=9,useDingbats=FALSE)}
+```
+
+```{r SSEaltutilitymodels, echo = FALSE, warning = FALSE, fig.height=6, fig.width = 9, fig.cap = 'SSE Alternative utility models for 2a, 2b, and 2c.'}
+
+alt_ut_sse_df = rbind(cbind(rep('2a',10),
+                            levels(ut_2a_df$data)[2:11],
+                            c(sse_fun(ut1_dur_2a,mvttimes_pref),
+                              sse_fun(ut2_dur_2a,mvttimes_pref),
+                              sse_fun(ut3_dur_2a,mvttimes_pref),
+                              sse_fun(ut4_dur_2a,mvttimes_pref),
+                              sse_fun(ut5_dur_2a,mvttimes_pref),
+                              sse_fun(ut1_dur_2a2b[1:4],mvttimes_pref),
+                              sse_fun(ut2_dur_2a2b[1:4],mvttimes_pref),
+                              sse_fun(ut3_dur_2a2b[1:4],mvttimes_pref),
+                              sse_fun(ut4_dur_2a2b[1:4],mvttimes_pref),
+                              sse_fun(ut5_dur_2a2b[1:4],mvttimes_pref))),
+                      cbind(rep('2b',10),
+                            levels(ut_2b_df$data)[2:11],
+                            c(sse_fun(ut1_dur_2b,mvttimes_smallt),
+                              sse_fun(ut2_dur_2b,mvttimes_smallt),
+                              sse_fun(ut3_dur_2b,mvttimes_smallt),
+                              sse_fun(ut4_dur_2b,mvttimes_smallt),
+                              sse_fun(ut5_dur_2b,mvttimes_smallt),
+                              sse_fun(ut1_dur_2a2b[5:8],mvttimes_smallt),
+                              sse_fun(ut2_dur_2a2b[5:8],mvttimes_smallt),
+                              sse_fun(ut3_dur_2a2b[5:8],mvttimes_smallt),
+                              sse_fun(ut4_dur_2a2b[5:8],mvttimes_smallt),
+                              sse_fun(ut5_dur_2a2b[5:8],mvttimes_smallt))),
+                      cbind(rep('2c',10),
+                            levels(ut_2a_df$data)[2:11],
+                            c(sse_fun(ut1_dur_2c,mvttimes_pilot),
+                              sse_fun(ut2_dur_2c,mvttimes_pilot),
+                              sse_fun(ut3_dur_2c,mvttimes_pilot),
+                              sse_fun(ut4_dur_2c,mvttimes_pilot),
+                              sse_fun(ut5_dur_2c,mvttimes_pilot),
+                              sse_fun(ut1_dur_2a2b2c,mvttimes_pilot),
+                              sse_fun(ut2_dur_2a2b2c,mvttimes_pilot),
+                              sse_fun(ut3_dur_2a2b2c,mvttimes_pilot),
+                              sse_fun(ut4_dur_2a2b2c,mvttimes_pilot),
+                              sse_fun(ut5_dur_2a2b2c,mvttimes_pilot))))
+colnames(alt_ut_sse_df) <- c('exp','utmod','sse')
+alt_ut_sse_df = as.data.frame(alt_ut_sse_df)
+alt_ut_sse_df$sse = abs(log(as.numeric(as.character(alt_ut_sse_df$sse))))
+
+ggplot()+
+  geom_bar(data=alt_ut_sse_df,
+           aes(x = exp,
+               y = sse,
+               fill = factor(utmod)),
+           color = 'black',
+           position = 'dodge',
+           stat = 'identity')+
+  geom_text(data=alt_ut_sse_df,
+            aes(x = exp,
+                y = sse,
+                label = utmod,
+                group = utmod),
+            position = position_dodge(width = .9),
+            angle = 90,
+            hjust = -.1)+
+  labs(x = 'Experiment', y = 'abs(log(SSE))), Higher is better', fill = 'Utility\nModel')
+
+# setwd(pref_plots_dir)
+# if (save_plots){ggsave(filename='alt_ut_mod.pdf',plot=alt_ut_mod,height=10,width=9,useDingbats=FALSE)}
+```
+
 
 ## 2a Durations
 ### MOdel Plotting Function
@@ -11248,7 +11655,7 @@ for (model1 in models_SSE){
   } else {
     n_params = 0
   }
-  
+   
   model_movedur_temp1_norm = filter(model_durs,model==model1)$norm_durs
   # Change here for 2a/b/c
   model_movedur_temp2_norm = aggregate(movedur~eff_mass,pilotdata,mean)$movedur/aggregate(movedur~eff_mass,pilotdata,mean)$movedur[1]
