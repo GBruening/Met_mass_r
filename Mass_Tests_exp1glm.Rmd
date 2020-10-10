@@ -733,6 +733,74 @@ all_exp_avg_plot <- function(variable,data1,data2,data3,ylab,...){
 }
 #theme(axis.line = element_line(color=\'black\',size = 2,linetype=\'solid\'))+
 
+all_exp_avg_plot_addmass <- function(variable,data1,data2,data3,ylab,...){
+  exp = list(...)
+  c = c()
+  
+  exps = c('2a','2b','2c')
+  tempdf = list()
+  for (datasets in c(1,2,3)){
+    tempdf[[datasets]] = eval(parse(text = paste('aggregate(',variable,' ~ subj + condition,data',datasets,',mean)',sep='')))
+    nsubj = max(tempdf[[datasets]]$subj)
+    string = paste('a = aggregate(',variable,' ~ condition,tempdf[[datasets]],mean)
+                    b = aggregate(',variable,' ~ condition,tempdf[[datasets]],sd)
+                    tempdf[[datasets]] = cbind(a,b$',variable,'/sqrt(nsubj))
+                    colnames(tempdf[[datasets]]) = c(\'condition\',\'dep_var\',\'dep_var_sd\')',
+                   sep = ''
+    )
+    eval(parse(text=string))
+    tempdf[[datasets]]$exp = exps[datasets]
+  }
+  c = rbind(tempdf[[1]],tempdf[[2]],tempdf[[3]])
+  
+  g<-ggplot()+
+    scale_x_continuous(labels = round(sort(unique(c$condition)/2.2),3),
+                       breaks=c(sort(unique(c$condition))))+
+    geom_line(data=c,
+              aes(x = condition,
+                  y = dep_var,
+                  group = exp),
+              size=v_plot_line_size)+
+    geom_hline(aes(yintercept = filter(c,exp=='2a')[1,2]),
+               linetype = 'dashed',
+               size=.5)+
+    geom_hline(aes(yintercept = filter(c,exp=='2b')[1,2]),
+               linetype = 'dashed',
+               size=.5)+
+    geom_hline(aes(yintercept = filter(c,exp=='2c')[1,2]),
+               linetype = 'dashed',
+               size=.5)+
+    geom_errorbar(data=data.frame(c),
+                  aes(x    = condition,
+                      y    = dep_var, 
+                      ymin = dep_var-dep_var_sd,
+                      ymax = dep_var+dep_var_sd),
+                  size=v_plot_err_bar_size,
+                  width = 0)+
+    geom_point(data=c,
+               aes(x=condition,
+                   y=dep_var,
+                   fill = factor(condition),
+                   shape = factor(exp)),
+               size=vplot_point_size+6,
+               color = 'black')+
+    scale_fill_manual(values=c(mass_colors,'black'))+
+    scale_shape_manual(values=c(21,22,24))+
+    # theme_classic()
+    theme(text              = element_text(color='black'),
+          axis.text         = element_text(color ='black'),
+          axis.ticks        = element_line(color ='black'),
+          plot.title        = element_text(hjust = 0.5),
+          axis.line         = element_line(color ='black'))+
+    labs(x = 'Added mass (kg)',
+         shape = 'Experiment')+
+    guides(fill='none')
+  if (!missing(ylab)){
+    g <- g+labs(y = ylab)
+  }
+  return(g)
+}
+
 #Another stat summary function
 summarySE <- function(data=NULL, measurevar, groupvars=NULL, na.rm=FALSE,
                       conf.interval=.95, .drop=TRUE) {
@@ -1052,276 +1120,11 @@ Movedurnorm_by_experiment <- ggplot()+
         legend.text=element_text(size=15),
         legend.text.align = 0)
 
-# Movedur
-# Movedur_by_experiment <- ggplot()+
-#   geom_violin(data=prefpilot,
-#               aes(x=factor(eff_mass),y=movedur,fill=exp),
-#               position = position_dodge(.5))+
-#   scale_x_discrete(breaks=c(sort(unique(prefpilot$eff_mass))))+
-#   geom_line(data=aggregate(movedur~eff_mass+exp,prefpilot,mean),
-#             mapping=aes(x=factor(eff_mass),y=movedur,group=exp,color=exp),
-#             position=position_dodge(.5),
-#             size=3,
-#             show.legend = FALSE)+
-#   geom_line(data=aggregate(movedur~eff_mass+exp,prefpilot,mean),
-#             mapping=aes(x=factor(eff_mass),y=movedur,group=exp),
-#             position=position_dodge(.5),
-#             size=1,
-#             show.legend = FALSE)+
-#   labs(x='Effective mass (kg)',y='Movement Duration (s)')+
-#   scale_fill_manual(labels = c('Circle\n(Normal)','None\n(Large)','Arc\n(Small)'),values = gg_color_hue(3))+
-#   # theme_classic()
-#   theme(text=element_text(size=20),
-#         legend.text=element_text(size=15),
-#         legend.text.align = 0)+
-#   guides(fill=guide_legend(title="Target type\n(size)",
-#                            keyheight=.75,
-#                            default.unit='inch'))
 
-# tempdf = cbind(aggregate(movedur~exp+eff_mass,data=prefpilot,mean),
-#                aggregate(movedur~exp+eff_mass,data=prefpilot,sd)$movedur)
-# colnames(tempdf) = c('exp','eff_mass','movedur','movedurse')
-# tempdf <- tempdf[order(tempdf$exp, tempdf$eff_mass),]
-# tempdf$movedur = c(filter(tempdf,exp=='pilot')$movedur/sqrt(18),
-#                    filter(tempdf,exp=='pref')$movedur/sqrt(12),
-#                    filter(tempdf,exp=='smallt')$movedur/sqrt(12))
-# 
-# Movedur_by_experiment <- ggplot()+
-#   geom_errorbar(data=tempdf,
-#                 aes(x=eff_mass,
-#                     ymin=movedur-movedurse,
-#                     ymax=movedur+movedurse,
-#                     color=exp),
-#                 size = 2)+
-#   scale_x_continuous(breaks=c(sort(unique(prefpilot$eff_mass))))+
-#   geom_line(data=tempdf,
-#             aes(x=eff_mass,
-#                 y=movedur,
-#                 group=exp,
-#                 color=exp),
-#             size=2,
-#             show.legend = FALSE)+
-#   labs(x='Effective mass (kg)',y='Movement Duration (s)',color = 'Experiment')+
-#   scale_color_manual(labels = c('2a','2c','2b'),
-#                     values = gg_color_hue(3))+
-#   # theme_classic()
-#   theme(text=element_text(size=20),
-#         legend.text=element_text(size=15),
-#         legend.text.align = 0)+
-#   guides(fill=guide_legend(title="Target type\n(size)",
-#                            keyheight=.75,
-#                            default.unit='inch'))+
-#   theme(text              = element_text(color='black'),
-#        axis.text         = element_text(color='black'),
-#        axis.ticks        = element_line(color='black'),
-#        plot.title        = element_text(hjust = 0.5),
-#        axis.line         = element_line(color='black'))
-
-Movedur_by_experiment <- all_exp_avg_plot('movedur',prefdata,smalltdata,pilotdata,ylab = 'Movement Duration (s)')
-
-# setwd(pref_plots_dir)
-# if (save_plots){ggsave('Movedur_by_experiment.pdf', plot = Movedur_by_experiment, width=6, height=4, useDingbats = FALSE)}
-
-# PeakVel
-# Peakvel_by_experiment <- ggplot()+
-#   geom_violin(data=prefpilot,
-#               aes(x=factor(eff_mass),y=peakvel_target,fill=exp),
-#               position = position_dodge(.5))+
-#   scale_x_discrete(breaks=c(sort(unique(prefpilot$eff_mass))))+
-#   geom_line(data=aggregate(peakvel_target~eff_mass+exp,prefpilot,mean),
-#             mapping=aes(x=factor(eff_mass),y=peakvel_target,group=exp,color=exp),
-#             position=position_dodge(.5),
-#             size=3,
-#             show.legend = FALSE)+
-#   geom_line(data=aggregate(peakvel_target~eff_mass+exp,prefpilot,mean),
-#             mapping=aes(x=factor(eff_mass),y=peakvel_target,group=exp),
-#             position=position_dodge(.5),
-#             size=1,
-#             show.legend = FALSE)+
-#   labs(x='Effective mass (kg)',y='Peak Velocity (m/s)')+
-#   scale_fill_manual(labels = c('Circle\n(Normal)','None\n(Large)','Arc\n(Small)'),values = gg_color_hue(3))+
-#   # theme_classic()
-#   theme(text=element_text(size=20),
-#         legend.text=element_text(size=15),
-#         legend.text.align = 0)+
-#   guides(fill=guide_legend(title="Target type\n(size)",
-#                            keyheight=.75,
-#                            default.unit='inch'))
-
-# tempdf = cbind(aggregate(peakvel_target~exp+eff_mass,data=prefpilot,mean),
-#                aggregate(peakvel_target~exp+eff_mass,data=prefpilot,sd)$peakvel_target)
-# colnames(tempdf) = c('exp','eff_mass','peakvel_target','peakvel_targetse')
-# tempdf <- tempdf[order(tempdf$exp, tempdf$eff_mass),]
-# tempdf$peakvel_target = c(filter(tempdf,exp=='pilot')$peakvel_target/sqrt(18),
-#                           filter(tempdf,exp=='pref')$peakvel_target/sqrt(12),
-#                           filter(tempdf,exp=='smallt')$peakvel_target/sqrt(12))
-# 
-# Peakvel_by_experiment <- ggplot()+
-#   geom_errorbar(data=tempdf,
-#                 aes(x=eff_mass,
-#                     ymin=peakvel_target-peakvel_targetse,
-#                     ymax=peakvel_target+peakvel_targetse,
-#                     color=exp),
-#                 size = 2)+
-#   scale_x_continuous(breaks=c(sort(unique(prefpilot$eff_mass))))+
-#   geom_line(data=tempdf,
-#             aes(x=eff_mass,
-#                 y=peakvel_target,
-#                 group=exp,
-#                 color=exp),
-#             size=2,
-#             show.legend = FALSE)+
-#   labs(x='Effective mass (kg)',y='Peak Velocity (m/s)',color = 'Experiment')+
-#   scale_color_manual(labels = c('2a','2c','2b'),
-#                     values = gg_color_hue(3))+
-#   # theme_classic()
-#   theme(text=element_text(size=20),
-#         legend.text=element_text(size=15),
-#         legend.text.align = 0)+
-#   guides(fill=guide_legend(title="Target type\n(size)",
-#                            keyheight=.75,
-#                            default.unit='inch'))+
-#   theme(text              = element_text(color='black'),
-#        axis.text         = element_text(color='black'),
-#        axis.ticks        = element_line(color='black'),
-#        plot.title        = element_text(hjust = 0.5),
-#        axis.line         = element_line(color='black'))
-
-
-# setwd(pref_plots_dir)
-# if (save_plots){ggsave('Peakvel_by_experiment.pdf', plot = Peakvel_by_experiment, width=6, height=4, useDingbats = FALSE)}
-
-# if (save_plots){
-#   theme_set(theme_cowplot(font_size=12))
-#   pref_pilot_legend <- get_legend(Movedur_by_experiment+theme(legend.position='right'))
-#   
-#   grouped_pref_pilot <- plot_grid(plot_grid(Movedur_by_experiment+theme(legend.position='none'),
-#                                             Movedurnorm_by_experiment+theme(legend.position='none'),
-#                                             Peakvel_by_experiment+theme(legend.position='none'),
-#                                             Peakvelnorm_by_experiment+theme(legend.position='none'),
-#                                             labels='AUTO',
-#                                             label_size = 20),
-#                                   pref_pilot_legend,
-#                                   align='vh',
-#                                   rel_widths = c(.85,.15))
-#   setwd(pref_plots_dir)
-#   ggsave('Grouped_mvdur_exp.pdf',plot=grouped_pref_pilot, height = 9, width = 9/.85, useDingbats = FALSE)
-# }
-
-
-# Reaction Time
-# Reacttime_by_experiment <- ggplot()+
-#   geom_violin(data=prefpilot,
-#               aes(x=factor(eff_mass),y=reaction_tanv,fill=exp),
-#               position = position_dodge(.5))+
-#   scale_x_discrete(breaks=c(sort(unique(prefpilot$eff_mass))))+
-#   geom_line(data=aggregate(reaction_tanv~eff_mass+exp,prefpilot,mean),
-#             mapping=aes(x=factor(eff_mass),y=reaction_tanv,group=exp,color=exp),
-#             position=position_dodge(.5),
-#             size=3,
-#             show.legend = FALSE)+
-#   geom_line(data=aggregate(reaction_tanv~eff_mass+exp,prefpilot,mean),
-#             mapping=aes(x=factor(eff_mass),y=reaction_tanv,group=exp),
-#             position=position_dodge(.5),
-#             size=1,
-#             show.legend = FALSE)+
-#   labs(x='Effective mass (kg)',y='Reaction Time (s)')+
-#   scale_fill_manual(labels = c('Circle\n(Normal)','None\n(Large)','Arc\n(Small)'),values = gg_color_hue(3))+
-#   # theme_classic()
-#   theme(text=element_text(size=20),
-#         legend.text=element_text(size=15),
-#         legend.text.align = 0)+
-#   guides(fill=guide_legend(title="Target type\n(size)",
-#                            keyheight=.75,
-#                            default.unit='inch'))
-
-# tempdf = cbind(aggregate(reaction_tanv~exp+eff_mass,data=prefpilot,mean),
-#                aggregate(reaction_tanv~exp+eff_mass,data=prefpilot,sd)$reaction_tanv)
-# colnames(tempdf) = c('exp','eff_mass','reaction_tanv','reaction_tanvse')
-# tempdf <- tempdf[order(tempdf$exp, tempdf$eff_mass),]
-# tempdf$reaction_tanv = c(filter(tempdf,exp=='pilot')$reaction_tanv/sqrt(18),
-#                          filter(tempdf,exp=='pref')$reaction_tanv/sqrt(12),
-#                          filter(tempdf,exp=='smallt')$reaction_tanv/sqrt(12))
-# 
-# Reacttime_by_experiment <- ggplot()+
-#   geom_errorbar(data=tempdf,
-#                 aes(x=eff_mass,
-#                     ymin=reaction_tanv-reaction_tanvse,
-#                     ymax=reaction_tanv+reaction_tanvse,
-#                     color=exp),
-#                 size = 2)+
-#   scale_x_continuous(breaks=c(sort(unique(prefpilot$eff_mass))))+
-#   geom_line(data=tempdf,
-#             aes(x=eff_mass,
-#                 y=reaction_tanv,
-#                 group=exp,
-#                 color=exp),
-#             size=2,
-#             show.legend = FALSE)+
-#   labs(x='Effective mass (kg)',y='Reaction Time (s)',color = 'Experiment')+
-#   scale_color_manual(labels = c('2a','2c','2b'),
-#                     values = gg_color_hue(3))+
-#   # theme_classic()
-#   theme(text=element_text(size=20),
-#         legend.text=element_text(size=15),
-#         legend.text.align = 0)+
-#   guides(fill=guide_legend(title="Target type\n(size)",
-#                            keyheight=.75,
-#                            default.unit='inch'))+
-#   theme(text              = element_text(color='black'),
-#        axis.text         = element_text(color='black'),
-#        axis.ticks        = element_line(color='black'),
-#        plot.title        = element_text(hjust = 0.5),
-#        axis.line         = element_line(color='black'))
-
-
-
-Reactvel_by_experiment <- all_exp_avg_plot('reaction_tanvel',prefdata,smalltdata,pilotdata,ylab = 'Reaction Velocity (s)')
+Reactvel_by_experiment <- all_exp_avg_plot_addmass('reaction_tanvel',prefdata,smalltdata,pilotdata,ylab = 'Reaction Velocity (s)')
 
 # setwd(pref_plots_dir)
 # if (save_plots){ggsave('Reacttime_by_experiment.pdf', plot = Reacttime_by_experiment, width=6, height=4, useDingbats = FALSE)}
-
-
-# MIss Dist
-# tempdf = cbind(aggregate(miss_dist~exp+eff_mass,data=prefpilot,mean),
-#                aggregate(miss_dist~exp+eff_mass,data=prefpilot,sd)$miss_dist)
-# colnames(tempdf) = c('exp','eff_mass','miss_dist','miss_distse')
-# tempdf <- tempdf[order(tempdf$exp, tempdf$eff_mass),]
-# tempdf$miss_distse = c(filter(tempdf,exp=='pilot')$miss_distse/sqrt(18),
-#                        filter(tempdf,exp=='pref')$miss_distse/sqrt(12),
-#                        filter(tempdf,exp=='smallt')$miss_distse/sqrt(12))
-# 
-# miss_dist_by_experiment <- ggplot()+
-#   geom_errorbar(data=tempdf,
-#                 aes(x=eff_mass,
-#                     ymin=miss_dist-miss_distse,
-#                     ymax=miss_dist+miss_distse,
-#                     color=exp),
-#                 size = 2)+
-#   scale_x_continuous(breaks=c(sort(unique(prefpilot$eff_mass))))+
-#   geom_line(data=tempdf,
-#             aes(x=eff_mass,
-#                 y=miss_dist,
-#                 group=exp,
-#                 color=exp),
-#             size=2,
-#             show.legend = FALSE)+
-#   labs(x='Effective mass (kg)',y='Miss Distance (m)',color = 'Experiment')+
-#   scale_color_manual(labels = c('2a','2c','2b'),
-#                      values = gg_color_hue(3))+
-#   # theme_classic()
-#   theme(text=element_text(size=20),
-#         legend.text=element_text(size=15),
-#         legend.text.align = 0)+
-#   guides(fill=guide_legend(title="Target type\n(size)",
-#                            keyheight=.75,
-#                            default.unit='inch'))+
-#   theme(text              = element_text(color='black'),
-#         axis.text         = element_text(color='black'),
-#         axis.ticks        = element_line(color='black'),
-#         plot.title        = element_text(hjust = 0.5),
-#         axis.line         = element_line(color='black'))
-
 
 # Miss Angle
 a = aggregate(missangle ~ subj + eff_mass,prefdata,var)
@@ -1345,48 +1148,8 @@ colnames(c) = c('subj','eff_mass','movedur','missangle')
 c$exp = 'pilot'
 miss_var_pilot = c
 
-missangle_by_experiement <- all_exp_avg_plot('missangle',miss_var_pref,miss_var_smallt,miss_var_pilot,ylab = expression(atop(Miss~Angle~Variance~(deg^2))))
-# 
-# var_data = rbind(miss_var_pref,miss_var_smallt,miss_var_pilot)
-# 
-# tempdf = cbind(aggregate(missangle~exp+eff_mass,data=var_data,mean),
-#                aggregate(missangle~exp+eff_mass,data=var_data,sd)$missangle)
-# colnames(tempdf) = c('exp','eff_mass','missangle','missanglese')
-# tempdf <- tempdf[order(tempdf$exp, tempdf$eff_mass),]
-# tempdf$missanglese = c(filter(tempdf,exp=='pilot')$missanglese/sqrt(18),
-#                        filter(tempdf,exp=='pref')$missanglese/sqrt(12),
-#                        filter(tempdf,exp=='smallt')$missanglese/sqrt(12))
-# 
-# missangle_by_experiement <- ggplot()+
-#   geom_errorbar(data=tempdf,
-#                 aes(x=eff_mass,
-#                     ymin=missangle-missanglese,
-#                     ymax=missangle+missanglese,
-#                     color=exp),
-#                 size = 2)+
-#   scale_x_continuous(breaks=c(sort(unique(prefpilot$eff_mass))))+
-#   geom_line(data=tempdf,
-#             aes(x=eff_mass,
-#                 y=missangle,
-#                 group=exp,
-#                 color=exp),
-#             size=2,
-#             show.legend = FALSE)+
-#   labs(x='Effective mass (kg)',y='Miss Angle Variance (deg^2)',color = 'Experiment')+
-#   scale_color_manual(labels = c('2a','2c','2b'),
-#                      values = gg_color_hue(3))+
-#   # theme_classic()
-#   theme(text=element_text(size=20),
-#         legend.text=element_text(size=15),
-#         legend.text.align = 0)+
-#   guides(fill=guide_legend(title="Target type\n(size)",
-#                            keyheight=.75,
-#                            default.unit='inch'))+
-#   theme(text              = element_text(color='black'),
-#         axis.text         = element_text(color='black'),
-#         axis.ticks        = element_line(color='black'),
-#         plot.title        = element_text(hjust = 0.5),
-#         axis.line         = element_line(color='black'))
+missangle_by_experiement <- all_exp_avg_plot_addmass('missangle',miss_var_pref,miss_var_smallt,miss_var_pilot,ylab = expression(atop(Miss~Angle~Variance~(deg^2))))
+
 
 # Miss Rad
 
@@ -1414,48 +1177,8 @@ c$exp = 'pilot'
 c$miss_rad = c$miss_rad*(100^2)
 miss_var_pilot = c
 
-miss_rad_by_experiement <- all_exp_avg_plot('miss_rad',miss_var_pref,miss_var_smallt,miss_var_pilot,ylab = expression(atop(Miss~Radial~Variance~(cm^2))))
+miss_rad_by_experiement <- all_exp_avg_plot_addmass('miss_rad',miss_var_pref,miss_var_smallt,miss_var_pilot,ylab = expression(atop(Miss~Radial~Variance~(cm^2))))
 
-# var_data = rbind(miss_var_pref,miss_var_smallt,miss_var_pilot)
-# 
-# tempdf = cbind(aggregate(miss_rad~exp+eff_mass,data=var_data,mean),
-#                aggregate(miss_rad~exp+eff_mass,data=var_data,sd)$miss_rad)
-# colnames(tempdf) = c('exp','eff_mass','miss_rad','miss_radse')
-# tempdf <- tempdf[order(tempdf$exp, tempdf$eff_mass),]
-# tempdf$miss_radse = c(filter(tempdf,exp=='pilot')$miss_radse/sqrt(18),
-#                        filter(tempdf,exp=='pref')$miss_radse/sqrt(12),
-#                        filter(tempdf,exp=='smallt')$miss_radse/sqrt(12))
-# 
-# miss_rad_by_experiement <- ggplot()+
-#   geom_errorbar(data=tempdf,
-#                 aes(x=eff_mass,
-#                     ymin=miss_rad-miss_radse,
-#                     ymax=miss_rad+miss_radse,
-#                     color=exp),
-#                 size = 2)+
-#   scale_x_continuous(breaks=c(sort(unique(prefpilot$eff_mass))))+
-#   geom_line(data=tempdf,
-#             aes(x=eff_mass,
-#                 y=miss_rad,
-#                 group=exp,
-#                 color=exp),
-#             size=2,
-#             show.legend = FALSE)+
-#   labs(x='Effective mass (kg)',y='Miss Radial Variance (cm^2)',color = 'Experiment')+
-#   scale_color_manual(labels = c('2a','2c','2b'),
-#                      values = gg_color_hue(3))+
-#   # theme_classic()
-#   theme(text=element_text(size=20),
-#         legend.text=element_text(size=15),
-#         legend.text.align = 0)+
-#   guides(fill=guide_legend(title="Target type\n(size)",
-#                            keyheight=.75,
-#                            default.unit='inch'))+
-#   theme(text              = element_text(color='black'),
-#         axis.text         = element_text(color='black'),
-#         axis.ticks        = element_line(color='black'),
-#         plot.title        = element_text(hjust = 0.5),
-#         axis.line         = element_line(color='black'))
 ```
 
 ## Movement Duration
@@ -1522,7 +1245,10 @@ This next stat output shows the a LME with movedur ~ target + eff_mass*exp + (1|
 
 ```{r Movedurbyexperiment, echo = FALSE, warning = FALSE, fig.width=12, fig.height=8, fig.cap = 'Movement Duration by experiment.'}
 # ```{r movedur2, echo = FALSE, warning = FALSE, fig.width=12, fig.height=8, fig.cap = 'Movement duration by experiment.'}
-  Movedur_by_experiment+theme(text = element_text(size = 18))
+
+Movedur_by_experiment <- all_exp_avg_plot_addmass('movedur',prefdata,smalltdata,pilotdata,ylab = 'Movement Duration (s)')
+
+Movedur_by_experiment+theme(text = element_text(size = 18))
 
 setwd(pref_plots_dir)
 if (save_plots){
@@ -1640,7 +1366,7 @@ This next stat output shows the a LME with movedur_norm ~ target + eff_mass*exp 
 
 ```{r movedur_normbyexperiment, echo = FALSE, warning = FALSE, fig.width=12, fig.height=8, fig.cap = 'Movement Duration by experiment.'}
 
-Movedur_norm_by_experiment <- all_exp_avg_plot('movedur_norm',prefdata,smalltdata,pilotdata,ylab = 'Movement Duration Normalized (s)')
+Movedur_norm_by_experiment <- all_exp_avg_plot_addmass('movedur_norm',prefdata,smalltdata,pilotdata,ylab = 'Movement Duration Normalized (s)')
   
 Movedur_norm_by_experiment+theme(text = element_text(size = 18))
 
@@ -1752,7 +1478,7 @@ This next stat output shows the a LME with movedur ~ target + eff_mass*exp + (1|
 
 ```{r Peakvelbyexperiment, echo = FALSE, warning = FALSE, fig.width=12, fig.height=8, fig.cap = 'Peak Velocity by experiment.'}
 
-  Peakvel_by_experiment <- all_exp_avg_plot('peakvel_target',prefdata,smalltdata,pilotdata,ylab = 'Peak Velocity (m/s)')
+  Peakvel_by_experiment <- all_exp_avg_plot_addmass('peakvel_target',prefdata,smalltdata,pilotdata,ylab = 'Peak Velocity (m/s)')
 
   Peakvel_by_experiment+theme(text = element_text(size = 18))
 ```
@@ -1854,7 +1580,7 @@ This next stat output shows the a LME with movedur ~ target + eff_mass*exp + (1|
 `r mass_exp_int_stringgen(prefpilot,'peakvel_target_norm','peak velocity')`
 
 ```{r Peakvelnormbyexperiment, echo = FALSE, warning = FALSE, fig.width=12, fig.height=8, fig.cap = 'Peak Velocity by experiment.'}
-Peakvel_norm_by_experiment <- all_exp_avg_plot('peakvel_target_norm',prefdata,smalltdata,pilotdata,ylab = 'Peak Velocity Normalized (m/s)')
+Peakvel_norm_by_experiment <- all_exp_avg_plot_addmass('peakvel_target_norm',prefdata,smalltdata,pilotdata,ylab = 'Peak Velocity Normalized (m/s)')
   
 Peakvel_norm_by_experiment+theme(text = element_text(size = 18))
 
@@ -1965,7 +1691,7 @@ This next stat output shows the a LME with movedur ~ target + eff_mass*exp + (1|
 
 
 ```{r Reacttimebyexperiment, echo = FALSE, warning = FALSE, fig.width=12, fig.height=8, fig.cap = 'Reaction Time by experiment.'}
-Reacttime_by_experiment <- all_exp_avg_plot('reaction_tanv',prefdata,smalltdata,pilotdata,ylab = 'Reaction Time (s)')
+Reacttime_by_experiment <- all_exp_avg_plot_addmass('reaction_tanv',prefdata,smalltdata,pilotdata,ylab = 'Reaction Time (s)')
 
 Reacttime_by_experiment+theme(text = element_text(size = 18))
 ```
@@ -2073,7 +1799,7 @@ cftest(lmer(reaction_tanv_norm ~ factor(targetnum) + eff_mass + eff_mass*factor(
 
 ```{r Reacttimenormbyexperiment, echo = FALSE, warning = FALSE, fig.width=12, fig.height=8, fig.cap = 'Reaction Time by experiment.'}
 
-Reacttime_norm_by_experiment <- all_exp_avg_plot('reaction_tanv_norm',prefdata,smalltdata,pilotdata,ylab = 'Reaction Time Normalized (s)')
+Reacttime_norm_by_experiment <- all_exp_avg_plot_addmass('reaction_tanv_norm',prefdata,smalltdata,pilotdata,ylab = 'Reaction Time Normalized (s)')
 
 Reacttime_norm_by_experiment+theme(text = element_text(size = 18))
 ```
@@ -2366,7 +2092,7 @@ cftest(lmer(reaction_tanv_perc ~ factor(targetnum) + eff_mass + eff_mass*factor(
 
 
 ```{r Reacttimepercbyexperiment, echo = FALSE, warning = FALSE, fig.width=12, fig.height=8, fig.cap = 'Reaction Time by experiment.'}
-Reacttime_perc_by_experiment <- all_exp_avg_plot('reaction_tanv_perc',prefdata,smalltdata,pilotdata,ylab = 'Reaction Time Perc (% of Movedur)')
+Reacttime_perc_by_experiment <- all_exp_avg_plot_addmass('reaction_tanv_perc',prefdata,smalltdata,pilotdata,ylab = 'Reaction Time Perc (% of Movedur)')
 Reacttime_perc_by_experiment+theme(text = element_text(size = 18))
 ```
 
@@ -2472,7 +2198,7 @@ cftest(lmer(miss_dist ~ factor(targetnum) + eff_mass + eff_mass*factor(exp) +  (
 
 ```{r missdistexperiment, echo = FALSE, warning = FALSE, fig.width=12, fig.height=8, fig.cap = 'Miss Distance (cm) by experiment.'}
 pilotdata[,'miss_dist'] <- pilotdata[,'miss_dist']-.1
-miss_dist_by_experiment <- all_exp_avg_plot('miss_dist',
+miss_dist_by_experiment <- all_exp_avg_plot_addmass('miss_dist',
                                             prefdata,
                                             smalltdata,
                                             pilotdata,
@@ -2484,7 +2210,7 @@ miss_dist_by_experiment+theme(text = element_text(size = 18))
 
 ```{r missdist_normbyexperiment, echo = FALSE, warning = FALSE, fig.width=12, fig.height=8, fig.cap = 'Movement Duration by experiment.'}
 
-Miss_dist_norm_by_experiment <- all_exp_avg_plot('miss_dist_norm',prefdata,smalltdata,pilotdata,ylab = 'Miss Distance Normalized (m/s)')
+Miss_dist_norm_by_experiment <- all_exp_avg_plot_addmass('miss_dist_norm',prefdata,smalltdata,pilotdata,ylab = 'Miss Distance Normalized (m/s)')
   
 Miss_dist_norm_by_experiment+theme(text = element_text(size = 18))
 
@@ -2743,7 +2469,7 @@ cftest(lmer(miss_dist_sd ~ eff_mass + trial + factor(exp) + (1|subj),data=prefpi
 
 <!-- ```{r , echo = FALSE, warning = FALSE, message = FALSE} -->
 
-<!-- all_exp_avg_plot('miss_dist_sd',prefdata,smalltdata,pilotdata,ylab = 'Miss Dist SD Average') -->
+<!-- all_exp_avg_plot_addmass('miss_dist_sd',prefdata,smalltdata,pilotdata,ylab = 'Miss Dist SD Average') -->
 
 <!-- ``` -->
 
@@ -3040,7 +2766,7 @@ cftest(lmer(missangle_sd ~ eff_mass + trial + factor(exp) + (1|subj),data=prefpi
 
 <!-- ```{r , echo = FALSE, warning = FALSE, message = FALSE} -->
 
-<!-- all_exp_avg_plot('missangle_sd',prefdata,smalltdata,pilotdata,ylab = 'Miss Angle standard deviation Average') -->
+<!-- all_exp_avg_plot_addmass('missangle_sd',prefdata,smalltdata,pilotdata,ylab = 'Miss Angle standard deviation Average') -->
 
 <!-- ``` -->
 
@@ -3324,7 +3050,7 @@ cftest(lmer(miss_rad_sd ~ eff_mass + trial + factor(exp) + (1|subj),data=prefpil
 
 <!-- ```{r , echo = FALSE, warning = FALSE, message = FALSE} -->
 
-<!-- all_exp_avg_plot('miss_rad_sd',prefdata,smalltdata,pilotdata,ylab = 'Miss Angle standard deviation Average') -->
+<!-- all_exp_avg_plot_addmass('miss_rad_sd',prefdata,smalltdata,pilotdata,ylab = 'Miss Angle standard deviation Average') -->
 
 <!-- ``` -->
 
@@ -3391,7 +3117,7 @@ prob_data = rbind(cbind(aggregate(success ~ eff_mass + subj, prefdata,mean),'pre
 
 cftest(lmer(success ~ eff_mass + (1|subj), data=prob_data))
 
-all_exp_avg_plot('success',prefdata,smalltdata,smalltdata,ylab = 'Success Probabolity')
+all_exp_avg_plot_addmass('success',prefdata,smalltdata,smalltdata,ylab = 'Success Probabolity')
 ```
 
 ## Resample Plots
