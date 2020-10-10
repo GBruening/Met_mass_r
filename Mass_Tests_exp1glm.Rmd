@@ -47,7 +47,7 @@ theme_set(theme_classic()+
                   axis.line         = element_line(color='black')))
 # theme_set(theme_cowplot())
 
-save_plots = 0
+save_plots = 1
 
 # #====================== LOAD DATA - Neuromech ==============================
 # met_plots_dir  <- 'D:/Users/Gary/Google Drive/Muscle modeling/Metabolics/Graphs/'
@@ -1148,7 +1148,7 @@ colnames(c) = c('subj','eff_mass','movedur','missangle')
 c$exp = 'pilot'
 miss_var_pilot = c
 
-missangle_by_experiement <- all_exp_avg_plot_addmass('missangle',miss_var_pref,miss_var_smallt,miss_var_pilot,ylab = expression(atop(Miss~Angle~Variance~(deg^2))))
+missangle_by_experiement <- all_exp_avg_plot('missangle',miss_var_pref,miss_var_smallt,miss_var_pilot,ylab = expression(atop(Miss~Angle~Variance~(deg^2))))
 
 
 # Miss Rad
@@ -1177,7 +1177,7 @@ c$exp = 'pilot'
 c$miss_rad = c$miss_rad*(100^2)
 miss_var_pilot = c
 
-miss_rad_by_experiement <- all_exp_avg_plot_addmass('miss_rad',miss_var_pref,miss_var_smallt,miss_var_pilot,ylab = expression(atop(Miss~Radial~Variance~(cm^2))))
+miss_rad_by_experiement <- all_exp_avg_plot('miss_rad',miss_var_pref,miss_var_smallt,miss_var_pilot,ylab = expression(atop(Miss~Radial~Variance~(cm^2))))
 
 ```
 
@@ -7739,13 +7739,21 @@ kable(alph_tab, caption = 'Alpha values fitted to experiment 2a/2b, and a sepera
 
 ```{r, echo = FALSE, warning = FALSE}
 
-control_times = rbind(cbind(rep('smallt',4),rep('data',4),c(2.5,3.8,4.7,6.1),mvttimes_smallt,rep(3,4),mvttimes_smallt_se),
-                      cbind(rep('pref',4),rep('data',4),c(2.5,3.8,4.7,6.1),mvttimes_pref,rep(1,4),mvttimes_pref_se),
-                      cbind(rep('pilot',4),rep('data',4),c(2.5,3.8,4.7,6.1),mvttimes_pilot,rep(2,4),mvttimes_pilot_se),
+# control_times = rbind(cbind(rep('smallt',4),rep('data',4),unique(prefdata$eff_mass),mvttimes_smallt,rep(3,4),mvttimes_smallt_se),
+#                       cbind(rep('pref',4),rep('data',4),unique(prefdata$eff_mass),mvttimes_pref,rep(1,4),mvttimes_pref_se),
+#                       cbind(rep('pilot',4),rep('data',4),unique(prefdata$eff_mass),mvttimes_pilot,rep(2,4),mvttimes_pilot_se),
+#                       
+#                       cbind(rep('smallt',4),rep('model',4),unique(prefdata$eff_mass),util_dur_pref_alpha_comb_gross[5:8],rep(3,4),rep(0,4)),
+#                       cbind(rep('pref',4),rep('model',4),unique(prefdata$eff_mass),util_dur_pref_alpha_comb_gross[1:4],rep(1,4),rep(0,4)),
+#                       cbind(rep('pilot',4),rep('model',4),unique(prefdata$eff_mass),util_dur_pilot_gross,rep(2,4),rep(0,4)))
+#                       # cbind(rep('pilot',4),rep('model',4),c(2.5,3.8,4.7,6.1),util_dur_pilot_gross_alpha_comb_gross,rep(2,4),rep(0,4)))
+control_times = rbind(cbind(rep('smallt',4),rep('data',4),unique(prefdata$condition)/2.2,mvttimes_smallt,rep(3,4),mvttimes_smallt_se),
+                      cbind(rep('pref',4),rep('data',4),unique(prefdata$condition)/2.2,mvttimes_pref,rep(1,4),mvttimes_pref_se),
+                      cbind(rep('pilot',4),rep('data',4),unique(prefdata$condition)/2.2,mvttimes_pilot,rep(2,4),mvttimes_pilot_se),
                       
-                      cbind(rep('smallt',4),rep('model',4),c(2.5,3.8,4.7,6.1),util_dur_pref_alpha_comb_gross[5:8],rep(3,4),rep(0,4)),
-                      cbind(rep('pref',4),rep('model',4),c(2.5,3.8,4.7,6.1),util_dur_pref_alpha_comb_gross[1:4],rep(1,4),rep(0,4)),
-                      cbind(rep('pilot',4),rep('model',4),c(2.5,3.8,4.7,6.1),util_dur_pilot_gross,rep(2,4),rep(0,4)))
+                      cbind(rep('smallt',4),rep('model',4),unique(prefdata$condition)/2.2,util_dur_pref_alpha_comb_gross[5:8],rep(3,4),rep(0,4)),
+                      cbind(rep('pref',4),rep('model',4),unique(prefdata$condition)/2.2,util_dur_pref_alpha_comb_gross[1:4],rep(1,4),rep(0,4)),
+                      cbind(rep('pilot',4),rep('model',4),unique(prefdata$condition)/2.2,util_dur_pilot_gross,rep(2,4),rep(0,4)))
                       # cbind(rep('pilot',4),rep('model',4),c(2.5,3.8,4.7,6.1),util_dur_pilot_gross_alpha_comb_gross,rep(2,4),rep(0,4)))
 colnames(control_times) = c('exp','datatype','eff_mass','movedur','expnum','movedur_se')
 
@@ -7788,7 +7796,7 @@ utilfits_by_exp_2alphas <- ggplot()+
                         labels=c('Data (Solid)','Model (Dashed)'))+
   scale_alpha_discrete(range=c(.5,1),
                         labels=c('Data (Solid)','Model (Dashed)'))+
-  labs(x='Effective mass (kg)',
+  labs(x='Added mass (kg)',
        y='Movement Duration (s)',
        title = paste('Util fits by Experiment\n2a,2b \U1D6FC = ',
                      round(alpha_pref_comb_gross$minimum,3),
@@ -7897,11 +7905,11 @@ $$J = \alpha P(R|m,T_m) -\left( a_0 T_r + a T_m + \frac{bm^c}{T_m^d} \right)$$
 Utility 3:
 $$J = \frac{\alpha P(R|m,T_m)}{T_r+T_m} -\left( a_0 T_r + a T_m + \frac{bm^c}{T_m^d} \right)$$
 
-Utility 4 is utility 2 with net rate:
-$$J = \alpha P(R|m,T_m) -\left( a_0 T_r + a_{net} T_m + \frac{b_{net}m^{c_{net}}}{T_m^{d_{net}}} \right)$$
+<!-- Utility 4 is utility 2 with net rate: -->
+<!-- $$J = \alpha P(R|m,T_m) -\left( a_0 T_r + a_{net} T_m + \frac{b_{net}m^{c_{net}}}{T_m^{d_{net}}} \right)$$ -->
 
-Utility 5 is utility 2 with net rate:
-$$J = \frac{\alpha P(R|m,T_m)}{T_r+T_m} -\left( a_0 T_r + a_{net} T_m + \frac{b_{net}m^{c_{net}}}{T_m^{d_{net}}} \right)$$
+<!-- Utility 5 is utility 2 with net rate: -->
+<!-- $$J = \frac{\alpha P(R|m,T_m)}{T_r+T_m} -\left( a_0 T_r + a_{net} T_m + \frac{b_{net}m^{c_{net}}}{T_m^{d_{net}}} \right)$$ -->
 
 ```{r, echo = FALSE, warning = FALSE}
 #2a =========================================================
@@ -8207,7 +8215,7 @@ ggplot()+
 
 
 ## 2a Durations
-### MOdel Plotting Function
+### Model Plotting Function
 
 ```{r, echo = FALSE, warning = FALSE}
 
@@ -8253,7 +8261,7 @@ model_plotting <- function(variable,label,temp_durs,errbar,cs,normalized){
         #                           color= \'black\',
         #                           size=1)+
         geom_line(data=temp_durs,
-                      aes(x=eff_mass,
+                  aes(x=eff_mass,
                       y=',variable,',
                       color=factor(modelnum),
                       group=factor(modelnum)),
@@ -8444,6 +8452,218 @@ model_plotting <- function(variable,label,temp_durs,errbar,cs,normalized){
 }
 
 
+model_plotting_addmass <- function(variable,label,temp_durs,errbar,cs,normalized){
+  if (length(unique(temp_durs$model))==10){
+    shapes = c(1:10)
+  } else {
+    shapes = c(16, 15, 17, 1, 0, 2, 5, 6, 11)
+    # shapes = c(5,6,11,16,1,15,17,0,2)
+  }
+  if (normalized == 0){
+    
+    if (cs=='shape'){
+      string = paste('g <- ggplot()+
+        # geom_line(data=filter(temp_durs,model!=\'Pref\'),
+        #                               aes(x=eff_mass,
+        #                               y = ',variable,',
+        #                               group = model),
+        #                           color= \'grey\',
+        #                           size=1)+
+        # geom_line(data=filter(temp_durs,model==\'Pref\'),
+        #                               aes(x=eff_mass,
+        #                               y=',variable,'),
+        #                           color= \'black\',
+        #                           size=1)+
+        geom_line(data=temp_durs,
+                  aes(x=eff_mass,
+                      y=',variable,',
+                      color=factor(modelnum),
+                      group=factor(modelnum)),
+                  size=1)+
+        geom_errorbar(data=errbar,aes(x=eff_mass,
+                                      ymin=',variable,'-sd,
+                                      ymax=',variable,'+sd),
+                      color = \'black\',
+                      size=1,
+                      width = 0)+
+        geom_point(data=temp_durs,
+                   aes(x=eff_mass,
+                       y=',variable,',
+                       group=factor(modelnum),
+                       shape=factor(modelnum)),
+                   size=3)+
+        guides(shape = guide_legend(override.aes = list(size = 5),
+                                    title="Model",
+                                    keyheight=.5,
+                                    default.unit=\'inch\'))+
+        scale_shape_manual(values = shapes,
+                           labels = parse(text = model_labs[models_to_plot]))+
+        # scale_linetype_manual(values = c(\'dashed\',
+        #                                  \'dashed\',
+        #                                  \'dashed\',
+        #                                  \'solid\',
+        #                                  \'dashed\',
+        #                                  \'solid\',
+        #                                  \'solid\',
+        #                                  \'dashed\',
+        #                                  \'dashed\'),
+        #                       guide = \'none\')+
+        scale_color_manual(values = c(\'black\',
+                                      \'black\',
+                                      \'black\',
+                                      \'blue\',
+                                      \'blue\',
+                                      \'blue\',
+                                      \'blue\',
+                                      \'blue\',
+                                      \'blue\'),
+                              guide = \'none\')+
+        labs(x=\'Added Mass (kg)\',y=\'',label,'\')+
+        scale_x_continuous(breaks=c(sort(unique(prefpilot$eff_mass))))+
+        theme(legend.text=element_text(size=15),
+              text = element_text(size=20),
+              axis.text.x = element_text(size = 15),
+              axis.text.y = element_text(size = 15),
+              legend.text.align = 0)',sep = '')
+      
+    }
+  
+    if (cs == 'color'){
+      string = paste('g <- ggplot()+
+        geom_line(data=temp_durs,aes(x=eff_mass,
+                                      y=',variable,',
+                                      group=factor(modelnum),
+                                      color=factor(modelnum),
+                                      linetype = factor(modelnum)),
+                                  size=2)+
+        scale_linetype_manual(values=c(rep(\'dashed\',sum(models_to_plot<6)),
+                                       \'solid\',
+                                       rep(\'dashed\',sum(models_to_plot>6))),
+                              guide = \'none\')+
+        scale_color_manual(values = gg_color_hue(9)[models_to_plot],
+                             labels=parse(text = model_labs[models_to_plot]))+
+        geom_errorbar(data=errbar,aes(x=eff_mass,
+                                      ymin=',variable,'-sd,
+                                      ymax=',variable,'+sd),
+                      color = gg_color_hue(9)[6],
+                      size=2,
+                      width = 0)+
+        guides(color = guide_legend(override.aes = list(size = 5),
+                                    title="Model",
+                                    keyheight=.5,
+                                    default.unit=\'inch\'))+
+        labs(x=\'Added Mass (kg)\',y=\'',label,'\')+
+        scale_x_continuous(breaks=c(sort(unique(prefpilot$eff_mass))))+
+        theme(legend.text=element_text(size=15),
+              text = element_text(size=20),
+              axis.text.x = element_text(size = 15),
+              axis.text.y = element_text(size = 15),
+              legend.text.align = 0)',sep = '')
+    }
+    
+  } else {
+    
+    if (cs=='shape'){
+      string = paste('g <- ggplot()+
+        # geom_line(data=filter(temp_durs,model!=\'Pref\'),
+        #                               aes(x=eff_mass,
+        #                               y = ',variable,',
+        #                               group = model),
+        #                           color= \'grey\',
+        #                           size=1)+
+        # geom_line(data=filter(temp_durs,model==\'Pref\'),
+        #                               aes(x=eff_mass,
+        #                               y=',variable,'),
+        #                           color= \'black\',
+        #                           size=1)+
+        geom_line(data=temp_durs,
+                      aes(x=eff_mass,
+                      y=',variable,',
+                      color=factor(modelnum),
+                      group=factor(modelnum)),
+                  size=1)+
+        geom_errorbar(data=errbar,aes(x=eff_mass,
+                                      ymin=',variable,'-sd,
+                                      ymax=',variable,'+sd),
+                      color = \'black\',
+                      size=1,
+                      width = 0)+
+        geom_point(data=temp_durs,aes(x=eff_mass,
+                                      y=',variable,',
+                                      group=factor(modelnum),
+                                      shape=factor(modelnum)),
+                                  size=3)+
+        guides(shape = guide_legend(override.aes = list(size = 5),
+                                    title="Model",
+                                    keyheight=.5,
+                                    default.unit=\'inch\'))+
+        scale_shape_manual(values = shapes,
+                    labels = parse(text = model_labs[models_to_plot]))+
+        # scale_linetype_manual(values = c(\'dashed\',
+        #                                  \'dashed\',
+        #                                  \'dashed\',
+        #                                  \'solid\',
+        #                                  \'dashed\',
+        #                                  \'solid\',
+        #                                  \'solid\',
+        #                                  \'dashed\',
+        #                                  \'dashed\'),
+        #                       guide = \'none\')+
+        scale_color_manual(values = c(\'black\',
+                                      \'black\',
+                                      \'black\',
+                                      \'blue\',
+                                      \'blue\',
+                                      \'blue\',
+                                      \'blue\',
+                                      \'blue\',
+                                      \'blue\'),
+                              guide = \'none\')+
+        labs(x=\'Added Mass (kg)\',y=\'',label,'\')+
+        scale_x_continuous(breaks=c(sort(unique(prefpilot$eff_mass))))+
+        theme(legend.text=element_text(size=15),
+              text = element_text(size=20),
+              axis.text.x = element_text(size = 15),
+              axis.text.y = element_text(size = 15),
+              legend.text.align = 0)+
+        coord_cartesian(ylim=c(min(filter(temp_durs,model!=\'torque2\')$',variable,')*.99,
+                        max(filter(temp_durs,model!=\'torque2\')$',variable,')*1.01))',sep = '')
+      
+    }
+  
+    if (cs == 'color'){
+      string = paste('g <- ggplot()+
+        geom_line(data=temp_durs,aes(x=eff_mass,
+                                      y=',variable,',
+                                      group=factor(modelnum),
+                                      color=factor(modelnum),
+                                      linetype = factor(modelnum)),
+                                  size=2)+
+        scale_linetype_manual(values=c(rep(\'dashed\',sum(models_to_plot<6)),
+                                       \'solid\',
+                                       rep(\'dashed\',sum(models_to_plot>6))),
+                              guide = \'none\')+
+        scale_color_manual(values = gg_color_hue(9)[models_to_plot],
+                             labels=parse(text = model_labs[models_to_plot]))+
+        guides(color = guide_legend(override.aes = list(size = 5),
+                                    title="Model",
+                                    keyheight=.5,
+                                    default.unit=\'inch\'))+
+        labs(x=\'Added Mass (kg)\',y=\'',label,'\')+
+        scale_x_continuous(breaks=c(sort(unique(prefpilot$eff_mass))))+
+        theme(legend.text=element_text(size=15),
+              text = element_text(size=20),
+              axis.text.x = element_text(size = 15),
+              axis.text.y = element_text(size = 15),
+              legend.text.align = 0)+
+        coord_cartesian(ylim=c(min(filter(temp_durs,model!=\'torque2\')$',variable,')*.99,
+                        max(filter(temp_durs,model!=\'torque2\')$',variable,')*1.01))',sep = '')
+    }
+    
+  }
+  eval(parse(text = string))
+  return(g)
+}
 ```
 
 ### DF Creation
@@ -8452,7 +8672,8 @@ model_plotting <- function(variable,label,temp_durs,errbar,cs,normalized){
 
 options(warn=-1)
 # ================  Fitting Movement Duration
-masses = unique(prefdata$eff_mass)
+# masses = unique(prefdata$eff_mass)
+masses = unique(prefdata$condition)/2.2
 models = c('Pref','MPNet_Cost','MGross_Cost','Utility','m1','Torque')
 model_durs = data.frame('eff_mass' = cbind(rep(masses,17)),
                         'model' = c(rep('Pref',4),   
@@ -8957,15 +9178,22 @@ prefdata <- norm_vals(prefdata)
 smalltdata <- norm_vals(smalltdata)
 pilotdata <- norm_vals(pilotdata)
 
-errbar = rbind(cbind(aggregate(movedur~eff_mass,prefdata,mean),
-                     aggregate(movedur~eff_mass,prefdata,sd)[2]/sqrt(length(unique(prefdata$subj)))),
-               cbind(aggregate(movedur~eff_mass,smalltdata,mean),
-                     aggregate(movedur~eff_mass,smalltdata,sd)[2]/sqrt(length(unique(smalltdata$subj)))),
-               cbind(aggregate(movedur~eff_mass,pilotdata,mean),
-                     aggregate(movedur~eff_mass,pilotdata,sd)[2]/sqrt(length(unique(pilotdata$subj)))))
+# errbar = rbind(cbind(aggregate(movedur~eff_mass,prefdata,mean),
+#                      aggregate(movedur~eff_mass,prefdata,sd)[2]/sqrt(length(unique(prefdata$subj)))),
+#                cbind(aggregate(movedur~eff_mass,smalltdata,mean),
+#                      aggregate(movedur~eff_mass,smalltdata,sd)[2]/sqrt(length(unique(smalltdata$subj)))),
+#                cbind(aggregate(movedur~eff_mass,pilotdata,mean),
+#                      aggregate(movedur~eff_mass,pilotdata,sd)[2]/sqrt(length(unique(pilotdata$subj)))))
+errbar = rbind(cbind(aggregate(movedur~condition,prefdata,mean),
+                     aggregate(movedur~condition,prefdata,sd)[2]/sqrt(length(unique(prefdata$subj)))),
+               cbind(aggregate(movedur~condition,smalltdata,mean),
+                     aggregate(movedur~condition,smalltdata,sd)[2]/sqrt(length(unique(smalltdata$subj)))),
+               cbind(aggregate(movedur~condition,pilotdata,mean),
+                     aggregate(movedur~condition,pilotdata,sd)[2]/sqrt(length(unique(pilotdata$subj)))))
 colnames(errbar) = c('eff_mass','movedur','sd')
+errbar$eff_mass = errbar$eff_mass/2.2
 
-Model_movedur_shape <- model_plotting('movedur','Movement Duration (s)',temp_durs,errbar,'shape',normalized = 0)+
+Model_movedur_shape <- model_plotting_addmass('movedur','Movement Duration (s)',temp_durs,errbar,'shape',normalized = 0)+
   # theme_classic()
   theme(text              = element_text(color='black'),
         axis.text         = element_text(color='black'),
@@ -8973,7 +9201,7 @@ Model_movedur_shape <- model_plotting('movedur','Movement Duration (s)',temp_dur
         plot.title        = element_text(hjust = 0.5),
         axis.line         = element_line(color='black'))
 
-Model_movedur_color <- model_plotting('movedur','Movement Duration (s)',temp_durs,errbar,'color',normalized = 0)+
+Model_movedur_color <- model_plotting_addmass('movedur','Movement Duration (s)',temp_durs,errbar,'color',normalized = 0)+
   # theme_classic()
   theme(text              = element_text(color='black'),
         axis.text         = element_text(color='black'),
@@ -8987,22 +9215,30 @@ if (save_plots){ggsave('Model_movedur_shape.pdf',plot=Model_movedur_shape, width
 temp_durs = model_durs
 temp_durs = filter(model_durs, modelnum %in% models_to_plot)
 
-errbar = rbind(cbind(aggregate(movedurnorm~eff_mass,prefdata,mean),
-                     aggregate(movedurnorm~eff_mass,prefdata,sd)[2]/sqrt(length(unique(prefdata$subj)))),
-               cbind(aggregate(movedurnorm~eff_mass,smalltdata,mean),
-                     aggregate(movedurnorm~eff_mass,smalltdata,sd)[2]/sqrt(length(unique(smalltdata$subj)))),
-               cbind(aggregate(movedurnorm~eff_mass,pilotdata,mean),
-                     aggregate(movedurnorm~eff_mass,pilotdata,sd)[2]/sqrt(length(unique(pilotdata$subj)))))
+# errbar = rbind(cbind(aggregate(movedurnorm~eff_mass,prefdata,mean),
+#                      aggregate(movedurnorm~eff_mass,prefdata,sd)[2]/sqrt(length(unique(prefdata$subj)))),
+#                cbind(aggregate(movedurnorm~eff_mass,smalltdata,mean),
+#                      aggregate(movedurnorm~eff_mass,smalltdata,sd)[2]/sqrt(length(unique(smalltdata$subj)))),
+#                cbind(aggregate(movedurnorm~eff_mass,pilotdata,mean),
+#                      aggregate(movedurnorm~eff_mass,pilotdata,sd)[2]/sqrt(length(unique(pilotdata$subj)))))
+# colnames(errbar) = c('eff_mass','norm_durs','sd')
+errbar = rbind(cbind(aggregate(movedurnorm~condition,prefdata,mean),
+                     aggregate(movedurnorm~condition,prefdata,sd)[2]/sqrt(length(unique(prefdata$subj)))),
+               cbind(aggregate(movedurnorm~condition,smalltdata,mean),
+                     aggregate(movedurnorm~condition,smalltdata,sd)[2]/sqrt(length(unique(smalltdata$subj)))),
+               cbind(aggregate(movedurnorm~condition,pilotdata,mean),
+                     aggregate(movedurnorm~condition,pilotdata,sd)[2]/sqrt(length(unique(pilotdata$subj)))))
 colnames(errbar) = c('eff_mass','norm_durs','sd')
+errbar$eff_mass = errbar$eff_mass/2.2
 
-Model_normmovedur_shape <- model_plotting('norm_durs','Norm Movement Duration (s)',temp_durs,errbar,'shape',normalized = 1)+
+Model_normmovedur_shape <- model_plotting_addmass('norm_durs','Norm Movement Duration (s)',temp_durs,errbar,'shape',normalized = 1)+
   # theme_classic()
   theme(text              = element_text(color='black'),
         axis.text         = element_text(color='black'),
         axis.ticks        = element_line(color='black'),
         plot.title        = element_text(hjust = 0.5),
         axis.line         = element_line(color='black'))
-Model_normmovedur_color <- model_plotting('norm_durs','Norm Movement Duration (s)',temp_durs,errbar,'color',normalized = 1)+
+Model_normmovedur_color <- model_plotting_addmass('norm_durs','Norm Movement Duration (s)',temp_durs,errbar,'color',normalized = 1)+
   # theme_classic()
   theme(text              = element_text(color='black'),
         axis.text         = element_text(color='black'),
@@ -9015,15 +9251,23 @@ Model_normmovedur_color <- model_plotting('norm_durs','Norm Movement Duration (s
 temp_vels = model_vels
 temp_vels = filter(temp_vels, modelnum %in% models_to_plot)
 
-errbar = rbind(cbind(aggregate(peakvel_target~eff_mass,prefdata,mean),
-                     aggregate(peakvel_target~eff_mass,prefdata,sd)[2]/sqrt(length(unique(prefdata$subj)))),
-               cbind(aggregate(peakvel_target~eff_mass,smalltdata,mean),
-                     aggregate(peakvel_target~eff_mass,smalltdata,sd)[2]/sqrt(length(unique(smalltdata$subj)))),
-               cbind(aggregate(peakvel_target~eff_mass,pilotdata,mean),
-                     aggregate(peakvel_target~eff_mass,pilotdata,sd)[2]/sqrt(length(unique(pilotdata$subj)))))
+# errbar = rbind(cbind(aggregate(peakvel_target~eff_mass,prefdata,mean),
+#                      aggregate(peakvel_target~eff_mass,prefdata,sd)[2]/sqrt(length(unique(prefdata$subj)))),
+#                cbind(aggregate(peakvel_target~eff_mass,smalltdata,mean),
+#                      aggregate(peakvel_target~eff_mass,smalltdata,sd)[2]/sqrt(length(unique(smalltdata$subj)))),
+#                cbind(aggregate(peakvel_target~eff_mass,pilotdata,mean),
+#                      aggregate(peakvel_target~eff_mass,pilotdata,sd)[2]/sqrt(length(unique(pilotdata$subj)))))
+# colnames(errbar) = c('eff_mass','peakvel','sd')
+errbar = rbind(cbind(aggregate(peakvel_target~condition,prefdata,mean),
+                     aggregate(peakvel_target~condition,prefdata,sd)[2]/sqrt(length(unique(prefdata$subj)))),
+               cbind(aggregate(peakvel_target~condition,smalltdata,mean),
+                     aggregate(peakvel_target~condition,smalltdata,sd)[2]/sqrt(length(unique(smalltdata$subj)))),
+               cbind(aggregate(peakvel_target~condition,pilotdata,mean),
+                     aggregate(peakvel_target~condition,pilotdata,sd)[2]/sqrt(length(unique(pilotdata$subj)))))
 colnames(errbar) = c('eff_mass','peakvel','sd')
+errbar$eff_mass = errbar$eff_mass/2.2
 
-Model_peakvel_shape <- model_plotting('peakvel','Peak Velocity (m/s)',
+Model_peakvel_shape <- model_plotting_addmass('peakvel','Peak Velocity (m/s)',
                                       temp_vels,errbar,'shape',normalized = 0)+
   # theme_classic()
   theme(text              = element_text(color='black'),
@@ -9031,7 +9275,7 @@ Model_peakvel_shape <- model_plotting('peakvel','Peak Velocity (m/s)',
         axis.ticks        = element_line(color='black'),
         plot.title        = element_text(hjust = 0.5),
         axis.line         = element_line(color='black'))
-Model_peakvel_color <- model_plotting('peakvel','Peak Velocity (m/s)',
+Model_peakvel_color <- model_plotting_addmass('peakvel','Peak Velocity (m/s)',
                                       temp_vels,errbar,'color',normalized = 0)+
   # theme_classic()
   theme(text              = element_text(color='black'),
@@ -9047,15 +9291,23 @@ Model_peakvel_color <- model_plotting('peakvel','Peak Velocity (m/s)',
 temp_vels = model_vels
 temp_vels = filter(temp_vels, modelnum %in% models_to_plot)
 
-errbar = rbind(cbind(aggregate(peakvelnorm~eff_mass,prefdata,mean),
-                     aggregate(peakvelnorm~eff_mass,prefdata,sd)[2]/sqrt(length(unique(prefdata$subj)))),
-               cbind(aggregate(peakvelnorm~eff_mass,smalltdata,mean),
-                     aggregate(peakvelnorm~eff_mass,smalltdata,sd)[2]/sqrt(length(unique(smalltdata$subj)))),
-               cbind(aggregate(peakvelnorm~eff_mass,pilotdata,mean),
-                     aggregate(peakvelnorm~eff_mass,pilotdata,sd)[2]/sqrt(length(unique(pilotdata$subj)))))
+# errbar = rbind(cbind(aggregate(peakvelnorm~eff_mass,prefdata,mean),
+#                      aggregate(peakvelnorm~eff_mass,prefdata,sd)[2]/sqrt(length(unique(prefdata$subj)))),
+#                cbind(aggregate(peakvelnorm~eff_mass,smalltdata,mean),
+#                      aggregate(peakvelnorm~eff_mass,smalltdata,sd)[2]/sqrt(length(unique(smalltdata$subj)))),
+#                cbind(aggregate(peakvelnorm~eff_mass,pilotdata,mean),
+#                      aggregate(peakvelnorm~eff_mass,pilotdata,sd)[2]/sqrt(length(unique(pilotdata$subj)))))
+# colnames(errbar) = c('eff_mass','norm_vels','sd')
+errbar = rbind(cbind(aggregate(peakvelnorm~condition,prefdata,mean),
+                     aggregate(peakvelnorm~condition,prefdata,sd)[2]/sqrt(length(unique(prefdata$subj)))),
+               cbind(aggregate(peakvelnorm~condition,smalltdata,mean),
+                     aggregate(peakvelnorm~condition,smalltdata,sd)[2]/sqrt(length(unique(smalltdata$subj)))),
+               cbind(aggregate(peakvelnorm~condition,pilotdata,mean),
+                     aggregate(peakvelnorm~condition,pilotdata,sd)[2]/sqrt(length(unique(pilotdata$subj)))))
 colnames(errbar) = c('eff_mass','norm_vels','sd')
+errbar$eff_mass = errbar$eff_mass/2.2
 
-Model_normpeakvel_shape <- model_plotting('norm_vels','Norm Peak Velocity (m/s)',
+Model_normpeakvel_shape <- model_plotting_addmass('norm_vels','Norm Peak Velocity (m/s)',
                                           temp_vels,errbar,'shape',normalized = 1)+
   # theme_classic()
   theme(text              = element_text(color='black'),
@@ -9063,7 +9315,7 @@ Model_normpeakvel_shape <- model_plotting('norm_vels','Norm Peak Velocity (m/s)'
         axis.ticks        = element_line(color='black'),
         plot.title        = element_text(hjust = 0.5),
         axis.line         = element_line(color='black'))
-Model_normpeakvel_color <- model_plotting('norm_vels','Norm Velocity (m/s)',
+Model_normpeakvel_color <- model_plotting_addmass('norm_vels','Norm Velocity (m/s)',
                                           temp_vels,errbar,'color',normalized = 1)+
   # theme_classic()
   theme(text              = element_text(color='black'),
