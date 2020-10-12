@@ -395,7 +395,7 @@ allexp_plot <- function(vars,data,...){
 }
 
 vars = c('targetnum','movedur','movedur_norm',
-         'peakvel_target','peakvel_target_norm',
+         'peakvel_target','peakvel_target_norm','idxpeakv',
          'miss_dist','miss_dist_norm',
          'reaction_tanv','reaction_tanv_norm','reaction_tanvel',
          'pathltar','missangle','miss_rad','trial',
@@ -8216,6 +8216,24 @@ ggplot()+
   labs(x = 'Experiment', y = 'SSE - Lower Better', fill = 'Utility\nModel')+
   scale_y_continuous(trans='log10')
 
+
+ggplot(data=aggregate(sse ~ utmod, alt_ut_sse_df, sum))+
+  geom_bar(aes(x = utmod,
+               y = sse,
+               fill = factor(utmod)),
+           color = 'black',
+           position = 'dodge',
+           stat = 'identity')+
+  geom_text(aes(x = utmod,
+                y = sse,
+                label = utmod,
+                group = utmod),
+            position = position_dodge(width = .9),
+            angle = 90,
+            hjust = -.1)+
+  labs(x = 'Utility Model', y = 'SSE Across 2a,2a,2c - Lower Better', fill = 'Utility\nModel')+
+  scale_y_continuous(trans='log10')+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
 # setwd(pref_plots_dir)
 # if (save_plots){ggsave(filename='alt_ut_mod.pdf',plot=alt_ut_mod,height=10,width=9,useDingbats=FALSE)}
 ```
