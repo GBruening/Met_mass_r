@@ -7918,6 +7918,8 @@ $$J = \frac{\alpha P(R|m,T_m)}{T_r+T_m} -\left( a_0 T_r + a T_m + \frac{bm^c}{T_
 
 <!-- Utility 5 is utility 2 with net rate: -->
 <!-- $$J = \frac{\alpha P(R|m,T_m)}{T_r+T_m} -\left( a_0 T_r + a_{net} T_m + \frac{b_{net}m^{c_{net}}}{T_m^{d_{net}}} \right)$$ -->
+### All random utility models
+#### One Alpha value
 
 ```{r, echo = FALSE, warning = FALSE}
 sse_fun <- function(dur1,dur2){
@@ -8122,7 +8124,7 @@ alt_ut_plots[['2c_diff']] <- alt_ut_plot(ut_2c_df,ylabel = '2c Move Dur Diff (s)
 
 ```
 
-```{r altutilitymodels, echo = FALSE, warning = FALSE, fig.height=10, fig.width = 9, fig.cap = 'Alternative utility models for 2a, 2b, and 2c.'}
+```{r altutilitymodelsOneAlpha, echo = FALSE, warning = FALSE, fig.height=10, fig.width = 9, fig.cap = 'Alternative utility models for 2a, 2b, and 2c.'}
 
 alt_ut_mod <- plot_grid(alt_ut_plots[['2a_abs']]+theme(legend.position = 'none'),
                         alt_ut_plots[['2b_abs']]+theme(legend.position = 'none'),
@@ -8135,7 +8137,7 @@ alt_ut_mod
 # if (save_plots){ggsave(filename='alt_ut_mod.pdf',plot=alt_ut_mod,height=10,width=9,useDingbats=FALSE)}
 ```
 
-```{r altutilitymodelsdiff, echo = FALSE, warning = FALSE, fig.height=10, fig.width = 10, fig.cap = 'Alternative utility model difference from experimental for 2a, 2b, and 2c.'}
+```{r altutilitymodelsdiffOneAlpha, echo = FALSE, warning = FALSE, fig.height=10, fig.width = 10, fig.cap = 'Alternative utility model difference from experimental for 2a, 2b, and 2c.'}
 
 alt_ut_mod_diff <- plot_grid(alt_ut_plots[['2a_diff']]+theme(legend.position = 'none'),
                              alt_ut_plots[['2b_diff']]+theme(legend.position = 'none'),
@@ -8148,7 +8150,7 @@ alt_ut_mod_diff
 # if (save_plots){ggsave(filename='alt_ut_mod.pdf',plot=alt_ut_mod,height=10,width=9,useDingbats=FALSE)}
 ```
 
-```{r SSEaltutilitymodels, echo = FALSE, warning = FALSE, fig.height=6, fig.width = 9, fig.cap = 'SSE Alternative utility models for 2a, 2b, and 2c.'}
+```{r SSEaltutilitymodelsOneAlpha, echo = FALSE, warning = FALSE, fig.height=6, fig.width = 9, fig.cap = 'SSE Alternative utility models for 2a, 2b, and 2c.'}
 
 alt_ut_sse_df = rbind(cbind(rep('2a',12),
                             levels(ut_2a_df$data)[2:13],
@@ -8216,6 +8218,279 @@ ggplot()+
   labs(x = 'Experiment', y = 'SSE - Lower Better', fill = 'Utility\nModel')+
   scale_y_continuous(trans='log10')
 
+ggplot(data=aggregate(sse ~ utmod, alt_ut_sse_df, sum))+
+  geom_bar(aes(x = utmod,
+               y = sse,
+               fill = factor(utmod)),
+           color = 'black',
+           position = 'dodge',
+           stat = 'identity')+
+  geom_text(aes(x = utmod,
+                y = sse,
+                label = utmod,
+                group = utmod),
+            position = position_dodge(width = .9),
+            angle = 90,
+            hjust = -.1)+
+  labs(x = 'Utility Model', y = 'SSE Across 2a,2a,2c - Lower Better', fill = 'Utility\nModel')+
+  scale_y_continuous(trans='log10')+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+# setwd(pref_plots_dir)
+# if (save_plots){ggsave(filename='alt_ut_mod.pdf',plot=alt_ut_mod,height=10,width=9,useDingbats=FALSE)}
+```
+
+
+#### Two Alpha value
+
+```{r, echo = FALSE, warning = FALSE}
+#2a =========================================================
+ut_2a_tab = cbind(c('alpha',unique(prefdata$eff_mass),'SSE'),
+                  c('alpha',round(mvttimes_pref,4),'SSE'),
+                  c(round(ut1_grs_alpha_2a$minimum,3),ut1_grs_dur_2a,sse_fun(ut1_grs_dur_2a,mvttimes_pref)),
+                  c(round(ut2_grs_alpha_2a$minimum,3),ut2_grs_dur_2a,sse_fun(ut2_grs_dur_2a,mvttimes_pref)),
+                  c(round(ut3_grs_alpha_2a$minimum,3),ut3_grs_dur_2a,sse_fun(ut3_grs_dur_2a,mvttimes_pref)),
+                  c(round(ut1_net_alpha_2a$minimum,3),ut1_net_dur_2a,sse_fun(ut1_net_dur_2a,mvttimes_pref)),
+                  c(round(ut2_net_alpha_2a$minimum,3),ut2_net_dur_2a,sse_fun(ut2_net_dur_2a,mvttimes_pref)),
+                  c(round(ut3_net_alpha_2a$minimum,3),ut3_net_dur_2a,sse_fun(ut3_net_dur_2a,mvttimes_pref)),
+                  c(round(ut1_grs_alpha_2a2b$minimum,3),ut1_grs_dur_2a2b[1:4],sse_fun(ut1_grs_dur_2a2b[1:4],mvttimes_pref)),
+                  c(round(ut2_grs_alpha_2a2b$minimum,3),ut2_grs_dur_2a2b[1:4],sse_fun(ut2_grs_dur_2a2b[1:4],mvttimes_pref)),
+                  c(round(ut3_grs_alpha_2a2b$minimum,3),ut3_grs_dur_2a2b[1:4],sse_fun(ut3_grs_dur_2a2b[1:4],mvttimes_pref)),
+                  c(round(ut1_net_alpha_2a2b$minimum,3),ut1_net_dur_2a2b[1:4],sse_fun(ut1_net_dur_2a2b[1:4],mvttimes_pref)),
+                  c(round(ut2_net_alpha_2a2b$minimum,3),ut2_net_dur_2a2b[1:4],sse_fun(ut2_net_dur_2a2b[1:4],mvttimes_pref)),
+                  c(round(ut3_net_alpha_2a2b$minimum,3),ut3_net_dur_2a2b[1:4],sse_fun(ut3_net_dur_2a2b[1:4],mvttimes_pref))
+)
+colnames(ut_2a_tab)<-c('eff_mass','Movement Duration (s)',
+                       'Utility 1 Gross Duration',
+                       'Utility 2 Gross Duration',
+                       'Utility 3 Gross Duration',
+                       'Utility 1 Net Duration',
+                       'Utility 2 Net Duration',
+                       'Utility 3 Net Duration',
+                       'Utility Comb 1 Gross Duration',
+                       'Utility Comb 2 Gross Duration',
+                       'Utility Comb 3 Gross Duration',
+                       'Utility Comb 1 Net Duration',
+                       'Utility Comb 2 Net Duration',
+                       'Utility Comb 3 Net Duration'
+)
+kable(ut_2a_tab, caption = '2a - Movement duration by utility model for experiment 2a.')
+
+masses = unique(prefdata$eff_mass)
+ut_2a_df = as.data.frame(rbind(cbind(masses,rep('Exp',4),mvttimes_pref),
+                               cbind(masses,rep('Ut1Grs',4),ut1_grs_dur_2a),
+                               cbind(masses,rep('Ut2Grs',4),ut2_grs_dur_2a),
+                               cbind(masses,rep('Ut3Grs',4),ut3_grs_dur_2a),
+                               cbind(masses,rep('Ut1Net',4),ut1_net_dur_2a),
+                               cbind(masses,rep('Ut2Net',4),ut2_net_dur_2a),
+                               cbind(masses,rep('Ut3Net',4),ut3_net_dur_2a),
+                               cbind(masses,rep('Utcomb1Grs',4),ut1_grs_dur_2a2b[1:4]),
+                               cbind(masses,rep('Utcomb2Grs',4),ut2_grs_dur_2a2b[1:4]),
+                               cbind(masses,rep('Utcomb3Grs',4),ut3_grs_dur_2a2b[1:4]),
+                               cbind(masses,rep('Utcomb1Net',4),ut1_net_dur_2a2b[1:4]),
+                               cbind(masses,rep('Utcomb2Net',4),ut2_net_dur_2a2b[1:4]),
+                               cbind(masses,rep('Utcomb3Net',4),ut3_net_dur_2a2b[1:4])) %>% `colnames<-`(c('eff_mass','data','movedur')))
+ut_2a_df$movedur = as.numeric(as.character(ut_2a_df$movedur))
+ut_2a_df$data = as.factor(ut_2a_df$data)
+
+alt_ut_plots = list()
+alt_ut_plots[['2a_abs']] <- alt_ut_plot(ut_2a_df,ylabel = '2a Move Dur (s)',diff_or_abs = 'null')
+alt_ut_plots[['2a_diff']] <- alt_ut_plot(ut_2a_df,ylabel = '2a Move Dur Diff (s)',diff_or_abs = 'diff')
+
+#2b =========================================================
+ut_2b_tab = cbind(c('alpha',unique(prefdata$eff_mass),'SSE'),
+                  c('alpha',round(mvttimes_smallt,4),'SSE'),
+                  c(round(ut1_grs_alpha_2b$minimum,3),ut1_grs_dur_2b,sse_fun(ut1_grs_dur_2b,mvttimes_smallt)),
+                  c(round(ut2_grs_alpha_2b$minimum,3),ut2_grs_dur_2b,sse_fun(ut2_grs_dur_2b,mvttimes_smallt)),
+                  c(round(ut3_grs_alpha_2b$minimum,3),ut3_grs_dur_2b,sse_fun(ut3_grs_dur_2b,mvttimes_smallt)),
+                  c(round(ut1_net_alpha_2b$minimum,3),ut1_net_dur_2b,sse_fun(ut1_net_dur_2b,mvttimes_smallt)),
+                  c(round(ut2_net_alpha_2b$minimum,3),ut2_net_dur_2b,sse_fun(ut2_net_dur_2b,mvttimes_smallt)),
+                  c(round(ut3_net_alpha_2b$minimum,3),ut3_net_dur_2b,sse_fun(ut3_net_dur_2b,mvttimes_smallt)),
+                  c(round(ut1_grs_alpha_2a2b$minimum,3),ut1_grs_dur_2a2b[5:8],sse_fun(ut1_grs_dur_2a2b[5:8],mvttimes_smallt)),
+                  c(round(ut2_grs_alpha_2a2b$minimum,3),ut2_grs_dur_2a2b[5:8],sse_fun(ut2_grs_dur_2a2b[5:8],mvttimes_smallt)),
+                  c(round(ut3_grs_alpha_2a2b$minimum,3),ut3_grs_dur_2a2b[5:8],sse_fun(ut3_grs_dur_2a2b[5:8],mvttimes_smallt)),
+                  c(round(ut1_net_alpha_2a2b$minimum,3),ut1_net_dur_2a2b[5:8],sse_fun(ut1_net_dur_2a2b[5:8],mvttimes_smallt)),
+                  c(round(ut2_net_alpha_2a2b$minimum,3),ut2_net_dur_2a2b[5:8],sse_fun(ut2_net_dur_2a2b[5:8],mvttimes_smallt)),
+                  c(round(ut3_net_alpha_2a2b$minimum,3),ut3_net_dur_2a2b[5:8],sse_fun(ut3_net_dur_2a2b[5:8],mvttimes_smallt)))
+colnames(ut_2b_tab)<-c('eff_mass','Movement Duration (s)',
+                       'Utility 1 Gross Duration',
+                       'Utility 2 Gross Duration',
+                       'Utility 3 Gross Duration',
+                       'Utility 1 Net Duration',
+                       'Utility 2 Net Duration',
+                       'Utility 3 Net Duration',
+                       'Utility Comb 1 Gross Duration',
+                       'Utility Comb 2 Gross Duration',
+                       'Utility Comb 3 Gross Duration',
+                       'Utility Comb 1 Net Duration',
+                       'Utility Comb 2 Net Duration',
+                       'Utility Comb 3 Net Duration')
+kable(ut_2b_tab, caption = '2b - Movement duration by utility model for experiment 2b.')
+
+masses = unique(prefdata$eff_mass)
+ut_2b_df = as.data.frame(rbind(cbind(masses,rep('Exp',4),mvttimes_smallt),
+                               cbind(masses,rep('Ut1Grs',4),ut1_grs_dur_2b),
+                               cbind(masses,rep('Ut2Grs',4),ut2_grs_dur_2b),
+                               cbind(masses,rep('Ut3Grs',4),ut3_grs_dur_2b),
+                               cbind(masses,rep('Ut1Net',4),ut1_net_dur_2b),
+                               cbind(masses,rep('Ut2Net',4),ut2_net_dur_2b),
+                               cbind(masses,rep('Ut3Net',4),ut3_net_dur_2b),
+                               cbind(masses,rep('Utcomb1Grs',4),ut1_grs_dur_2a2b[5:8]),
+                               cbind(masses,rep('Utcomb2Grs',4),ut2_grs_dur_2a2b[5:8]),
+                               cbind(masses,rep('Utcomb3Grs',4),ut3_grs_dur_2a2b[5:8]),
+                               cbind(masses,rep('Utcomb1Net',4),ut1_net_dur_2a2b[5:8]),
+                               cbind(masses,rep('Utcomb2Net',4),ut2_net_dur_2a2b[5:8]),
+                               cbind(masses,rep('Utcomb3Net',4),ut3_net_dur_2a2b[5:8])) %>% `colnames<-`(c('eff_mass','data','movedur')))
+ut_2b_df$movedur = as.numeric(as.character(ut_2b_df$movedur))
+ut_2b_df$data = as.factor(ut_2b_df$data)
+
+alt_ut_plots[['2b_abs']]  <- alt_ut_plot(ut_2b_df,ylabel = '2b Move Dur (s)',diff_or_abs = 'null')
+alt_ut_plots[['2b_diff']] <- alt_ut_plot(ut_2b_df,ylabel = '2b Move Dur Diff (s)',diff_or_abs = 'diff')
+
+#2c =========================================================
+ut_2c_tab = cbind(c('alpha',unique(prefdata$eff_mass),'SSE'),
+                  c('alpha',round(mvttimes_pilot,4),'SSE'),
+                  c(round(ut1_grs_alpha_2c$minimum,3),ut1_grs_dur_2c,sse_fun(ut1_grs_dur_2b,mvttimes_pilot)),
+                  c(round(ut2_grs_alpha_2c$minimum,3),ut2_grs_dur_2c,sse_fun(ut2_grs_dur_2b,mvttimes_pilot)),
+                  c(round(ut3_grs_alpha_2c$minimum,3),ut3_grs_dur_2c,sse_fun(ut3_grs_dur_2b,mvttimes_pilot)),
+                  c(round(ut1_net_alpha_2c$minimum,3),ut1_net_dur_2c,sse_fun(ut1_net_dur_2b,mvttimes_pilot)),
+                  c(round(ut2_net_alpha_2c$minimum,3),ut2_net_dur_2c,sse_fun(ut2_net_dur_2b,mvttimes_pilot)),
+                  c(round(ut3_net_alpha_2c$minimum,3),ut3_net_dur_2c,sse_fun(ut3_net_dur_2b,mvttimes_pilot)),
+                  c(round(ut1_grs_alpha_2c$minimum,3),ut1_grs_dur_2c,sse_fun(ut1_grs_dur_2c,mvttimes_pilot)),
+                  c(round(ut2_grs_alpha_2c$minimum,3),ut2_grs_dur_2c,sse_fun(ut2_grs_dur_2c,mvttimes_pilot)),
+                  c(round(ut3_grs_alpha_2c$minimum,3),ut3_grs_dur_2c,sse_fun(ut3_grs_dur_2c,mvttimes_pilot)),
+                  c(round(ut1_net_alpha_2c$minimum,3),ut1_net_dur_2c,sse_fun(ut1_net_dur_2c,mvttimes_pilot)),
+                  c(round(ut2_net_alpha_2c$minimum,3),ut2_net_dur_2c,sse_fun(ut2_net_dur_2c,mvttimes_pilot)),
+                  c(round(ut3_net_alpha_2c$minimum,3),ut3_net_dur_2c,sse_fun(ut3_net_dur_2c,mvttimes_pilot)))
+colnames(ut_2c_tab)<-c('eff_mass','Movement Duration (s)',
+                       'Utility 1 Gross Duration',
+                       'Utility 2 Gross Duration',
+                       'Utility 3 Gross Duration',
+                       'Utility 1 Net Duration',
+                       'Utility 2 Net Duration',
+                       'Utility 3 Net Duration',
+                       'Utility Comb 1 Gross Duration',
+                       'Utility Comb 2 Gross Duration',
+                       'Utility Comb 3 Gross Duration',
+                       'Utility Comb 1 Net Duration',
+                       'Utility Comb 2 Net Duration',
+                       'Utility Comb 3 Net Duration')
+kable(ut_2c_tab, caption = '2c - Movement duration by utility model for experiment 2c.')
+
+masses = unique(prefdata$eff_mass)
+ut_2c_df = as.data.frame(rbind(cbind(masses,rep('Exp',4),mvttimes_pilot),
+                               cbind(masses,rep('Ut1Grs',4),ut1_grs_dur_2c),
+                               cbind(masses,rep('Ut2Grs',4),ut2_grs_dur_2c),
+                               cbind(masses,rep('Ut3Grs',4),ut3_grs_dur_2c),
+                               cbind(masses,rep('Ut1Net',4),ut1_net_dur_2c),
+                               cbind(masses,rep('Ut2Net',4),ut2_net_dur_2c),
+                               cbind(masses,rep('Ut3Net',4),ut3_net_dur_2c),
+                               cbind(masses,rep('Utcomb1Grs',4),ut1_grs_dur_2c),
+                               cbind(masses,rep('Utcomb2Grs',4),ut2_grs_dur_2c),
+                               cbind(masses,rep('Utcomb3Grs',4),ut3_grs_dur_2c),
+                               cbind(masses,rep('Utcomb1Net',4),ut1_net_dur_2c),
+                               cbind(masses,rep('Utcomb2Net',4),ut2_net_dur_2c),
+                               cbind(masses,rep('Utcomb3Net',4),ut3_net_dur_2c)) %>% `colnames<-`(c('eff_mass','data','movedur')))
+ut_2c_df$movedur = as.numeric(as.character(ut_2c_df$movedur))
+ut_2c_df$data = as.factor(ut_2c_df$data)
+
+alt_ut_plots[['2c_abs']]  <- alt_ut_plot(ut_2c_df,ylabel = '2c Move Dur (s)',diff_or_abs = 'null')
+alt_ut_plots[['2c_diff']] <- alt_ut_plot(ut_2c_df,ylabel = '2c Move Dur Diff (s)',diff_or_abs = 'diff')
+
+```
+
+```{r altutilitymodelsTwoAlpha, echo = FALSE, warning = FALSE, fig.height=10, fig.width = 9, fig.cap = 'Alternative utility models for 2a, 2b, and 2c.'}
+
+alt_ut_mod <- plot_grid(alt_ut_plots[['2a_abs']]+theme(legend.position = 'none'),
+                        alt_ut_plots[['2b_abs']]+theme(legend.position = 'none'),
+                        alt_ut_plots[['2c_abs']]+theme(legend.position = 'none'),
+                        get_legend(alt_ut_plots[['2a_abs']]),
+                        ncol = 2)
+alt_ut_mod
+
+# setwd(pref_plots_dir)
+# if (save_plots){ggsave(filename='alt_ut_mod.pdf',plot=alt_ut_mod,height=10,width=9,useDingbats=FALSE)}
+```
+
+```{r altutilitymodelsdiffTwoAlpha, echo = FALSE, warning = FALSE, fig.height=10, fig.width = 10, fig.cap = 'Alternative utility model difference from experimental for 2a, 2b, and 2c.'}
+
+alt_ut_mod_diff <- plot_grid(alt_ut_plots[['2a_diff']]+theme(legend.position = 'none'),
+                             alt_ut_plots[['2b_diff']]+theme(legend.position = 'none'),
+                             alt_ut_plots[['2c_diff']]+theme(legend.position = 'none'),
+                             get_legend(alt_ut_plots[['2a_diff']]),
+                        ncol = 2)
+alt_ut_mod_diff
+
+# setwd(pref_plots_dir)
+# if (save_plots){ggsave(filename='alt_ut_mod.pdf',plot=alt_ut_mod,height=10,width=9,useDingbats=FALSE)}
+```
+
+```{r SSEaltutilitymodelsTwoAlpha, echo = FALSE, warning = FALSE, fig.height=6, fig.width = 9, fig.cap = 'SSE Alternative utility models for 2a, 2b, and 2c.'}
+
+alt_ut_sse_df = rbind(cbind(rep('2a',12),
+                            levels(ut_2a_df$data)[2:13],
+                            c(sse_fun(ut1_grs_dur_2a,mvttimes_pref),
+                              sse_fun(ut2_grs_dur_2a,mvttimes_pref),
+                              sse_fun(ut3_grs_dur_2a,mvttimes_pref),
+                              sse_fun(ut1_net_dur_2a,mvttimes_pref),
+                              sse_fun(ut2_net_dur_2a,mvttimes_pref),
+                              sse_fun(ut3_net_dur_2a,mvttimes_pref),
+                              sse_fun(ut1_grs_dur_2a2b[1:4],mvttimes_pref),
+                              sse_fun(ut2_grs_dur_2a2b[1:4],mvttimes_pref),
+                              sse_fun(ut3_grs_dur_2a2b[1:4],mvttimes_pref),
+                              sse_fun(ut1_net_dur_2a2b[1:4],mvttimes_pref),
+                              sse_fun(ut2_net_dur_2a2b[1:4],mvttimes_pref),
+                              sse_fun(ut3_net_dur_2a2b[1:4],mvttimes_pref))),
+                      cbind(rep('2b',12),
+                            levels(ut_2b_df$data)[2:13],
+                            c(sse_fun(ut1_grs_dur_2b,mvttimes_smallt),
+                              sse_fun(ut2_grs_dur_2b,mvttimes_smallt),
+                              sse_fun(ut3_grs_dur_2b,mvttimes_smallt),
+                              sse_fun(ut1_net_dur_2b,mvttimes_smallt),
+                              sse_fun(ut2_net_dur_2b,mvttimes_smallt),
+                              sse_fun(ut3_net_dur_2b,mvttimes_smallt),
+                              sse_fun(ut1_grs_dur_2a2b[5:8],mvttimes_smallt),
+                              sse_fun(ut2_grs_dur_2a2b[5:8],mvttimes_smallt),
+                              sse_fun(ut3_grs_dur_2a2b[5:8],mvttimes_smallt),
+                              sse_fun(ut1_net_dur_2a2b[5:8],mvttimes_smallt),
+                              sse_fun(ut2_net_dur_2a2b[5:8],mvttimes_smallt),
+                              sse_fun(ut3_net_dur_2a2b[5:8],mvttimes_smallt))),
+                      cbind(rep('2c',12),
+                            levels(ut_2a_df$data)[2:13],
+                            c(sse_fun(ut1_grs_dur_2c,mvttimes_pilot),
+                              sse_fun(ut2_grs_dur_2c,mvttimes_pilot),
+                              sse_fun(ut3_grs_dur_2c,mvttimes_pilot),
+                              sse_fun(ut1_net_dur_2c,mvttimes_pilot),
+                              sse_fun(ut2_net_dur_2c,mvttimes_pilot),
+                              sse_fun(ut3_net_dur_2c,mvttimes_pilot),
+                              sse_fun(ut1_grs_dur_2a2b2c,mvttimes_pilot),
+                              sse_fun(ut2_grs_dur_2a2b2c,mvttimes_pilot),
+                              sse_fun(ut3_grs_dur_2a2b2c,mvttimes_pilot),
+                              sse_fun(ut1_net_dur_2a2b2c,mvttimes_pilot),
+                              sse_fun(ut2_net_dur_2a2b2c,mvttimes_pilot),
+                              sse_fun(ut3_net_dur_2a2b2c,mvttimes_pilot))))
+colnames(alt_ut_sse_df) <- c('exp','utmod','sse')
+alt_ut_sse_df = as.data.frame(alt_ut_sse_df)
+alt_ut_sse_df$sse = as.numeric(as.character(alt_ut_sse_df$sse))
+# alt_ut_sse_df$sse = abs(log(as.numeric(as.character(alt_ut_sse_df$sse))))
+
+ggplot()+
+  geom_bar(data=alt_ut_sse_df,
+           aes(x = exp,
+               y = sse,
+               fill = factor(utmod)),
+           color = 'black',
+           position = 'dodge',
+           stat = 'identity')+
+  geom_text(data=alt_ut_sse_df,
+            aes(x = exp,
+                y = sse,
+                label = utmod,
+                group = utmod),
+            position = position_dodge(width = .9),
+            angle = 90,
+            hjust = -.1)+
+  labs(x = 'Experiment', y = 'SSE - Lower Better', fill = 'Utility\nModel')+
+  scale_y_continuous(trans='log10')
 
 ggplot(data=aggregate(sse ~ utmod, alt_ut_sse_df, sum))+
   geom_bar(aes(x = utmod,
@@ -8239,6 +8514,9 @@ ggplot(data=aggregate(sse ~ utmod, alt_ut_sse_df, sum))+
 ```
 
 ### Specific alternative models
+
+#### 1 alpha value
+This next plot is showing the total SSE when fitting one alpha to 2a/2b, then another alpha to 2c. 
 
 ```{r, echo = FALSE, warning = FALSE}
 
@@ -8283,6 +8561,7 @@ alt_ut_sse_spec_df = rbind(cbind(rep('2a',6),
                               sse_fun(torque_dur_2c,mvttimes_pilot))))
 
 
+
 colnames(alt_ut_sse_spec_df) <- c('exp','utmod','sse')
 alt_ut_sse_spec_df = as.data.frame(alt_ut_sse_spec_df)
 alt_ut_sse_spec_df$sse = as.numeric(as.character(alt_ut_sse_spec_df$sse))
@@ -8306,6 +8585,77 @@ ggplot(data=aggregate(sse ~ utmod, alt_ut_sse_spec_df, sum))+
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
 
 ```
+
+
+#### 2 alpha values
+This next plot is showing the total SSE when fitting one alpha to 2a/2b, then another alpha to 2c. 
+
+```{r, echo = FALSE, warning = FALSE}
+
+alt_ut_sse_spec_df = rbind(cbind(rep('2a',6),
+                            c('Ut1combgrs',
+                              'Ut1combnet',
+                              'Ut2combgrs',
+                              'Gross Cost',
+                              'Net Cost',
+                              'Torque Ut'),
+                            c(sse_fun(ut1_grs_dur_2a2b[1:4],mvttimes_pref),
+                              sse_fun(ut1_net_dur_2a2b[1:4],mvttimes_pref),
+                              sse_fun(ut2_grs_dur_2a2b[1:4],mvttimes_pref),
+                              sse_fun(met_gross_dur,mvttimes_pref),
+                              sse_fun(met_net_dur,mvttimes_pref),
+                              sse_fun(torque_dur_2a,mvttimes_pref))),
+                      cbind(rep('2b',6),
+                            c('Ut1combgrs',
+                              'Ut1combnet',
+                              'Ut2combgrs',
+                              'Gross Cost',
+                              'Net Cost',
+                              'Torque Ut'),
+                            c(sse_fun(ut1_grs_dur_2a2b[5:8],mvttimes_smallt),
+                              sse_fun(ut1_net_dur_2a2b[5:8],mvttimes_smallt),
+                              sse_fun(ut2_grs_dur_2a2b[5:8],mvttimes_smallt),
+                              sse_fun(met_gross_dur,mvttimes_smallt),
+                              sse_fun(met_net_dur,mvttimes_smallt),
+                              sse_fun(torque_dur_2b,mvttimes_smallt))),
+                      cbind(rep('2c',6),
+                            c('Ut1combgrs',
+                              'Ut1combnet',
+                              'Ut2combgrs',
+                              'Gross Cost',
+                              'Net Cost',
+                              'Torque Ut'),
+                            c(sse_fun(ut1_grs_dur_2c,mvttimes_pilot),
+                              sse_fun(ut1_net_dur_2c,mvttimes_pilot),
+                              sse_fun(ut2_grs_dur_2c,mvttimes_pilot),
+                              sse_fun(met_gross_dur,mvttimes_pilot),
+                              sse_fun(met_net_dur,mvttimes_pilot),
+                              sse_fun(torque_dur_2c,mvttimes_pilot))))
+
+colnames(alt_ut_sse_spec_df) <- c('exp','utmod','sse')
+alt_ut_sse_spec_df = as.data.frame(alt_ut_sse_spec_df)
+alt_ut_sse_spec_df$sse = as.numeric(as.character(alt_ut_sse_spec_df$sse))
+
+ggplot(data=aggregate(sse ~ utmod, alt_ut_sse_spec_df, sum))+
+  geom_bar(aes(x = utmod,
+               y = sse,
+               fill = factor(utmod)),
+           color = 'black',
+           position = 'dodge',
+           stat = 'identity')+
+  geom_text(aes(x = utmod,
+                y = sse,
+                label = utmod,
+                group = utmod),
+            position = position_dodge(width = .9),
+            angle = 90,
+            hjust = -.1)+
+  labs(x = 'Utility Model', y = 'SSE Across 2a,2a,2c - Lower Better', fill = 'Utility\nModel')+
+  scale_y_continuous(trans='log10')+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+```
+
 
 ## 2a Durations
 ### Model Plotting Function
