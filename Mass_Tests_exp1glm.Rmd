@@ -8238,6 +8238,74 @@ ggplot(data=aggregate(sse ~ utmod, alt_ut_sse_df, sum))+
 # if (save_plots){ggsave(filename='alt_ut_mod.pdf',plot=alt_ut_mod,height=10,width=9,useDingbats=FALSE)}
 ```
 
+### Specific alternative models
+
+```{r, echo = FALSE, warning = FALSE}
+
+alt_ut_sse_spec_df = rbind(cbind(rep('2a',6),
+                            c('Ut1combgrs',
+                              'Ut1combnet',
+                              'Ut2combgrs',
+                              'Gross Cost',
+                              'Net Cost',
+                              'Torque Ut'),
+                            c(sse_fun(ut1_grs_dur_2a2b[1:4],mvttimes_pref),
+                              sse_fun(ut1_net_dur_2a2b[1:4],mvttimes_pref),
+                              sse_fun(ut2_grs_dur_2a2b[1:4],mvttimes_pref),
+                              sse_fun(met_gross_dur,mvttimes_pref),
+                              sse_fun(met_net_dur,mvttimes_pref),
+                              sse_fun(torque_dur_2a,mvttimes_pref))),
+                      cbind(rep('2b',6),
+                            c('Ut1combgrs',
+                              'Ut1combnet',
+                              'Ut2combgrs',
+                              'Gross Cost',
+                              'Net Cost',
+                              'Torque Ut'),
+                            c(sse_fun(ut1_grs_dur_2a2b[5:8],mvttimes_smallt),
+                              sse_fun(ut1_net_dur_2a2b[5:8],mvttimes_smallt),
+                              sse_fun(ut2_grs_dur_2a2b[5:8],mvttimes_smallt),
+                              sse_fun(met_gross_dur,mvttimes_smallt),
+                              sse_fun(met_net_dur,mvttimes_smallt),
+                              sse_fun(torque_dur_2b,mvttimes_smallt))),
+                      cbind(rep('2c',6),
+                            c('Ut1combgrs',
+                              'Ut1combnet',
+                              'Ut2combgrs',
+                              'Gross Cost',
+                              'Net Cost',
+                              'Torque Ut'),
+                            c(sse_fun(ut1_grs_dur_2a2b2c,mvttimes_pilot),
+                              sse_fun(ut1_net_dur_2a2b2c,mvttimes_pilot),
+                              sse_fun(ut2_grs_dur_2a2b2c,mvttimes_pilot),
+                              sse_fun(met_gross_dur,mvttimes_pilot),
+                              sse_fun(met_net_dur,mvttimes_pilot),
+                              sse_fun(torque_dur_2c,mvttimes_pilot))))
+
+
+colnames(alt_ut_sse_spec_df) <- c('exp','utmod','sse')
+alt_ut_sse_spec_df = as.data.frame(alt_ut_sse_spec_df)
+alt_ut_sse_spec_df$sse = as.numeric(as.character(alt_ut_sse_spec_df$sse))
+
+ggplot(data=aggregate(sse ~ utmod, alt_ut_sse_spec_df, sum))+
+  geom_bar(aes(x = utmod,
+               y = sse,
+               fill = factor(utmod)),
+           color = 'black',
+           position = 'dodge',
+           stat = 'identity')+
+  geom_text(aes(x = utmod,
+                y = sse,
+                label = utmod,
+                group = utmod),
+            position = position_dodge(width = .9),
+            angle = 90,
+            hjust = -.1)+
+  labs(x = 'Utility Model', y = 'SSE Across 2a,2a,2c - Lower Better', fill = 'Utility\nModel')+
+  scale_y_continuous(trans='log10')+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+```
 
 ## 2a Durations
 ### Model Plotting Function
