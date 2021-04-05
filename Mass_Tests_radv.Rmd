@@ -3487,7 +3487,7 @@ pref_grouped
 
 setwd(pref_plots_dir)
 if (save_plots){
-  ggsave('Pref_results_grouped.pdf',plot=pref_grouped,width=10/.9,height=10, useDingbats = FALSE)
+  ggsave('Pref_results_grouped.pdf',plot=pref_grouped,width=9/.9,height=9, useDingbats = FALSE)
 }
 
 ```
@@ -6785,6 +6785,97 @@ ut3_grs_dur_2c = as.numeric(fun_optim_prx_ut3(
   rxtimes    = rxtimes_pilot,
   opt_or_dur = 'duration'))
 
+
+#================  Utility4 and P(alpha) ==========================
+
+fun_optim_prx_logit_ut4 <- function(alpha,masses,mvttimes,p_alpha,rxtimes,opt_or_dur){
+  err=0
+  dur = rep(0,length(mvttimes))
+  for (k in 1:length(mvttimes)){
+    t = mvttimes[k]
+    m = masses[k]
+    p = inv.logit(predict(p_alpha,data.frame(movedur=t,eff_mass=m)))
+    rt = rxtimes[k]
+    times = seq(0.1,2,0.001)
+    ut = rep(0,length(times))
+    probs = inv.logit(predict(p_alpha,data.frame(movedur=times,eff_mass=m)))
+    count = 1
+    for (t in times){
+      ut[count] = (alpha*probs[count])/(a0*rt+(a*t+b*(m^c)/(t^(d-1))))
+      count = count+1
+    }
+    dur[k] = times[which.max(ut)]
+    # print(max(ut))
+  }
+  err = (mvttimes-dur)^2
+  if (opt_or_dur == 'optimize'){
+    return(sum(err))
+  } else if (opt_or_dur == 'duration'){
+    return(dur)
+  }
+}
+
+## Gross Utility
+a0 = mean(mpdata$metpowerrest)
+a0_se = sd(mpdata$metpowerrest)/sqrt(8)
+a=coef(MPGross_model)[1]
+b=coef(MPGross_model)[2]*100
+c=coef(MPGross_model)[3]
+d=coef(MPGross_model)[4]
+
+# Using logit function
+# ut4_grs_alpha_2a = optimize(fun_optim_prx_logit_ut4,
+#                             masses     = masses,
+#                             mvttimes   = mvttimes_pref,
+#                             p_alpha    = pref_glm_use,
+#                             rxtimes    = rxtimes_pref,
+#                             opt_or_dur = 'optimize',
+#                             interval   = c(-100,1000))
+ut4_grs_alpha_2a = 1
+
+ut4_grs_dur_2a = as.numeric(fun_optim_prx_logit_ut4(
+  alpha      = ut4_grs_alpha_2a,
+  masses     = masses,
+  mvttimes   = mvttimes_pref,
+  p_alpha    = pref_glm_use,
+  opt_or_dur = 'duration',
+  rxtimes    = rxtimes_pref))
+
+# ut4_grs_alpha_2b = optimize(fun_optim_prx_logit_ut4,
+#                             masses     = masses,
+#                             mvttimes   = mvttimes_smallt,
+#                             p_alpha    = smallt_glm_use,
+#                             rxtimes    = rxtimes_smallt,
+#                             opt_or_dur = 'optimize',
+#                             interval   = c(-100,1000))
+
+ut4_grs_alpha_2b = 1
+
+ut4_grs_dur_2b = as.numeric(fun_optim_prx_logit_ut4(
+  alpha      = ut4_grs_alpha_2b, #changing between alpha_pref and alpha_smallt_gross
+  masses     = masses,
+  mvttimes   = mvttimes_smallt,
+  p_alpha    = smallt_glm_use,
+  rxtimes    = rxtimes_smallt,
+  opt_or_dur = 'duration'))
+
+# ut4_grs_alpha_2c = optimize(fun_optim_prx_ut4,
+#                             masses     = masses,
+#                             mvttimes   = mvttimes_pilot,
+#                             p_alpha    = p_alpha_pilot_gross,
+#                             rxtimes    = rxtimes_pilot,
+#                             opt_or_dur = 'optimize',
+#                             interval   = c(-100,100))
+
+ut4_grs_alpha_2c = 1
+
+ut4_grs_dur_2c = as.numeric(fun_optim_prx_ut4(
+  alpha      = ut4_grs_alpha_2c,
+  masses     = masses,
+  mvttimes   = mvttimes_pilot,
+  p_alpha    = p_alpha_pilot_gross,
+  rxtimes    = rxtimes_pilot,
+  opt_or_dur = 'duration'))
 #================  Utility2net and P(alpha) ==========================
 
 ## Net Utility
@@ -6904,6 +6995,68 @@ ut3_net_dur_2c = as.numeric(fun_optim_prx_ut3(
   opt_or_dur = 'duration'))
 
 
+#================  Utility4net and P(alpha) ==========================
+## Net Utility
+a0 = mean(mpdata$metpowerrest)
+a0_se = sd(mpdata$metpowerrest)/sqrt(8)
+a=coef(MPNet_model)[1]
+b=coef(MPNet_model)[2]
+c=coef(MPNet_model)[3]
+d=coef(MPNet_model)[4]
+
+# Using logit function
+# ut4_net_alpha_2a = optimize(fun_optim_prx_logit_ut4,
+#                             masses     = masses,
+#                             mvttimes   = mvttimes_pref,
+#                             p_alpha    = pref_glm_use,
+#                             rxtimes    = rxtimes_pref,
+#                             opt_or_dur = 'optimize',
+#                             interval   = c(-100,1000))
+ut4_net_alpha_2a = 1
+
+ut4_net_dur_2a = as.numeric(fun_optim_prx_logit_ut4(
+  alpha      = ut4_net_alpha_2a,
+  masses     = masses,
+  mvttimes   = mvttimes_pref,
+  p_alpha    = pref_glm_use,
+  opt_or_dur = 'duration',
+  rxtimes    = rxtimes_pref))
+
+# ut4_net_alpha_2b = optimize(fun_optim_prx_logit_ut4,
+#                             masses     = masses,
+#                             mvttimes   = mvttimes_smallt,
+#                             p_alpha    = smallt_glm_use,
+#                             rxtimes    = rxtimes_smallt,
+#                             opt_or_dur = 'optimize',
+#                             interval   = c(-100,1000))
+
+ut4_net_alpha_2b = 1
+
+ut4_net_dur_2b = as.numeric(fun_optim_prx_logit_ut4(
+  alpha      = ut4_net_alpha_2b, #changing between alpha_pref and alpha_smallt_gross
+  masses     = masses,
+  mvttimes   = mvttimes_smallt,
+  p_alpha    = smallt_glm_use,
+  rxtimes    = rxtimes_smallt,
+  opt_or_dur = 'duration'))
+
+# ut4_net_alpha_2c = optimize(fun_optim_prx_ut4,
+#                             masses     = masses,
+#                             mvttimes   = mvttimes_pilot,
+#                             p_alpha    = p_alpha_pilot_gross,
+#                             rxtimes    = rxtimes_pilot,
+#                             opt_or_dur = 'optimize',
+#                             interval   = c(-100,100))
+
+ut4_net_alpha_2c = 1
+
+ut4_net_dur_2c = as.numeric(fun_optim_prx_ut4(
+  alpha      = ut4_net_alpha_2c,
+  masses     = masses,
+  mvttimes   = mvttimes_pilot,
+  p_alpha    = p_alpha_pilot_gross,
+  rxtimes    = rxtimes_pilot,
+  opt_or_dur = 'duration'))
 # Reset to gross ===================
 a0 = mean(mpdata$metpowerrest)
 a0_se = sd(mpdata$metpowerrest)/sqrt(8)
@@ -7146,7 +7299,7 @@ p_alpha_plot <- ggplot()+
 # setwd(pref_plots_dir)
 # if (save_plots){ggsave(filename='p_alpha_plot.pdf',plot=p_alpha_plot,height=4,width=6,useDingbats=FALSE)}
 
-## Using ut2/ut3 ===========================
+## Using ut2/ut3/ut4 ===========================
 
 fun_optim_prx_comb_ut2 <- function(alpha,masses,mvttimes,p_alpha,rxtimes,opt_or_dur){
   err=0
@@ -7320,7 +7473,41 @@ ut3_grs_dur_2a2b2c = as.numeric(fun_optim_prx_ut3(
   rxtimes  = rxtimes_pilot,
   opt_or_dur = 'duration'))
 
-## Using ut4 ===========================
+fun_optim_prx_logit_comb_ut4 <- function(alpha,masses,mvttimes,glm1,glm2,rxtimes,opt_or_dur){
+  err=0
+  dur = rep(0,length(mvttimes))
+  for (k in 1:length(mvttimes)){
+    t = mvttimes[k]
+    m = masses[k]
+    rt = rxtimes[k]
+    count = 1
+    times = seq(0.1,2,0.001)
+    ut = rep(0,length(times))
+    if (k<5){
+      probs = inv.logit(predict(glm1,data.frame(movedur=times,eff_mass=m)))
+    } else {
+      probs = inv.logit(predict(glm2,data.frame(movedur=times,eff_mass=m)))
+    }
+    t_count = 0
+    for (t in times){
+      t_count = t_count+1
+      ut[count] = (alpha*probs[t_count])/(a0*rt+(a*t+b*(m^c)/(t^(d-1))))
+      count = count+1
+    }
+    dur[k] = times[which.max(ut)]
+  }
+  err = (mvttimes-dur)^2
+  if (opt_or_dur == 'optimize'){
+    return(sum(err))
+  } else if (opt_or_dur == 'duration'){
+    return(dur)
+  }
+}
+
+ut4_grs_dur_2a2b = c(ut4_grs_dur_2a,ut4_grs_dur_2b)
+ut4_grs_dur_2a2b2c = c(ut4_grs_dur_2a,ut4_grs_dur_2b,ut4_grs_dur_2c)
+
+## Using ut2 net ===========================
 
 ## Net Utility
 a0 = mean(mpdata$metpowerrest)
@@ -7356,7 +7543,7 @@ ut2_net_dur_2a2b2c = as.numeric(fun_optim_prx_ut2(
   rxtimes  = rxtimes_pilot,
   opt_or_dur = 'duration'))
 
-## Using ut5 ===========================
+## Using ut3 net ===========================
 
 ## Net Utility
 a0 = mean(mpdata$metpowerrest)
@@ -7391,6 +7578,11 @@ ut3_net_dur_2a2b2c = as.numeric(fun_optim_prx_ut3(
   rxtimes  = rxtimes_pilot,
   opt_or_dur = 'duration'))
 
+
+## Using ut4 net
+
+ut4_net_dur_2a2b = c(ut4_net_dur_2a,ut4_net_dur_2b)
+ut4_net_dur_2a2b2c = c(ut4_net_dur_2a,ut4_net_dur_2b,ut4_net_dur_2c)
 ## Reset Gross ==============
 a=coef(MPGross_model)[1]
 b=coef(MPGross_model)[2]*100
@@ -8041,6 +8233,9 @@ $$J = \alpha P(R|m,T_m) -\left( a_0 T_r + a T_m + \frac{bm^c}{T_m^d} \right)$$
 
 Utility 3:
 $$J = \frac{\alpha P(R|m,T_m)}{T_r+T_m} -\left( a_0 T_r + a T_m + \frac{bm^c}{T_m^d} \right)$$
+
+Utility 4:
+$$J = \frac{P(R|m,T_m)}{a_0 T_r + a T_m + \frac{bm^c}{T_m^d}}$$
 
 <!-- Utility 4 is utility 2 with net rate: -->
 <!-- $$J = \alpha P(R|m,T_m) -\left( a_0 T_r + a_{net} T_m + \frac{b_{net}m^{c_{net}}}{T_m^{d_{net}}} \right)$$ -->
