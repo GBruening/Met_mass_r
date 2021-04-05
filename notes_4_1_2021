@@ -1,0 +1,40 @@
+
+Results:
+Pref results
+	Same y-axis
+	cut off at 0 velocity
+	
+
+Efficiency - Reward*P(R)/Effort
+Need P(R) Cause alpha woulnd't change then.
+Use gross as main, then try with net rate
+
+
+Get the movement durations for predictions
+Add these back in.
+	Utility, additive, gross cost - make table of absolute numbers and self-select speed
+
+
+
+Dicsussion:
+Probability function
+	First to predict duration including speed accuracy
+	Traumerhizer studies - Variability at fixed distances
+	Megans (JNP) studies - optimal distnace not duration
+		where you should reach and how far
+	but doesn't say how fast
+
+LImitions of other models
+	additive, metabolic
+	additive - No effect of reward (Alpha)
+	metabolic - only one experiment, target sizes/reward
+	efficney - Breaks with accuracy
+
+	Metabolic minima isn't needed
+	Add metabolic cost is good at changes
+	Just because met opt doesn't predict, doesn't mean energy is not important.
+
+Offset?
+	Na, don't do it
+
+https://www.biorxiv.org/content/10.1101/2020.12.28.424067v1	
